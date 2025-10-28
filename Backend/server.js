@@ -13,6 +13,8 @@ const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const testRoutes = require('./routes/testRoutes');
+const loanSchemeRoutes = require('./routes/loanSchemeRoutes');
+const adminLoanSchemeRoutes = require('./routes/loanSchemeRoutes').adminLoanSchemeRoutes;
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -52,7 +54,9 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/loans', loanSchemeRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin', adminLoanSchemeRoutes);
 app.use('/api/test', testRoutes);
 
 // Root endpoint
@@ -63,7 +67,9 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/health',
       auth: '/api/auth',
-      users: '/api/users'
+      users: '/api/users',
+      loans: '/api/loans',
+      admin: '/api/admin'
     }
   });
 });
