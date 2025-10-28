@@ -10,7 +10,7 @@ const router = express.Router();
 const testSMS = async (req, res) => {
   try {
     const result = await testSMSConnection();
-    
+
     res.status(200).json({
       success: true,
       message: 'SMS connection test completed',
@@ -31,7 +31,7 @@ const testSMS = async (req, res) => {
 const getSMSBalanceInfo = async (req, res) => {
   try {
     const balance = await getSMSBalance();
-    
+
     res.status(200).json({
       success: true,
       message: 'SMS balance retrieved successfully',
@@ -52,17 +52,17 @@ const getSMSBalanceInfo = async (req, res) => {
 const sendTestOTP = async (req, res) => {
   try {
     const { phone } = req.body;
-    
+
     if (!phone) {
       return res.status(400).json({
         success: false,
         message: 'Phone number is required'
       });
     }
-    
+
     const testOTP = '123456';
     const result = await sendOTP(phone, testOTP);
-    
+
     res.status(200).json({
       success: true,
       message: 'Test OTP sent successfully',

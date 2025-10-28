@@ -102,5 +102,26 @@ export const authAPI = {
   },
 };
 
-export default { authAPI };
+// Admin API calls
+export const adminAPI = {
+  // Login admin
+  login: async (credentials) => {
+    return apiCall('/admin/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  },
+
+  // Get current admin
+  getMe: async (token) => {
+    return apiCall('/admin/me', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+};
+
+export default { authAPI, adminAPI };
 

@@ -11,6 +11,7 @@ dotenv.config();
 // Import routes
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const testRoutes = require('./routes/testRoutes');
 
 // Import middleware
@@ -51,6 +52,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/test', testRoutes);
 
 // Root endpoint

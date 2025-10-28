@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { adminAPI } from '../../utils/api';
 
 const AdminLoginPage = () => {
     const [formData, setFormData] = useState({
@@ -16,9 +17,9 @@ const AdminLoginPage = () => {
 
     // Check if already logged in as admin
     useEffect(() => {
-        const isAdmin = localStorage.getItem('userType') === 'admin' && 
-                       localStorage.getItem('isAdmin') === 'true';
-        
+        const isAdmin = localStorage.getItem('userType') === 'admin' &&
+            localStorage.getItem('isAdmin') === 'true';
+
         if (isAdmin) {
             // Redirect to admin dashboard or intended page
             const from = location.state?.from?.pathname || '/admin/dashboard';
@@ -34,31 +35,38 @@ const AdminLoginPage = () => {
         setError(''); // Clear error when user types
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
 
-        // Simulate admin login validation
-        setTimeout(() => {
-            // Simple admin credentials check (in production, this would be API call)
-            if (formData.email === 'admin@createbharat.com' && formData.password === 'admin123') {
-                // Set admin authentication state
+        try {
+            // Call admin login API
+            const response = await adminAPI.login({
+                email: formData.email,
+                password: formData.password
+            });
+
+            if (response.success) {
+                // Store admin data
                 localStorage.setItem('userType', 'admin');
                 localStorage.setItem('isAdmin', 'true');
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('adminEmail', formData.email);
+                localStorage.setItem('adminToken', response.data.token);
+                localStorage.setItem('adminData', JSON.stringify(response.data.admin));
 
                 setIsLoading(false);
-                
+
                 // Redirect to admin dashboard or intended page
                 const from = location.state?.from?.pathname || '/admin/dashboard';
                 navigate(from, { replace: true });
-            } else {
-                setError('Invalid admin credentials. Please try again.');
-                setIsLoading(false);
             }
-        }, 1000);
+        } catch (error) {
+            console.error('Admin login error:', error);
+            setError(error.message || 'Invalid admin credentials. Please try again.');
+            setIsLoading(false);
+        }
     };
 
     return (
