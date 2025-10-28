@@ -1,7 +1,6 @@
 import React from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import logo from '../../assets/logo.png';
 
 // Icons
 const MenuIcon = () => (
@@ -502,7 +501,7 @@ const LegalServiceDetailPage = () => {
         transition={{ duration: 0.5 }}
         className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm"
       >
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-start px-4 py-3">
           <motion.button 
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -511,18 +510,6 @@ const LegalServiceDetailPage = () => {
           >
             <ArrowLeftIcon />
           </motion.button>
-          
-          <Link to="/" className="flex items-center">
-            <motion.img 
-              whileHover={{ scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 300 }}
-              src={logo} 
-              alt="CreateBharat Logo" 
-              className="h-12 w-auto object-contain" 
-            />
-          </Link>
-          
-          <div className="w-10"></div>
         </div>
       </motion.header>
 

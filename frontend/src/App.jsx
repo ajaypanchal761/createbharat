@@ -47,7 +47,7 @@ import ProfilePage from './pages/Profile/ProfilePage';
 import CompanyInternshipsPage from './pages/Company/CompanyInternshipsPage';
 import CompanyLoginPage from './pages/Company/CompanyLoginPage';
 import AppDevelopmentPage from './pages/AppDevelopment/AppDevelopmentPage';
-import MobileFirstLoginPage from './pages/MobileFirstLoginPage';
+import LoginPage from './pages/Auth/LoginPage';
 
 function App() {
   return (
@@ -94,7 +94,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/terms" element={<TermsPage />} />
-          <Route path="/mobile-login" element={<MobileFirstLoginPage />} />
+          <Route path="/mobile-login" element={<LoginPage />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />

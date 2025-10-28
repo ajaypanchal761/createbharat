@@ -147,13 +147,13 @@ const AppliedInternshipsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 overflow-y-auto">
       {/* Header */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="flex items-center justify-between px-4 py-4 bg-white/90 backdrop-blur-lg border-b border-gradient-to-r from-blue-200 to-purple-200 shadow-lg"
+        className="flex items-center justify-between px-4 py-4 bg-white/90 backdrop-blur-lg border-b border-gradient-to-r from-blue-200 to-purple-200 shadow-lg sticky top-0 z-40"
       >
         <motion.div 
           whileHover={{ scale: 1.05 }}
@@ -182,7 +182,7 @@ const AppliedInternshipsPage = () => {
       </motion.header>
 
       {/* Main Content */}
-      <div className="px-4 pb-20 pt-6">
+      <div className="px-4 pb-24 pt-6">
         <motion.div
           initial="hidden"
           animate="visible"

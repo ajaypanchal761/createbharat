@@ -22,10 +22,9 @@ const AdminLoansPage = () => {
         tenure: '',
         icon: '💰',
         image: '',
+        officialLink: '',
+        videoUrl: '',
         heading: '',
-        checklistPdf: null,
-        howToApplyLink: '',
-        videoUpload: null,
         benefits: [],
         eligibility: [],
         documents: []
@@ -72,11 +71,10 @@ const AdminLoansPage = () => {
             tenure: scheme.tenure || '',
             icon: scheme.icon,
             image: scheme.image || '',
-            heading: scheme.heading || '',
-            checklistPdf: null,
-            howToApplyLink: scheme.howToApplyLink || '',
-            videoUpload: null,
-            benefits: scheme.benefits || [],
+        officialLink: scheme.officialLink || '',
+        videoUrl: scheme.videoUrl || '',
+        heading: scheme.heading || '',
+        benefits: scheme.benefits || [],
             eligibility: scheme.eligibility || [],
             documents: scheme.documents || []
         });
@@ -124,11 +122,10 @@ const AdminLoansPage = () => {
             tenure: '',
             icon: '💰',
             image: '',
-            heading: '',
-            checklistPdf: null,
-            howToApplyLink: '',
-            videoUpload: null,
-            benefits: [],
+        officialLink: '',
+        videoUrl: '',
+        heading: '',
+        benefits: [],
             eligibility: [],
             documents: []
         });
@@ -500,37 +497,31 @@ const AdminLoansPage = () => {
                                     </div>
                                 </div>
 
-                                {/* Documents and Links */}
+                                {/* Links and Media */}
                                 <div className="bg-gray-50 rounded-xl p-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">📄 Documents & Links</h3>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">🔗 Links & Media</h3>
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Checklist PDF Upload</label>
-                                            <input
-                                                type="file"
-                                                accept=".pdf"
-                                                onChange={(e) => handleFileUpload('checklistPdf', e.target.files[0])}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">How to Apply Link</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Official Website Link *</label>
                                             <input
                                                 type="url"
-                                                value={formData.howToApplyLink}
-                                                onChange={(e) => setFormData({...formData, howToApplyLink: e.target.value})}
+                                                value={formData.officialLink}
+                                                onChange={(e) => setFormData({...formData, officialLink: e.target.value})}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                placeholder="Enter application link"
+                                                placeholder="https://example.com"
                                             />
+                                            <p className="text-xs text-gray-500 mt-1">This link is displayed on the loan detail page</p>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Video Upload</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Video URL (YouTube)</label>
                                             <input
-                                                type="file"
-                                                accept="video/*"
-                                                onChange={(e) => handleFileUpload('videoUpload', e.target.files[0])}
+                                                type="url"
+                                                value={formData.videoUrl}
+                                                onChange={(e) => setFormData({...formData, videoUrl: e.target.value})}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                placeholder="https://www.youtube.com/embed/..."
                                             />
+                                            <p className="text-xs text-gray-500 mt-1">Optional: YouTube embed URL for loan information video</p>
                                         </div>
                                     </div>
                                 </div>
@@ -567,9 +558,9 @@ const AdminLoansPage = () => {
                                     </div>
                                 </div>
 
-                                {/* Eligibility */}
+                                {/* Eligibility Criteria */}
                                 <div className="bg-gray-50 rounded-xl p-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">📋 Eligibility Criteria</h3>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">📋 Eligibility Criteria (Displayed on loan detail page)</h3>
                                     <div className="space-y-2">
                                         {formData.eligibility.map((criteria, index) => (
                                             <div key={index} className="flex items-center space-x-2">
@@ -601,7 +592,7 @@ const AdminLoansPage = () => {
 
                                 {/* Required Documents */}
                                 <div className="bg-gray-50 rounded-xl p-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">📄 Required Documents</h3>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">📄 Required Documents (Displayed on loan detail page)</h3>
                                     <div className="space-y-2">
                                         {formData.documents.map((document, index) => (
                                             <div key={index} className="flex items-center space-x-2">
@@ -826,37 +817,31 @@ const AdminLoansPage = () => {
                                     </div>
                                 </div>
 
-                                {/* Documents and Links */}
+                                {/* Links and Media */}
                                 <div className="bg-gray-50 rounded-xl p-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">📄 Documents & Links</h3>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">🔗 Links & Media</h3>
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Checklist PDF Upload</label>
-                                            <input
-                                                type="file"
-                                                accept=".pdf"
-                                                onChange={(e) => handleFileUpload('checklistPdf', e.target.files[0])}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">How to Apply Link</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Official Website Link *</label>
                                             <input
                                                 type="url"
-                                                value={formData.howToApplyLink}
-                                                onChange={(e) => setFormData({...formData, howToApplyLink: e.target.value})}
+                                                value={formData.officialLink}
+                                                onChange={(e) => setFormData({...formData, officialLink: e.target.value})}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                placeholder="Enter application link"
+                                                placeholder="https://example.com"
                                             />
+                                            <p className="text-xs text-gray-500 mt-1">This link is displayed on the loan detail page</p>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Video Upload</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Video URL (YouTube)</label>
                                             <input
-                                                type="file"
-                                                accept="video/*"
-                                                onChange={(e) => handleFileUpload('videoUpload', e.target.files[0])}
+                                                type="url"
+                                                value={formData.videoUrl}
+                                                onChange={(e) => setFormData({...formData, videoUrl: e.target.value})}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                placeholder="https://www.youtube.com/embed/..."
                                             />
+                                            <p className="text-xs text-gray-500 mt-1">Optional: YouTube embed URL for loan information video</p>
                                         </div>
                                     </div>
                                 </div>

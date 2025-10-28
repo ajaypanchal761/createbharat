@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaBars, FaTimes, FaBell, FaUser, FaSearch } from 'react-icons/fa';
+import { FaBars, FaTimes } from 'react-icons/fa';
 import { AnimatePresence, motion } from 'framer-motion';
 import logo from '../../assets/logo.png';
 
@@ -126,31 +126,8 @@ const Navbar = () => {
 
           {/* Right Side Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Search Button */}
-            <button
-              className={`p-3 rounded-2xl ${
-                scrolled
-                  ? 'text-gray-600 hover:text-orange-600 hover:bg-gray-50 hover:shadow-md'
-                  : 'text-white/90 hover:text-white hover:bg-white/10 hover:backdrop-blur-sm'
-              }`}
-            >
-              <FaSearch className="h-5 w-5" />
-            </button>
-
-
-            {/* User Profile */}
-            <div
-              className={`relative p-3 rounded-2xl ${
-                scrolled
-                  ? 'text-gray-600 hover:text-orange-600 hover:bg-gray-50 hover:shadow-md'
-                  : 'text-white/90 hover:text-white hover:bg-white/10 hover:backdrop-blur-sm'
-              }`}
-            >
-              <FaUser className="h-5 w-5" />
-            </div>
-
             {/* CTA Buttons */}
-            <div className="flex items-center space-x-3 ml-6 pl-6 border-l border-gray-200/50">
+            <div className="flex items-center space-x-3">
               <div>
             <Link
               to="/login"

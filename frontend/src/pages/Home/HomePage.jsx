@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import LoginModal from '../../components/common/LoginModal';
-import SignupModal from '../../components/common/SignupModal';
 import BottomNavbar from '../../components/common/BottomNavbar';
-import MobileFirstLoginPage from '../MobileFirstLoginPage';
 import { useUser } from '../../contexts/UserContext';
 import logo from '../../assets/logo.png';
 import techImage from '../../assets/techImage.webp';
@@ -37,12 +34,6 @@ const HomePage = () => {
     // Mobile detection and first visit logic
     const [isMobile, setIsMobile] = useState(false);
     const [showMobileLogin, setShowMobileLogin] = useState(false);
-    
-    // Modal state
-    const [showLoginModal, setShowLoginModal] = useState(false);
-    const [showSignupModal, setShowSignupModal] = useState(false);
-    const [selectedService, setSelectedService] = useState(null);
-    const [isAdminLogin, setIsAdminLogin] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
     const [touchStart, setTouchStart] = useState(null);
@@ -119,32 +110,10 @@ const HomePage = () => {
             return;
         }
 
-        // For other services, show login modal (desktop only)
-        setSelectedService(servicePath);
-        // Check if it's the loans service to show admin option
-        setIsAdminLogin(servicePath === '/loans');
-        setShowLoginModal(true);
+        // For other services, navigate to login
+        navigate('/login');
     };
 
-    const handleCloseLoginModal = () => {
-        setShowLoginModal(false);
-        setIsAdminLogin(false);
-    };
-
-    const handleCloseSignupModal = () => {
-        setShowSignupModal(false);
-        setIsAdminLogin(false);
-    };
-
-    const handleSwitchToSignup = () => {
-        setShowLoginModal(false);
-        setShowSignupModal(true);
-    };
-
-    const handleSwitchToLogin = () => {
-        setShowSignupModal(false);
-        setShowLoginModal(true);
-    };
 
     // Advanced Animation variants
     const fadeInUp = {
@@ -350,9 +319,9 @@ const HomePage = () => {
         { id: 6, name: 'Accenture', logo: techImage, jobs: 203, rating: 4.6, location: 'Hyderabad' }
     ];
 
-    // Show mobile login page on first visit
+    // Show login page on first visit
     if (showMobileLogin) {
-        return <MobileFirstLoginPage />;
+        return <LoginPage />;
     }
 
     return (
@@ -471,13 +440,13 @@ const HomePage = () => {
                                             Logout
                                         </button>
                                     ) : (
-                                        <Link 
-                                            to="/login" 
-                                            className="block py-2 text-gray-700 hover:text-orange-500 font-medium transition-colors"
-                                            onClick={() => setIsMobileMenuOpen(false)}
-                                        >
-                                            Login
-                                        </Link>
+                                    <Link 
+                                        to="/login" 
+                                        className="block py-2 text-gray-700 hover:text-orange-500 font-medium transition-colors"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                    >
+                                        Login
+                                    </Link>
                                     )}
                                 </div>
                             </div>
@@ -1039,7 +1008,7 @@ const HomePage = () => {
                                 </button>
                                 <div className="flex items-center gap-3">
                                     {isAuthenticated() ? (
-                                        <button 
+                                    <button 
                                             onClick={() => {
                                                 userLogout();
                                                 navigate('/');
@@ -1047,14 +1016,14 @@ const HomePage = () => {
                                             className="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all duration-300"
                                         >
                                             Logout
-                                        </button>
+                                    </button>
                                     ) : (
-                                        <button 
-                                            onClick={() => setShowLoginModal(true)}
-                                            className="px-6 py-2 bg-gradient-to-r from-orange-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300"
-                                        >
+                                    <button 
+                                            onClick={() => navigate('/login')}
+                                        className="px-6 py-2 bg-gradient-to-r from-orange-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300"
+                                    >
                                             Login
-                                        </button>
+                                    </button>
                                     )}
                                 </div>
                             </div>
@@ -1498,28 +1467,6 @@ const HomePage = () => {
                     </div>
                 </footer>
             </div>
-
-            {/* Login Modal - Desktop Only */}
-            {!isMobile && (
-                <LoginModal 
-                    isOpen={showLoginModal}
-                    onClose={handleCloseLoginModal}
-                    onSwitchToSignup={handleSwitchToSignup}
-                    selectedService={selectedService}
-                    isAdminLogin={isAdminLogin}
-                />
-            )}
-
-            {/* Signup Modal - Desktop Only */}
-            {!isMobile && (
-                <SignupModal 
-                    isOpen={showSignupModal}
-                    onClose={handleCloseSignupModal}
-                    onSwitchToLogin={handleSwitchToLogin}
-                    selectedService={selectedService}
-                />
-            )}
-
     </>
   );
 };
