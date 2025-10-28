@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FaBars, FaTimes, FaBell, FaUser, FaSearch } from 'react-icons/fa';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import logo from '../../assets/logo.png';
 
 const Navbar = () => {
@@ -163,18 +163,6 @@ const Navbar = () => {
               Login
             </Link>
               </div>
-              <div>
-            <Link
-              to="/signup"
-                  className={`px-6 py-3 rounded-2xl font-bold text-sm shadow-lg ${
-                    scrolled
-                      ? 'bg-transparent text-orange-600 border-2 border-orange-600 hover:bg-orange-50 hover:shadow-xl'
-                      : 'bg-transparent text-white border-2 border-white hover:bg-white/10 hover:shadow-xl backdrop-blur-sm'
-                  }`}
-            >
-              Sign Up
-            </Link>
-              </div>
             </div>
           </div>
 
@@ -225,7 +213,7 @@ const Navbar = () => {
               </Link>
                 </motion.div>
               ))}
-              <motion.div
+                <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.5 }}
@@ -238,13 +226,6 @@ const Navbar = () => {
                     className="block w-full text-center px-5 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 shadow-lg"
               >
                 Login
-              </Link>
-              <Link
-                to="/signup"
-                onClick={() => setMobileMenuOpen(false)}
-                    className="block w-full text-center px-5 py-3 bg-transparent text-orange-600 border-2 border-orange-600 rounded-xl font-semibold hover:bg-orange-50"
-              >
-                Sign Up
               </Link>
             </div>
               </motion.div>

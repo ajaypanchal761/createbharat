@@ -128,7 +128,7 @@ const LoginPage = () => {
                 transition={{ duration: 0.6 }}
                 className="w-full max-w-md"
             >
-                {step === 'credentials' ? (
+                {step === 'phone' ? (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -150,34 +150,6 @@ const LoginPage = () => {
                         <p className="text-gray-600 text-center mb-8 text-sm md:text-base">
                             Enter your phone number to receive OTP
                         </p>
-
-                        {/* Login Type Selection */}
-                        <div className="mb-6">
-                            <div className="flex bg-gray-100 rounded-xl p-1">
-                                <button
-                                    type="button"
-                                    onClick={() => setLoginType('user')}
-                                    className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                        loginType === 'user'
-                                            ? 'bg-white text-orange-600 shadow-sm'
-                                            : 'text-gray-600 hover:text-gray-800'
-                                    }`}
-                                >
-                                    👤 User Login
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setLoginType('admin')}
-                                    className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                        loginType === 'admin'
-                                            ? 'bg-white text-orange-600 shadow-sm'
-                                            : 'text-gray-600 hover:text-gray-800'
-                                    }`}
-                                >
-                                    👨‍💼 Admin Login
-                                </button>
-                            </div>
-                    </div>
 
                         {/* Form */}
                         <form onSubmit={handleSendOTP} className="space-y-5">
