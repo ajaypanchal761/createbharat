@@ -47,7 +47,6 @@ import ProfilePage from './pages/Profile/ProfilePage';
 import CompanyInternshipsPage from './pages/Company/CompanyInternshipsPage';
 import CompanyLoginPage from './pages/Company/CompanyLoginPage';
 import AppDevelopmentPage from './pages/AppDevelopment/AppDevelopmentPage';
-import LoginPage from './pages/Auth/LoginPage';
 
 function App() {
   return (
