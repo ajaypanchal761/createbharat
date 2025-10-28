@@ -56,6 +56,10 @@ function App() {
           <Routes>
             <Route path="/internships/login" element={<InternshipLoginPage />} />
             <Route path="/company/internships" element={<CompanyInternshipsPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/admin/login" element={<AdminLoginPage />} />
             <Route path="/*" element={
               <>
                 <Navbar />
@@ -88,13 +92,9 @@ function App() {
           <Route path="/mentors/dashboard" element={<MentorDashboard />} />
           <Route path="/mentors/become-mentor" element={<BecomeMentorPage />} />
           <Route path="/mentors/profile" element={<MentorProfilePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/mobile-login" element={<LoginPage />} />
-          <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="loans" element={<AdminLoansPage />} />
