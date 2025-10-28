@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { loanSchemes } from '../../data/loanSchemes';
+import { adminLoansAPI, loansAPI } from '../../utils/api';
 
 const AdminLoansPage = () => {
-    const [schemes, setSchemes] = useState(loanSchemes);
+    const [schemes, setSchemes] = useState([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingScheme, setEditingScheme] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
 
     // Form state for create/edit
     const [formData, setFormData] = useState({
@@ -30,30 +32,48 @@ const AdminLoansPage = () => {
         documents: []
     });
 
+    // Load schemes from backend
+    useEffect(() => {
+        const loadSchemes = async () => {
+            try {
+                setIsLoading(true);
+                const res = await loansAPI.getSchemes({ limit: 100 });
+                setSchemes(res.data || []);
+            } catch (e) {
+                setError(e.message || 'Failed to load schemes');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadSchemes();
+    }, []);
+
     // Filter schemes based on search
     const filteredSchemes = schemes.filter(scheme =>
-        scheme.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        scheme.shortName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        scheme.provider.toLowerCase().includes(searchTerm.toLowerCase())
+        (scheme.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (scheme.shortName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (scheme.provider || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // Handle create new scheme
-    const handleCreateScheme = () => {
-        const newScheme = {
-            id: Date.now(),
-            ...formData,
-            minAmount: parseInt(formData.minAmount),
-            maxAmount: parseInt(formData.maxAmount),
-            benefits: formData.benefits.filter(b => b.trim() !== ''),
-            eligibility: formData.eligibility.filter(e => e.trim() !== ''),
-            documents: formData.documents.filter(d => d.trim() !== ''),
-            featured: false,
-            popular: false
-        };
-        
-        setSchemes([...schemes, newScheme]);
-        setShowCreateModal(false);
-        resetForm();
+    const handleCreateScheme = async () => {
+        try {
+            const token = localStorage.getItem('adminToken');
+            const payload = {
+                ...formData,
+                minAmount: parseInt(formData.minAmount),
+                maxAmount: parseInt(formData.maxAmount),
+                benefits: formData.benefits.filter(b => b.trim() !== ''),
+                eligibility: formData.eligibility.filter(e => e.trim() !== ''),
+                documents: formData.documents.filter(d => d.trim() !== ''),
+            };
+            const res = await adminLoansAPI.createScheme(token, payload);
+            setSchemes([res.data, ...schemes]);
+            setShowCreateModal(false);
+            resetForm();
+        } catch (e) {
+            alert(e.message || 'Failed to create scheme');
+        }
     };
 
     // Handle edit scheme
@@ -71,10 +91,10 @@ const AdminLoansPage = () => {
             tenure: scheme.tenure || '',
             icon: scheme.icon,
             image: scheme.image || '',
-        officialLink: scheme.officialLink || '',
-        videoUrl: scheme.videoUrl || '',
-        heading: scheme.heading || '',
-        benefits: scheme.benefits || [],
+            officialLink: scheme.officialLink || '',
+            videoUrl: scheme.videoUrl || '',
+            heading: scheme.heading || '',
+            benefits: scheme.benefits || [],
             eligibility: scheme.eligibility || [],
             documents: scheme.documents || []
         });
@@ -82,29 +102,40 @@ const AdminLoansPage = () => {
     };
 
     // Handle update scheme
-    const handleUpdateScheme = () => {
-        const updatedScheme = {
-            ...editingScheme,
-            ...formData,
-            minAmount: parseInt(formData.minAmount),
-            maxAmount: parseInt(formData.maxAmount),
-            benefits: formData.benefits.filter(b => b.trim() !== ''),
-            eligibility: formData.eligibility.filter(e => e.trim() !== ''),
-            documents: formData.documents.filter(d => d.trim() !== '')
-        };
-        
-        setSchemes(schemes.map(scheme => 
-            scheme.id === editingScheme.id ? updatedScheme : scheme
-        ));
-        setShowEditModal(false);
-        setEditingScheme(null);
-        resetForm();
+    const handleUpdateScheme = async () => {
+        try {
+            const token = localStorage.getItem('adminToken');
+            const payload = {
+                ...formData,
+                minAmount: parseInt(formData.minAmount),
+                maxAmount: parseInt(formData.maxAmount),
+                benefits: formData.benefits.filter(b => b.trim() !== ''),
+                eligibility: formData.eligibility.filter(e => e.trim() !== ''),
+                documents: formData.documents.filter(d => d.trim() !== ''),
+                imageUrl: formData.image || undefined,
+            };
+            const res = await adminLoansAPI.updateScheme(token, editingScheme._id || editingScheme.id, payload);
+            const updated = res.data;
+            setSchemes(schemes.map(scheme =>
+                (scheme._id || scheme.id) === (editingScheme._id || editingScheme.id) ? updated : scheme
+            ));
+            setShowEditModal(false);
+            setEditingScheme(null);
+            resetForm();
+        } catch (e) {
+            alert(e.message || 'Failed to update scheme');
+        }
     };
 
     // Handle delete scheme
-    const handleDeleteScheme = (schemeId) => {
-        if (window.confirm('Are you sure you want to delete this scheme?')) {
-            setSchemes(schemes.filter(scheme => scheme.id !== schemeId));
+    const handleDeleteScheme = async (schemeId) => {
+        if (!window.confirm('Are you sure you want to delete this scheme?')) return;
+        try {
+            const token = localStorage.getItem('adminToken');
+            await adminLoansAPI.deleteScheme(token, schemeId);
+            setSchemes(schemes.filter(scheme => (scheme._id || scheme.id) !== schemeId));
+        } catch (e) {
+            alert(e.message || 'Failed to delete scheme');
         }
     };
 
@@ -122,10 +153,10 @@ const AdminLoansPage = () => {
             tenure: '',
             icon: '💰',
             image: '',
-        officialLink: '',
-        videoUrl: '',
-        heading: '',
-        benefits: [],
+            officialLink: '',
+            videoUrl: '',
+            heading: '',
+            benefits: [],
             eligibility: [],
             documents: []
         });
@@ -362,7 +393,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.name}
-                                                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="Enter full scheme name"
                                             />
@@ -372,7 +403,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.shortName}
-                                                onChange={(e) => setFormData({...formData, shortName: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, shortName: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="Enter short name"
                                             />
@@ -382,7 +413,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.provider}
-                                                onChange={(e) => setFormData({...formData, provider: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="Enter provider name"
                                             />
@@ -391,7 +422,7 @@ const AdminLoansPage = () => {
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
                                             <select
                                                 value={formData.category}
-                                                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                             >
                                                 <option value="MSME">MSME</option>
@@ -404,7 +435,7 @@ const AdminLoansPage = () => {
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
                                             <textarea
                                                 value={formData.description}
-                                                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 rows="3"
                                                 placeholder="Enter detailed description"
@@ -422,7 +453,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="number"
                                                 value={formData.minAmount}
-                                                onChange={(e) => setFormData({...formData, minAmount: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, minAmount: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="Enter minimum amount"
                                             />
@@ -432,7 +463,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="number"
                                                 value={formData.maxAmount}
-                                                onChange={(e) => setFormData({...formData, maxAmount: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, maxAmount: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="Enter maximum amount"
                                             />
@@ -442,7 +473,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.interestRate}
-                                                onChange={(e) => setFormData({...formData, interestRate: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, interestRate: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="e.g., 8.5% per annum"
                                             />
@@ -452,7 +483,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.tenure}
-                                                onChange={(e) => setFormData({...formData, tenure: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, tenure: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="e.g., Up to 5 years"
                                             />
@@ -469,7 +500,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.icon}
-                                                onChange={(e) => setFormData({...formData, icon: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="e.g., 💰"
                                             />
@@ -479,7 +510,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="url"
                                                 value={formData.image}
-                                                onChange={(e) => setFormData({...formData, image: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="Enter image URL"
                                             />
@@ -489,7 +520,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.heading}
-                                                onChange={(e) => setFormData({...formData, heading: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, heading: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="Enter scheme heading"
                                             />
@@ -506,7 +537,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="url"
                                                 value={formData.officialLink}
-                                                onChange={(e) => setFormData({...formData, officialLink: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, officialLink: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="https://example.com"
                                             />
@@ -517,7 +548,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="url"
                                                 value={formData.videoUrl}
-                                                onChange={(e) => setFormData({...formData, videoUrl: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="https://www.youtube.com/embed/..."
                                             />
@@ -631,7 +662,23 @@ const AdminLoansPage = () => {
                                     Cancel
                                 </button>
                                 <button
-                                    onClick={handleCreateScheme}
+                                    onClick={async () => {
+                                        if (!formData.name || !formData.description || !formData.minAmount || !formData.maxAmount) {
+                                            alert('Please fill Name, Description, Min and Max Amount');
+                                            return;
+                                        }
+                                        // Map category to API values
+                                        if (formData.category) {
+                                            const map = {
+                                                MSME: 'msme',
+                                                Startup: 'startup',
+                                                'Women & SC/ST': 'women',
+                                                Agriculture: 'agriculture',
+                                            };
+                                            setFormData({ ...formData, category: map[formData.category] || formData.category });
+                                        }
+                                        await handleCreateScheme();
+                                    }}
                                     className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
                                 >
                                     Create Scheme
@@ -682,7 +729,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.name}
-                                                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="Enter full scheme name"
                                             />
@@ -692,7 +739,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.shortName}
-                                                onChange={(e) => setFormData({...formData, shortName: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, shortName: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="Enter short name"
                                             />
@@ -702,7 +749,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.provider}
-                                                onChange={(e) => setFormData({...formData, provider: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="Enter provider name"
                                             />
@@ -711,7 +758,7 @@ const AdminLoansPage = () => {
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
                                             <select
                                                 value={formData.category}
-                                                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                             >
                                                 <option value="MSME">MSME</option>
@@ -724,7 +771,7 @@ const AdminLoansPage = () => {
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
                                             <textarea
                                                 value={formData.description}
-                                                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 rows="3"
                                                 placeholder="Enter detailed description"
@@ -742,7 +789,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="number"
                                                 value={formData.minAmount}
-                                                onChange={(e) => setFormData({...formData, minAmount: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, minAmount: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="Enter minimum amount"
                                             />
@@ -752,7 +799,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="number"
                                                 value={formData.maxAmount}
-                                                onChange={(e) => setFormData({...formData, maxAmount: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, maxAmount: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="Enter maximum amount"
                                             />
@@ -762,7 +809,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.interestRate}
-                                                onChange={(e) => setFormData({...formData, interestRate: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, interestRate: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="e.g., 8.5% per annum"
                                             />
@@ -772,7 +819,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.tenure}
-                                                onChange={(e) => setFormData({...formData, tenure: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, tenure: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="e.g., Up to 5 years"
                                             />
@@ -789,7 +836,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.icon}
-                                                onChange={(e) => setFormData({...formData, icon: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="e.g., 💰"
                                             />
@@ -799,7 +846,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="url"
                                                 value={formData.image}
-                                                onChange={(e) => setFormData({...formData, image: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="Enter image URL"
                                             />
@@ -809,7 +856,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="text"
                                                 value={formData.heading}
-                                                onChange={(e) => setFormData({...formData, heading: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, heading: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="Enter scheme heading"
                                             />
@@ -826,7 +873,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="url"
                                                 value={formData.officialLink}
-                                                onChange={(e) => setFormData({...formData, officialLink: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, officialLink: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="https://example.com"
                                             />
@@ -837,7 +884,7 @@ const AdminLoansPage = () => {
                                             <input
                                                 type="url"
                                                 value={formData.videoUrl}
-                                                onChange={(e) => setFormData({...formData, videoUrl: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 placeholder="https://www.youtube.com/embed/..."
                                             />

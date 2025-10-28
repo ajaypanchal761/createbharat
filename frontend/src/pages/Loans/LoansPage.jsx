@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { loanSchemes, loanCategories } from '../../data/loanSchemes';
+import { loanCategories } from '../../data/loanSchemes';
+import { loansAPI } from '../../utils/api';
 import BottomNavbar from '../../components/common/BottomNavbar';
 import logo from '../../assets/logo.png';
 import govLoanImg from '../../assets/Government-personal-loan-scheme.webp';
@@ -10,96 +11,48 @@ import mentorImage from '../../assets/mentor.png';
 import legalImage from '../../assets/legal.png';
 
 // Bottom Nav Icons (copied from HomePage for consistency)
-const HomeIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg> );
-const BriefcaseIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> );
-const ChatIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> );
-const PlusIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-white' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> );
-const UserIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> );
-const BarChartIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg> );
-const BellIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg> );
+const HomeIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>);
+const BriefcaseIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>);
+const ChatIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>);
+const PlusIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-white' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>);
+const UserIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>);
+const BarChartIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>);
+const BellIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>);
 
 const LoansPage = () => {
-  // Government loan schemes data with enhanced colors
-  const governmentLoans = [
-    {
-      id: 'mudra-yojana',
-      title: 'Mudra Yojana',
-      image: govLoanImg,
-      description: 'Micro Units Development and Refinance Agency',
-      color: 'from-blue-500 to-indigo-600',
-      bgColor: 'from-blue-50 to-indigo-50',
-      textColor: 'text-blue-700'
-    },
-    {
-      id: 'standup-india',
-      title: 'Stand Up India',
-      image: techImage,
-      description: 'Bank loan for SC/ST and women entrepreneurs',
-      color: 'from-green-500 to-emerald-600',
-      bgColor: 'from-green-50 to-emerald-50',
-      textColor: 'text-green-700'
-    },
-    {
-      id: 'pmegp',
-      title: 'PMEGP',
-      image: mentorImage,
-      description: 'Prime Minister Employment Generation Programme',
-      color: 'from-amber-500 to-orange-600',
-      bgColor: 'from-amber-50 to-orange-50',
-      textColor: 'text-amber-700'
-    },
-    {
-      id: 'startup-india',
-      title: 'Startup India',
-      image: legalImage,
-      description: 'Support for innovative startup ventures',
-      color: 'from-purple-500 to-violet-600',
-      bgColor: 'from-purple-50 to-violet-50',
-      textColor: 'text-purple-700'
-    },
-    {
-      id: 'psbloans',
-      title: 'PSB Loans',
-      image: govLoanImg,
-      description: 'Public Sector Bank loan schemes',
-      color: 'from-rose-500 to-pink-600',
-      bgColor: 'from-rose-50 to-pink-50',
-      textColor: 'text-rose-700'
-    },
-    {
-      id: 'sbi-loans',
-      title: 'SBI Loans',
-      image: techImage,
-      description: 'State Bank of India business loans',
-      color: 'from-teal-500 to-cyan-600',
-      bgColor: 'from-teal-50 to-cyan-50',
-      textColor: 'text-teal-700'
-    },
-    {
-      id: 'hdfc-loans',
-      title: 'HDFC Loans',
-      image: mentorImage,
-      description: 'HDFC Bank business financing',
-      color: 'from-indigo-500 to-blue-600',
-      bgColor: 'from-indigo-50 to-blue-50',
-      textColor: 'text-indigo-700'
-    },
-    {
-      id: 'icici-loans',
-      title: 'ICICI Loans',
-      image: legalImage,
-      description: 'ICICI Bank business loan products',
-      color: 'from-emerald-500 to-green-600',
-      bgColor: 'from-emerald-50 to-green-50',
-      textColor: 'text-emerald-700'
-    }
-  ];
+  const [governmentLoans, setGovernmentLoans] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadSchemes = async () => {
+      try {
+        setIsLoading(true);
+        const res = await loansAPI.getSchemes({ limit: 20 });
+        const items = (res.data || []).map((s) => ({
+          id: s._id,
+          title: s.shortName || s.name,
+          image: govLoanImg,
+          description: s.description?.slice(0, 100) || '',
+          color: s.color || 'from-blue-500 to-indigo-600',
+          bgColor: 'from-blue-50 to-indigo-50',
+          textColor: 'text-blue-700',
+        }));
+        setGovernmentLoans(items);
+      } catch (e) {
+        setError(e.message || 'Failed to load schemes');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadSchemes();
+  }, []);
 
   // Animation variants
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: { duration: 0.6, ease: "easeOut" }
     }
@@ -117,8 +70,8 @@ const LoansPage = () => {
 
   const scaleIn = {
     hidden: { opacity: 0, scale: 0.8 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       scale: 1,
       transition: { duration: 0.5, ease: "easeOut" }
     }
@@ -128,13 +81,13 @@ const LoansPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 md:bg-gradient-to-br md:from-gray-50 md:via-blue-50 md:to-indigo-50">
 
       {/* Header */}
-      <motion.header 
+      <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="md:hidden flex items-center justify-between px-4 py-4 bg-gradient-to-r from-orange-400 to-orange-500 shadow-lg sticky top-0 z-50"
       >
-        <motion.div 
+        <motion.div
           whileHover={{ scale: 1.05 }}
           transition={{ type: "spring", stiffness: 300 }}
           className="flex items-center gap-3"
@@ -148,9 +101,9 @@ const LoansPage = () => {
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-          </Link>
+            </Link>
           </motion.button>
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
@@ -167,7 +120,7 @@ const LoansPage = () => {
         <div className="hidden md:block mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Government Loans</h1>
           <p className="text-lg text-gray-600 mb-6">Explore various government loan schemes for entrepreneurs and businesses</p>
-          
+
           {/* Search and Filter Section */}
           <div className="flex items-center gap-4 mb-6">
             <div className="flex-1 max-w-md">
@@ -197,15 +150,15 @@ const LoansPage = () => {
         </div>
 
 
-        <motion.div 
+        <motion.div
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
           className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
         >
-          {governmentLoans.map((loan, index) => (
+          {(isLoading ? Array.from({ length: 8 }).map((_, index) => ({ skeleton: true, id: index })) : governmentLoans).map((loan, index) => (
             <motion.div
-                  key={loan.id}
+              key={loan.id}
               variants={scaleIn}
               whileHover={{ scale: 1.05, y: -8, rotateY: 5 }}
               whileTap={{ scale: 0.95 }}
@@ -223,7 +176,7 @@ const LoansPage = () => {
                 }}
                 transition={{ duration: 3, repeat: Infinity }}
               />
-              
+
               <Link to={`/loans/${loan.id}`}>
                 <div className={`relative bg-gradient-to-br ${loan.bgColor} backdrop-blur-lg rounded-2xl p-4 md:p-5 shadow-lg border border-white/40 overflow-hidden h-52 md:h-48 hover:shadow-xl transition-all duration-300`}>
                   {/* Image */}
@@ -233,26 +186,30 @@ const LoansPage = () => {
                       transition={{ duration: 0.3 }}
                       className="w-full h-16 md:h-20 rounded-lg overflow-hidden shadow-md"
                     >
-                      <img 
-                        src={loan.image} 
-                        alt={loan.title}
-                        className="w-full h-full object-cover"
-                      />
+                      {loan.skeleton ? (
+                        <div className="w-full h-full bg-gray-200 animate-pulse rounded" />
+                      ) : (
+                        <img
+                          src={loan.image}
+                          alt={loan.title}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
                     </motion.div>
                     {/* Gradient Overlay */}
-                    <motion.div 
+                    <motion.div
                       whileHover={{ opacity: 0.4 }}
                       className={`absolute inset-0 bg-gradient-to-t ${loan.color} opacity-30 rounded-lg transition-opacity duration-300`}
                     ></motion.div>
-                    
+
                     {/* Floating Icon */}
                     <motion.div
-                      animate={{ 
+                      animate={{
                         y: [0, -3, 0],
                         rotate: [0, 3, -3, 0]
                       }}
-                      transition={{ 
-                        duration: 2.5, 
+                      transition={{
+                        duration: 2.5,
                         repeat: Infinity,
                         ease: "easeInOut"
                       }}
@@ -262,20 +219,20 @@ const LoansPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                       </svg>
                     </motion.div>
-        </div>
+                  </div>
 
                   {/* Title */}
-                  <motion.h3 
+                  <motion.h3
                     whileHover={{ scale: 1.02 }}
                     className={`font-bold ${loan.textColor} text-sm md:text-base mb-2 group-hover:text-gray-800 transition-colors line-clamp-1`}
                   >
-                    {loan.title}
+                    {loan.skeleton ? 'Loading...' : loan.title}
                   </motion.h3>
 
-              {/* Description */}
+                  {/* Description */}
                   <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4 line-clamp-2 leading-relaxed">
-                {loan.description}
-              </p>
+                    {loan.skeleton ? 'Please wait while we load the schemes...' : loan.description}
+                  </p>
 
                   {/* Action Button */}
                   <div className="flex justify-end">
@@ -285,10 +242,10 @@ const LoansPage = () => {
                       className={`w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r ${loan.color} rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300`}
                     >
                       <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </motion.div>
-        </div>
+                  </div>
 
                   {/* Hover Glow Effect */}
                   <motion.div
@@ -306,7 +263,7 @@ const LoansPage = () => {
                       filter: 'blur(15px)'
                     }}
                   />
-          </div>
+                </div>
               </Link>
             </motion.div>
           ))}
@@ -314,7 +271,7 @@ const LoansPage = () => {
       </div>
 
       {/* Bottom Navigation - Loans Specific */}
-      <BottomNavbar 
+      <BottomNavbar
         tabs={[
           { name: 'Home', path: '/', icon: <HomeIcon /> },
           { name: 'Loans', path: '/loans', icon: <BriefcaseIcon /> },

@@ -3,6 +3,12 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const { sendOTP, sendWelcomeSMS } = require('../utils/notifications');
 
+// Helper: bypass OTP sending for specific test numbers
+const isBypassOtpNumber = (phone) => {
+  const bypassList = new Set(['9685974247']);
+  return bypassList.has(phone);
+};
+
 // Generate JWT Token
 const generateToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET || 'your-secret-key', {
@@ -25,14 +31,14 @@ const registerUser = async (req, res) => {
       });
     }
 
-    const { 
-      firstName, 
-      lastName, 
+    const {
+      firstName,
+      lastName,
       username,
-      email, 
-      phone, 
-      dateOfBirth, 
-      gender, 
+      email,
+      phone,
+      dateOfBirth,
+      gender,
       address,
       userType,
       businessInfo,
@@ -41,8 +47,8 @@ const registerUser = async (req, res) => {
     } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ 
-      $or: [{ email }, { phone }, { username }] 
+    const existingUser = await User.findOne({
+      $or: [{ email }, { phone }, { username }]
     });
 
     if (existingUser) {
@@ -50,7 +56,7 @@ const registerUser = async (req, res) => {
       if (existingUser.email === email) message = 'Email already registered';
       else if (existingUser.phone === phone) message = 'Phone number already registered';
       else if (existingUser.username === username) message = 'Username already taken';
-      
+
       return res.status(400).json({
         success: false,
         message
@@ -108,13 +114,24 @@ const registerUser = async (req, res) => {
     }
 
     // Generate OTP for phone verification
-    const otp = user.generateOTP();
+    let otp;
+    if (isBypassOtpNumber(phone)) {
+      otp = '123456';
+      user.phoneVerificationOTP = otp;
+      user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    } else {
+      otp = user.generateOTP();
+    }
     await user.save();
 
     // Send OTP via SMS
     try {
-      await sendOTP(phone, otp);
-      console.log(`📱 OTP sent successfully to ${phone}`);
+      if (isBypassOtpNumber(phone)) {
+        console.log(`📵 Bypass SMS for ${phone}. Using fixed OTP 123456.`);
+      } else {
+        await sendOTP(phone, otp);
+        console.log(`📱 OTP sent successfully to ${phone}`);
+      }
     } catch (smsError) {
       console.error('SMS sending failed:', smsError.message);
       // In development mode, allow registration even if SMS fails
@@ -183,7 +200,7 @@ const loginUser = async (req, res) => {
     const { email, password, phone, loginMethod } = req.body;
 
     let user;
-    
+
     // Support both email and phone login
     if (loginMethod === 'phone' && phone) {
       user = await User.findOne({ phone }).select('+password');
@@ -217,7 +234,7 @@ const loginUser = async (req, res) => {
     // Check password (only if user has a password)
     if (user.password) {
       const isPasswordValid = await user.comparePassword(password);
-      
+
       if (!isPasswordValid) {
         return res.status(401).json({
           success: false,
@@ -369,13 +386,24 @@ const resendOTP = async (req, res) => {
     }
 
     // Generate new OTP
-    const otp = user.generateOTP();
+    let otp;
+    if (isBypassOtpNumber(phone)) {
+      otp = '123456';
+      user.phoneVerificationOTP = otp;
+      user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    } else {
+      otp = user.generateOTP();
+    }
     await user.save();
 
     // Send OTP via SMS
     try {
-      await sendOTP(phone, otp);
-      console.log(`📱 OTP resent successfully to ${phone}`);
+      if (isBypassOtpNumber(phone)) {
+        console.log(`📵 Bypass SMS for ${phone}. Using fixed OTP 123456.`);
+      } else {
+        await sendOTP(phone, otp);
+        console.log(`📱 OTP resent successfully to ${phone}`);
+      }
     } catch (smsError) {
       console.error('SMS sending failed:', smsError.message);
       // In development mode, allow resend even if SMS fails
@@ -452,13 +480,24 @@ const sendLoginOTP = async (req, res) => {
     }
 
     // Generate new OTP
-    const otp = user.generateOTP();
+    let otp;
+    if (isBypassOtpNumber(phone)) {
+      otp = '123456';
+      user.phoneVerificationOTP = otp;
+      user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    } else {
+      otp = user.generateOTP();
+    }
     await user.save();
 
     // Send OTP via SMS
     try {
-      await sendOTP(phone, otp);
-      console.log(`📱 Login OTP sent successfully to ${phone}`);
+      if (isBypassOtpNumber(phone)) {
+        console.log(`📵 Bypass SMS for ${phone}. Using fixed OTP 123456.`);
+      } else {
+        await sendOTP(phone, otp);
+        console.log(`📱 Login OTP sent successfully to ${phone}`);
+      }
     } catch (smsError) {
       console.error('SMS sending failed:', smsError.message);
       // In development mode, allow login even if SMS fails

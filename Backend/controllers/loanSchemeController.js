@@ -95,7 +95,28 @@ const getLoanSchemeById = async (req, res) => {
 // @access  Private/Admin
 const createLoanScheme = async (req, res) => {
   try {
-    const loanSchemeData = req.body;
+    const loanSchemeData = { ...req.body };
+
+    // Coerce numeric fields if sent as strings
+    if (loanSchemeData.minAmount != null) {
+      loanSchemeData.minAmount = Number(loanSchemeData.minAmount);
+    }
+    if (loanSchemeData.maxAmount != null) {
+      loanSchemeData.maxAmount = Number(loanSchemeData.maxAmount);
+    }
+
+    // Normalize category to lowercase keys used in schema
+    if (loanSchemeData.category) {
+      const map = {
+        MSME: 'msme',
+        Startup: 'startup',
+        StartupS: 'startup',
+        'Women & SC/ST': 'women',
+        Women: 'women',
+        Agriculture: 'agriculture',
+      };
+      loanSchemeData.category = map[loanSchemeData.category] || String(loanSchemeData.category).toLowerCase();
+    }
 
     // Create loan scheme
     const loanScheme = await LoanScheme.create(loanSchemeData);
@@ -108,11 +129,11 @@ const createLoanScheme = async (req, res) => {
 
   } catch (error) {
     console.error('Create loan scheme error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors || {}).map((e) => ({ field: e.path, message: e.message }));
+      return res.status(400).json({ success: false, message: 'Validation failed', errors });
+    }
+    res.status(500).json({ success: false, message: 'Server error', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -145,11 +166,11 @@ const updateLoanScheme = async (req, res) => {
 
   } catch (error) {
     console.error('Update loan scheme error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors || {}).map((e) => ({ field: e.path, message: e.message }));
+      return res.status(400).json({ success: false, message: 'Validation failed', errors });
+    }
+    res.status(500).json({ success: false, message: 'Server error', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 

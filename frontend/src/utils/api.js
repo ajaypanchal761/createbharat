@@ -5,7 +5,7 @@ const apiCall = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
   console.log('🌐 Making API call to:', url);
   console.log('📝 Request options:', options);
-  
+
   const config = {
     headers: {
       'Content-Type': 'application/json',
@@ -31,13 +31,13 @@ const apiCall = async (endpoint, options = {}) => {
 
     if (!response.ok) {
       console.error('❌ API Error:', data);
-      
+
       // Handle validation errors specifically
       if (data.errors && Array.isArray(data.errors)) {
         const errorMessages = data.errors.map(err => err.msg || err.message).join(', ');
         throw new Error(errorMessages || data.message || 'Validation failed');
       }
-      
+
       throw new Error(data.message || data.error || 'Something went wrong');
     }
 
@@ -78,18 +78,18 @@ export const authAPI = {
   },
 
   // Resend OTP
-      resendOTP: async (phone, purpose) => {
-        return apiCall('/auth/resend-otp', {
-          method: 'POST',
-          body: JSON.stringify({ phone, purpose }),
-        });
-      },
-      sendLoginOTP: async (phone) => {
-        return apiCall('/auth/login-otp', {
-          method: 'POST',
-          body: JSON.stringify({ phone }),
-        });
-      },
+  resendOTP: async (phone, purpose) => {
+    return apiCall('/auth/resend-otp', {
+      method: 'POST',
+      body: JSON.stringify({ phone, purpose }),
+    });
+  },
+  sendLoginOTP: async (phone) => {
+    return apiCall('/auth/login-otp', {
+      method: 'POST',
+      body: JSON.stringify({ phone }),
+    });
+  },
 
   // Get current user
   getMe: async (token) => {
@@ -123,5 +123,79 @@ export const adminAPI = {
   },
 };
 
-export default { authAPI, adminAPI };
+// Loans (Public) API calls
+export const loansAPI = {
+  // Get schemes list (public)
+  getSchemes: async (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    const qs = query ? `?${query}` : '';
+    return apiCall(`/loans/schemes${qs}`, {
+      method: 'GET',
+    });
+  },
+
+  // Get single scheme by id (public)
+  getSchemeById: async (id) => {
+    return apiCall(`/loans/schemes/${id}`, {
+      method: 'GET',
+    });
+  },
+};
+
+// Admin Loans API calls
+export const adminLoansAPI = {
+  // Create loan scheme (admin)
+  createScheme: async (token, payload) => {
+    return apiCall(`/admin/loans/schemes`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  // Update loan scheme (admin)
+  updateScheme: async (token, id, payload) => {
+    return apiCall(`/admin/loans/schemes/${id}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  // Delete loan scheme (admin)
+  deleteScheme: async (token, id) => {
+    return apiCall(`/admin/loans/schemes/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Toggle active status (admin)
+  toggleStatus: async (token, id) => {
+    return apiCall(`/admin/loans/schemes/${id}/status`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Stats (admin)
+  getStats: async (token) => {
+    return apiCall(`/admin/loans/schemes/stats`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+};
+
+export default { authAPI, adminAPI, loansAPI, adminLoansAPI };
 
