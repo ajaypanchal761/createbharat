@@ -1,4 +1,5 @@
 const LoanScheme = require('../models/loanScheme');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
 
 // @desc    Get all loan schemes (Public/User route)
 // @route   GET /api/loans/schemes
@@ -95,28 +96,54 @@ const getLoanSchemeById = async (req, res) => {
 // @access  Private/Admin
 const createLoanScheme = async (req, res) => {
   try {
+
     const loanSchemeData = { ...req.body };
 
-    // Coerce numeric fields if sent as strings
-    if (loanSchemeData.minAmount != null) {
-      loanSchemeData.minAmount = Number(loanSchemeData.minAmount);
-    }
-    if (loanSchemeData.maxAmount != null) {
-      loanSchemeData.maxAmount = Number(loanSchemeData.maxAmount);
+    // Validate required fields
+    if (!loanSchemeData.name || !loanSchemeData.description || !loanSchemeData.minAmount || !loanSchemeData.maxAmount) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields',
+        required: ['name', 'description', 'minAmount', 'maxAmount']
+      });
     }
 
-    // Normalize category to lowercase keys used in schema
+    // Normalize category to lowercase
     if (loanSchemeData.category) {
-      const map = {
-        MSME: 'msme',
-        Startup: 'startup',
-        StartupS: 'startup',
-        'Women & SC/ST': 'women',
-        Women: 'women',
-        Agriculture: 'agriculture',
-      };
-      loanSchemeData.category = map[loanSchemeData.category] || String(loanSchemeData.category).toLowerCase();
+      loanSchemeData.category = loanSchemeData.category.toLowerCase();
     }
+
+    // Parse JSON strings for array fields (benefits, eligibility, documents)
+    const arrayFields = ['benefits', 'eligibility', 'documents', 'applicationSteps'];
+    arrayFields.forEach(field => {
+      if (loanSchemeData[field] && typeof loanSchemeData[field] === 'string') {
+        try {
+          loanSchemeData[field] = JSON.parse(loanSchemeData[field]);
+        } catch (e) {
+          // If parsing fails, keep the string value or set to empty array
+          loanSchemeData[field] = loanSchemeData[field] ? [loanSchemeData[field]] : [];
+        }
+      }
+    });
+
+    // Handle image upload if present
+    if (req.files && req.files.image && req.files.image[0]) {
+      try {
+        const uploadResult = await uploadToCloudinary(req.files.image[0].path, 'loan-schemes');
+        loanSchemeData.imageUrl = uploadResult.url;
+      } catch (uploadError) {
+        console.error('Image upload failed:', uploadError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to upload image',
+          error: uploadError.message
+        });
+      }
+    }
+
+    // Convert string numbers to Number type
+    loanSchemeData.minAmount = Number(loanSchemeData.minAmount);
+    loanSchemeData.maxAmount = Number(loanSchemeData.maxAmount);
 
     // Create loan scheme
     const loanScheme = await LoanScheme.create(loanSchemeData);
@@ -129,11 +156,11 @@ const createLoanScheme = async (req, res) => {
 
   } catch (error) {
     console.error('Create loan scheme error:', error);
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors || {}).map((e) => ({ field: e.path, message: e.message }));
-      return res.status(400).json({ success: false, message: 'Validation failed', errors });
-    }
-    res.status(500).json({ success: false, message: 'Server error', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
@@ -143,7 +170,62 @@ const createLoanScheme = async (req, res) => {
 const updateLoanScheme = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    let updateData = {};
+
+    // Check if request has a file (FormData) or is pure JSON
+    if (req.files && req.files.image && req.files.image[0]) {
+      // File upload via FormData - data should be in req.body
+      updateData = { ...req.body };
+    } else {
+      // No file - JSON request, data should already be in req.body
+      updateData = req.body || {};
+    }
+
+    // Normalize category to lowercase if present
+    if (updateData.category) {
+      updateData.category = updateData.category.toLowerCase();
+    }
+
+    // Parse JSON strings for array fields (benefits, eligibility, documents)
+    const arrayFields = ['benefits', 'eligibility', 'documents', 'applicationSteps'];
+    arrayFields.forEach(field => {
+      if (updateData[field] && typeof updateData[field] === 'string') {
+        try {
+          updateData[field] = JSON.parse(updateData[field]);
+        } catch (e) {
+          // If parsing fails, keep the string value or set to empty array
+          updateData[field] = updateData[field] ? [updateData[field]] : [];
+        }
+      }
+    });
+
+    // Handle image upload if present
+    if (req.files && req.files.image && req.files.image[0]) {
+      try {
+        // Get old loan scheme to delete old image
+        const oldScheme = await LoanScheme.findById(id);
+
+        // Upload new image
+        const uploadResult = await uploadToCloudinary(req.files.image[0].path, 'loan-schemes');
+        updateData.imageUrl = uploadResult.url;
+
+        // TODO: Delete old image from Cloudinary if exists
+        // if (oldScheme && oldScheme.imageUrl) {
+        //   await deleteFromCloudinary(oldScheme.public_id);
+        // }
+      } catch (uploadError) {
+        console.error('Image upload failed:', uploadError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to upload image',
+          error: uploadError.message
+        });
+      }
+    }
+
+    // Convert string numbers to Number type if present
+    if (updateData.minAmount) updateData.minAmount = Number(updateData.minAmount);
+    if (updateData.maxAmount) updateData.maxAmount = Number(updateData.maxAmount);
 
     const loanScheme = await LoanScheme.findByIdAndUpdate(
       id,
@@ -166,11 +248,11 @@ const updateLoanScheme = async (req, res) => {
 
   } catch (error) {
     console.error('Update loan scheme error:', error);
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors || {}).map((e) => ({ field: e.path, message: e.message }));
-      return res.status(400).json({ success: false, message: 'Validation failed', errors });
-    }
-    res.status(500).json({ success: false, message: 'Server error', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 

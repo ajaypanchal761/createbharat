@@ -26,7 +26,7 @@ const loanSchemeSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['startup', 'msme', 'women', 'sc-st', 'agriculture', 'all', 'other'],
+    enum: ['startup', 'msme', 'women', 'women-sc-st', 'sc-st', 'agriculture', 'all', 'other'],
     default: 'other'
   },
 

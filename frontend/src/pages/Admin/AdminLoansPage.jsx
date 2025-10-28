@@ -23,7 +23,7 @@ const AdminLoansPage = () => {
         interestRate: '',
         tenure: '',
         icon: '💰',
-        image: '',
+        imageUrl: '',
         officialLink: '',
         videoUrl: '',
         heading: '',
@@ -31,6 +31,10 @@ const AdminLoansPage = () => {
         eligibility: [],
         documents: []
     });
+
+    // Image file state
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState('');
 
     // Load schemes from backend
     useEffect(() => {
@@ -58,6 +62,12 @@ const AdminLoansPage = () => {
     // Handle create new scheme
     const handleCreateScheme = async () => {
         try {
+            // Validate required fields
+            if (!formData.name || !formData.description || !formData.minAmount || !formData.maxAmount) {
+                alert('Please fill in all required fields (name, description, min/max amounts)');
+                return;
+            }
+
             const token = localStorage.getItem('adminToken');
             const payload = {
                 ...formData,
@@ -67,7 +77,19 @@ const AdminLoansPage = () => {
                 eligibility: formData.eligibility.filter(e => e.trim() !== ''),
                 documents: formData.documents.filter(d => d.trim() !== ''),
             };
-            const res = await adminLoansAPI.createScheme(token, payload);
+
+            // Remove imageUrl from payload if we're uploading a file
+            if (selectedImage) {
+                delete payload.imageUrl;
+            }
+
+            // Validate parsed amounts
+            if (isNaN(payload.minAmount) || isNaN(payload.maxAmount)) {
+                alert('Please enter valid numbers for min and max amounts');
+                return;
+            }
+
+            const res = await adminLoansAPI.createScheme(token, payload, selectedImage);
             setSchemes([res.data, ...schemes]);
             setShowCreateModal(false);
             resetForm();
@@ -90,7 +112,7 @@ const AdminLoansPage = () => {
             interestRate: scheme.interestRate || '',
             tenure: scheme.tenure || '',
             icon: scheme.icon,
-            image: scheme.image || '',
+            imageUrl: scheme.imageUrl || scheme.image || '',
             officialLink: scheme.officialLink || '',
             videoUrl: scheme.videoUrl || '',
             heading: scheme.heading || '',
@@ -98,12 +120,25 @@ const AdminLoansPage = () => {
             eligibility: scheme.eligibility || [],
             documents: scheme.documents || []
         });
+        // Reset image selection
+        setSelectedImage(null);
+
+        // Set preview to existing image URL if available
+        const existingImageUrl = scheme.imageUrl || scheme.image || '';
+        setImagePreview(existingImageUrl);
+
         setShowEditModal(true);
     };
 
     // Handle update scheme
     const handleUpdateScheme = async () => {
         try {
+            // Validate required fields
+            if (!formData.name || !formData.description || !formData.minAmount || !formData.maxAmount) {
+                alert('Please fill in all required fields (name, description, min/max amounts)');
+                return;
+            }
+
             const token = localStorage.getItem('adminToken');
             const payload = {
                 ...formData,
@@ -112,9 +147,20 @@ const AdminLoansPage = () => {
                 benefits: formData.benefits.filter(b => b.trim() !== ''),
                 eligibility: formData.eligibility.filter(e => e.trim() !== ''),
                 documents: formData.documents.filter(d => d.trim() !== ''),
-                imageUrl: formData.image || undefined,
             };
-            const res = await adminLoansAPI.updateScheme(token, editingScheme._id || editingScheme.id, payload);
+
+            // Remove imageUrl from payload if we're uploading a new file
+            if (selectedImage) {
+                delete payload.imageUrl;
+            }
+
+            // Validate parsed amounts
+            if (isNaN(payload.minAmount) || isNaN(payload.maxAmount)) {
+                alert('Please enter valid numbers for min and max amounts');
+                return;
+            }
+
+            const res = await adminLoansAPI.updateScheme(token, editingScheme._id || editingScheme.id, payload, selectedImage);
             const updated = res.data;
             setSchemes(schemes.map(scheme =>
                 (scheme._id || scheme.id) === (editingScheme._id || editingScheme.id) ? updated : scheme
@@ -152,7 +198,7 @@ const AdminLoansPage = () => {
             interestRate: '',
             tenure: '',
             icon: '💰',
-            image: '',
+            imageUrl: '',
             officialLink: '',
             videoUrl: '',
             heading: '',
@@ -160,6 +206,8 @@ const AdminLoansPage = () => {
             eligibility: [],
             documents: []
         });
+        setSelectedImage(null);
+        setImagePreview('');
     };
 
     // Add new item to array fields
@@ -189,12 +237,19 @@ const AdminLoansPage = () => {
         });
     };
 
-    // Handle file upload
-    const handleFileUpload = (field, file) => {
-        setFormData({
-            ...formData,
-            [field]: file
-        });
+    // Handle image upload
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setSelectedImage(file);
+
+            // Create preview
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     return (
@@ -262,7 +317,7 @@ const AdminLoansPage = () => {
                 >
                     {filteredSchemes.map((scheme, index) => (
                         <motion.div
-                            key={scheme.id}
+                            key={scheme._id || scheme.id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
@@ -293,7 +348,7 @@ const AdminLoansPage = () => {
                                     <motion.button
                                         whileHover={{ scale: 1.1 }}
                                         whileTap={{ scale: 0.9 }}
-                                        onClick={() => handleDeleteScheme(scheme.id)}
+                                        onClick={() => handleDeleteScheme(scheme._id || scheme.id)}
                                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                         title="Delete Scheme"
                                     >
@@ -506,14 +561,24 @@ const AdminLoansPage = () => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Scheme Image URL</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Scheme Image</label>
                                             <input
-                                                type="url"
-                                                value={formData.image}
-                                                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageChange}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                placeholder="Enter image URL"
                                             />
+                                            {imagePreview && (
+                                                <div className="mt-2">
+                                                    <img src={imagePreview} alt="Preview" className="h-24 w-24 object-cover rounded-lg" />
+                                                </div>
+                                            )}
+                                            {formData.imageUrl && !imagePreview && (
+                                                <div className="mt-2">
+                                                    <p className="text-xs text-gray-500">Current image: {formData.imageUrl}</p>
+                                                    <img src={formData.imageUrl} alt="Current" className="h-24 w-24 object-cover rounded-lg mt-1" />
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Heading</label>
@@ -662,23 +727,7 @@ const AdminLoansPage = () => {
                                     Cancel
                                 </button>
                                 <button
-                                    onClick={async () => {
-                                        if (!formData.name || !formData.description || !formData.minAmount || !formData.maxAmount) {
-                                            alert('Please fill Name, Description, Min and Max Amount');
-                                            return;
-                                        }
-                                        // Map category to API values
-                                        if (formData.category) {
-                                            const map = {
-                                                MSME: 'msme',
-                                                Startup: 'startup',
-                                                'Women & SC/ST': 'women',
-                                                Agriculture: 'agriculture',
-                                            };
-                                            setFormData({ ...formData, category: map[formData.category] || formData.category });
-                                        }
-                                        await handleCreateScheme();
-                                    }}
+                                    onClick={handleCreateScheme}
                                     className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
                                 >
                                     Create Scheme
@@ -842,14 +891,24 @@ const AdminLoansPage = () => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Scheme Image URL</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Scheme Image</label>
                                             <input
-                                                type="url"
-                                                value={formData.image}
-                                                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageChange}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                placeholder="Enter image URL"
                                             />
+                                            {imagePreview && (
+                                                <div className="mt-2">
+                                                    <img src={imagePreview} alt="Preview" className="h-24 w-24 object-cover rounded-lg" />
+                                                </div>
+                                            )}
+                                            {formData.imageUrl && !imagePreview && (
+                                                <div className="mt-2">
+                                                    <p className="text-xs text-gray-500">Current image: {formData.imageUrl}</p>
+                                                    <img src={formData.imageUrl} alt="Current" className="h-24 w-24 object-cover rounded-lg mt-1" />
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Heading</label>
