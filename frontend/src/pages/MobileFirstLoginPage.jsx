@@ -6,7 +6,6 @@ import logo from '../assets/logo.png';
 
 const MobileFirstLoginPage = () => {
     const [phone, setPhone] = useState('');
-    const [email, setEmail] = useState('');
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const [activeOtpIndex, setActiveOtpIndex] = useState(0);
     const [step, setStep] = useState('phone'); // 'phone' or 'otp'
@@ -38,13 +37,11 @@ const MobileFirstLoginPage = () => {
                 userData = JSON.parse(existingUser);
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('userPhone', phone);
-                localStorage.setItem('userEmail', email);
             } else {
                 userData = {
-                    name: email.split('@')[0],
-                    firstName: email.split('@')[0],
+                    name: phone,
+                    firstName: phone,
                     lastName: '',
-                    email: email,
                     phone: phone,
                     address: ''
                 };
@@ -55,7 +52,6 @@ const MobileFirstLoginPage = () => {
             localStorage.setItem('isAdmin', 'false');
             localStorage.setItem('isLoggedIn', 'true');
             localStorage.setItem('userPhone', phone);
-            localStorage.setItem('userEmail', email);
             localStorage.setItem('hasVisited', 'true');
             
             setIsLoading(false);

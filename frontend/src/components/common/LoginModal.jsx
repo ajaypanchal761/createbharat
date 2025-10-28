@@ -5,7 +5,6 @@ import { FaArrowLeft } from 'react-icons/fa';
 
 const LoginModal = ({ isOpen, onClose, onSwitchToSignup, selectedService, isAdminLogin }) => {
     const [phone, setPhone] = useState('');
-    const [email, setEmail] = useState('');
     const [otp, setOtp] = useState(['', '', '', '']);
     const [step, setStep] = useState('phone'); // 'phone' or 'otp'
     const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +31,6 @@ const LoginModal = ({ isOpen, onClose, onSwitchToSignup, selectedService, isAdmi
                 localStorage.setItem('userType', 'admin');
                 localStorage.setItem('isAdmin', 'true');
                 localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('adminEmail', email);
                 navigate('/admin/dashboard');
             } else if (loginType === 'company') {
                 localStorage.setItem('userType', 'company');
@@ -40,10 +38,9 @@ const LoginModal = ({ isOpen, onClose, onSwitchToSignup, selectedService, isAdmi
                 navigate('/company/internships');
             } else {
                 const userData = {
-                    name: email.split('@')[0],
-                    firstName: email.split('@')[0],
+                    name: phone,
+                    firstName: phone,
                     lastName: '',
-                    email: email,
                     phone: phone,
                     address: ''
                 };
@@ -51,7 +48,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToSignup, selectedService, isAdmi
                 localStorage.setItem('userType', 'user');
                 localStorage.setItem('isAdmin', 'false');
                 localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('userEmail', email);
+                localStorage.setItem('userPhone', phone);
                 
                 if (selectedService) {
                     navigate(selectedService);
@@ -172,21 +169,6 @@ const LoginModal = ({ isOpen, onClose, onSwitchToSignup, selectedService, isAdmi
                                 {/* Form */}
                                 <form onSubmit={handleSendOTP} className="space-y-4">
                                     <div>
-                                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                                            Email Address
-                                        </label>
-                                        <input
-                                            type="email"
-                                            id="email"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            required
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-300"
-                                            placeholder="your@email.com"
-                                        />
-                                    </div>
-
-                                    <div>
                                         <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                                             Phone Number
                                         </label>
@@ -205,7 +187,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToSignup, selectedService, isAdmi
 
                                     <motion.button
                                         type="submit"
-                                        disabled={isLoading || phone.length !== 10 || !email}
+                                        disabled={isLoading || phone.length !== 10}
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -230,7 +212,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToSignup, selectedService, isAdmi
                         ) : (
                             <>
                                 <p className="text-gray-600 text-sm mb-6">
-                                    We have sent the verification code to your email and phone number.
+                                    We have sent the verification code to your phone number.
                                 </p>
 
                                 <form onSubmit={handleVerifyOTP} className="space-y-6">

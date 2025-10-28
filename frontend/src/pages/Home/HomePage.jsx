@@ -5,6 +5,7 @@ import LoginModal from '../../components/common/LoginModal';
 import SignupModal from '../../components/common/SignupModal';
 import BottomNavbar from '../../components/common/BottomNavbar';
 import MobileFirstLoginPage from '../MobileFirstLoginPage';
+import { useUser } from '../../contexts/UserContext';
 import logo from '../../assets/logo.png';
 import techImage from '../../assets/techImage.webp';
 import mentorImage from '../../assets/mentor.png';
@@ -31,6 +32,7 @@ const QuoteIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-5
 
 const HomePage = () => {
     const navigate = useNavigate();
+    const { user, logout: userLogout, isAuthenticated } = useUser();
     
     // Mobile detection and first visit logic
     const [isMobile, setIsMobile] = useState(false);
@@ -457,20 +459,26 @@ const HomePage = () => {
                                     Development
                                 </Link>
                                 <div className="border-t border-gray-200 pt-3 mt-3">
-                                    <Link 
-                                        to="/login" 
-                                        className="block py-2 text-gray-700 hover:text-orange-500 font-medium transition-colors"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                    >
-                                        Login
-                                    </Link>
-                                    <Link 
-                                        to="/signup" 
-                                        className="block py-2 text-gray-700 hover:text-orange-500 font-medium transition-colors"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                    >
-                                        Sign Up
-                                    </Link>
+                                    {isAuthenticated() ? (
+                                        <button 
+                                            onClick={() => {
+                                                userLogout();
+                                                setIsMobileMenuOpen(false);
+                                                navigate('/');
+                                            }}
+                                            className="block w-full text-left py-2 text-red-600 hover:text-red-700 font-medium transition-colors"
+                                        >
+                                            Logout
+                                        </button>
+                                    ) : (
+                                        <Link 
+                                            to="/login" 
+                                            className="block py-2 text-gray-700 hover:text-orange-500 font-medium transition-colors"
+                                            onClick={() => setIsMobileMenuOpen(false)}
+                                        >
+                                            Login
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -1030,18 +1038,24 @@ const HomePage = () => {
                                     <SearchIcon />
                                 </button>
                                 <div className="flex items-center gap-3">
-                                    <button 
-                                        onClick={() => setShowLoginModal(true)}
-                                        className="px-4 py-2 text-gray-700 hover:text-gray-900 font-semibold transition-colors"
-                                    >
-                                        Login
-                                    </button>
-                                    <button 
-                                        onClick={() => setShowSignupModal(true)}
-                                        className="px-6 py-2 bg-gradient-to-r from-orange-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300"
-                                    >
-                                        Sign Up
-                                    </button>
+                                    {isAuthenticated() ? (
+                                        <button 
+                                            onClick={() => {
+                                                userLogout();
+                                                navigate('/');
+                                            }}
+                                            className="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all duration-300"
+                                        >
+                                            Logout
+                                        </button>
+                                    ) : (
+                                        <button 
+                                            onClick={() => setShowLoginModal(true)}
+                                            className="px-6 py-2 bg-gradient-to-r from-orange-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300"
+                                        >
+                                            Login
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
