@@ -11,6 +11,8 @@ const publicPaths = [
   '/terms',
   '/admin',
   '/admin/login',
+  '/company/login',
+  '/company/signup',
 ];
 
 export default function ProtectedRoute({ children }) {
