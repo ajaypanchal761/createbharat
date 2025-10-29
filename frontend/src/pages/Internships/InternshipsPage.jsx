@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import BottomNavbar from '../../components/common/BottomNavbar';
 import logo from '../../assets/logo.png';
@@ -100,7 +99,6 @@ const InternshipsPage = () => {
     duration: ''
   });
   const [filteredInternships, setFilteredInternships] = useState([]);
-  const [filteredInternships, setFilteredInternships] = useState([]);
 
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({ ...prev, [filterType]: value }));
@@ -173,100 +171,10 @@ const InternshipsPage = () => {
       setIsLoading(false);
       setIsFilterOpen(false);
     }
-  const applyFilters = async () => {
-    try {
-      setIsLoading(true);
-      // Build backend filter params
-      const params = { limit: 50 };
-
-      if (filters.domain && filters.domain !== 'All') {
-        params.category = filters.domain;
-      }
-
-      if (filters.location && filters.location !== 'All') {
-        // Extract location name if it's in format "Type (Location)"
-        let locationName = filters.location;
-        if (locationName.includes('(')) {
-          locationName = locationName.split('(')[1].replace(')', '').trim();
-        }
-
-        // Check if remote
-        if (filters.location.toLowerCase().includes('remote')) {
-          params.remote = 'true';
-        } else {
-          params.location = locationName;
-        }
-      }
-
-      if (filters.workType && filters.workType !== 'All') {
-        params.type = filters.workType;
-      }
-
-      // Fetch filtered internships from backend
-      const response = await internshipAPI.getAll(params);
-      if (response.success && response.data.internships) {
-        const normalized = response.data.internships.map(i => ({
-          ...i,
-          id: i._id || i.id,
-          company: i.companyName || i.company?.companyName || 'Company',
-          stipendPerMonth: i.stipendPerMonth || '/month',
-          postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
-          icon: i.icon || '💼',
-          color: i.color || 'from-blue-500 to-cyan-500'
-        }));
-
-        // Apply client-side stipend range filter if needed
-        let filtered = normalized;
-        if (filters.stipendRange && filters.stipendRange !== 'All') {
-          filtered = normalized.filter(i => {
-            const stipend = parseInt((i.stipend || '').replace(/[^\d]/g, '')) || 0;
-            switch (filters.stipendRange) {
-              case '0-10k': return stipend <= 10000;
-              case '10k-20k': return stipend > 10000 && stipend <= 20000;
-              case '20k-30k': return stipend > 20000 && stipend <= 30000;
-              case '30k-50k': return stipend > 30000 && stipend <= 50000;
-              case '50k+': return stipend > 50000;
-              default: return true;
-            }
-          });
-        }
-
-        setFilteredInternships(filtered);
-        setApiInternships(filtered); // Update main list
-      }
-    } catch (error) {
-      console.error('Error applying filters:', error);
-    } finally {
-      setIsLoading(false);
-      setIsFilterOpen(false);
-    }
   };
 
   const clearFilters = async () => {
-  const clearFilters = async () => {
     setFilters({ location: '', domain: '', datePosted: '', stipendRange: '', workType: '', duration: '' });
-    try {
-      setIsLoading(true);
-      // Reload all internships
-      const response = await internshipAPI.getAll({ limit: 100 });
-      if (response.success && response.data.internships) {
-        const normalized = response.data.internships.map(i => ({
-          ...i,
-          id: i._id || i.id,
-          company: i.companyName || i.company?.companyName || 'Company',
-          stipendPerMonth: i.stipendPerMonth || '/month',
-          postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
-          icon: i.icon || '💼',
-          color: i.color || 'from-blue-500 to-cyan-500'
-        }));
-        setApiInternships(normalized);
-        setFilteredInternships(normalized.slice(0, 8));
-      }
-    } catch (error) {
-      console.error('Error clearing filters:', error);
-    } finally {
-      setIsLoading(false);
-    }
     try {
       setIsLoading(true);
       // Reload all internships
@@ -358,15 +266,6 @@ const InternshipsPage = () => {
           </div>
         </div>
       )}
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading internships...</p>
-          </div>
-        </div>
-      )}
 
       {/* Mobile Header */}
       <motion.header
@@ -424,9 +323,6 @@ const InternshipsPage = () => {
             {/* For Companies Button - Moved to replace message icon */}
             <Link to="/company/login">
               <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              <motion.button 
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 className="p-2 hover:bg-white/20 rounded-lg transition-colors"
@@ -531,22 +427,7 @@ const InternshipsPage = () => {
                         </div>
 
                         <h4 className="font-semibold text-lg mb-4">{internship.title}</h4>
-                        <h4 className="font-semibold text-lg mb-4">{internship.title}</h4>
 
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-center gap-2 text-sm text-white/90">
-                            <span>📍</span>
-                            <span>{internship.location}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-white/90">
-                            <span>💼</span>
-                            <span>{internship.duration} experience</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-white/90">
-                            <span>💰</span>
-                            <span>{internship.stipend}/month</span>
-                          </div>
-                        </div>
                         <div className="space-y-2 mb-4">
                           <div className="flex items-center gap-2 text-sm text-white/90">
                             <span>📍</span>
@@ -570,32 +451,7 @@ const InternshipsPage = () => {
                             Internship
                           </span>
                         </div>
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="px-2 py-1 bg-white/20 text-white text-xs rounded-md">
-                            {internship.postedDate}
-                          </span>
-                          <span className="px-2 py-1 bg-white/20 text-white text-xs font-medium rounded-full">
-                            Internship
-                          </span>
-                        </div>
 
-                        <div className="flex gap-2">
-                          <Link to={`/internships/${internship.id}`}>
-                            <button className="bg-white text-gray-900 text-center py-2 px-4 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors flex-1">
-                              Apply Now
-                            </button>
-                          </Link>
-                          <Link to={`/internships/${internship.id}`}>
-                            <button className="bg-white/20 border border-white/30 text-white text-center py-2 px-4 rounded-lg font-semibold text-sm hover:bg-white/30 transition-colors">
-                              Know More
-                            </button>
-                          </Link>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              )}
                         <div className="flex gap-2">
                           <Link to={`/internships/${internship.id}`}>
                             <button className="bg-white text-gray-900 text-center py-2 px-4 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors flex-1">
@@ -644,22 +500,7 @@ const InternshipsPage = () => {
                         </div>
 
                         <h4 className="font-semibold text-gray-800 text-base mb-4 line-clamp-2">{internship.title}</h4>
-                        <h4 className="font-semibold text-gray-800 text-base mb-4 line-clamp-2">{internship.title}</h4>
 
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <span>📍</span>
-                            <span>{internship.location}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <span>💼</span>
-                            <span>{internship.duration} experience</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <span>💰</span>
-                            <span>{internship.stipend}/month</span>
-                          </div>
-                        </div>
                         <div className="space-y-2 mb-4">
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <span>📍</span>
@@ -683,32 +524,7 @@ const InternshipsPage = () => {
                             Internship
                           </span>
                         </div>
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">
-                            {internship.postedDate}
-                          </span>
-                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
-                            Internship
-                          </span>
-                        </div>
 
-                        <div className="flex flex-wrap gap-2 mb-4 min-h-[24px]">
-                          {internship.popular && (
-                            <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
-                              Popular
-                            </span>
-                          )}
-                          {internship.remote && (
-                            <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
-                              Remote
-                            </span>
-                          )}
-                          {internship.urgent && (
-                            <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                              Urgent
-                            </span>
-                          )}
-                        </div>
                         <div className="flex flex-wrap gap-2 mb-4 min-h-[24px]">
                           {internship.popular && (
                             <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
@@ -809,9 +625,6 @@ const InternshipsPage = () => {
                 </div>
               )}
 
-              {/* Placement courses removed for internships page */}
-            </div>
-          </div>
               {/* Placement courses removed for internships page */}
             </div>
           </div>
