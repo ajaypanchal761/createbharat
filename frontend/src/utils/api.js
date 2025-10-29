@@ -4,19 +4,62 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 const apiCall = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
 
+  // Prepare headers object
+  const headers = {};
+
+  // Set Content-Type based on body type (unless skipJsonHeaders is true or FormData)
+  if (!options.skipJsonHeaders && !(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  // Merge custom headers (should override defaults)
+  if (options.headers) {
+    Object.assign(headers, options.headers);
+  }
+
+  // Handle body
+  let body;
+  if (options.body instanceof FormData) {
+    // FormData - browser will set Content-Type with boundary automatically
+    body = options.body;
+    // Remove Content-Type header for FormData so browser can set it with boundary
+    delete headers['Content-Type'];
+  } else if (options.body && typeof options.body === 'string') {
+    // Body already stringified - ensure Content-Type is set
+    if (!headers['Content-Type'] && !options.skipJsonHeaders) {
+      headers['Content-Type'] = 'application/json';
+    }
+    body = options.body;
+  } else if (options.body && typeof options.body === 'object') {
+    // Object body - stringify and ensure Content-Type is set
+    if (!options.skipJsonHeaders) {
+      headers['Content-Type'] = 'application/json';
+    }
+    body = JSON.stringify(options.body);
+  } else {
+    // No body or other types
+    body = options.body;
+  }
+
   const config = {
-    headers: {
-      // Only set JSON header if not uploading files
-      ...(!options.skipJsonHeaders && { 'Content-Type': 'application/json' }),
-      ...options.headers,
-    },
-    ...options,
+    method: options.method || 'GET',
+    headers,
+    body,
   };
 
-  // Don't stringify body if it's FormData (file upload)
-  if (options.body instanceof FormData) {
-    delete config.headers['Content-Type']; // Let browser set boundary
-  }
+  // Copy other options (except what we've already processed)
+  Object.keys(options).forEach(key => {
+    if (!['method', 'headers', 'body', 'skipJsonHeaders'].includes(key)) {
+      config[key] = options[key];
+    }
+  });
+
+  console.log('API Call:', {
+    url,
+    method: config.method || 'GET',
+    headers: config.headers,
+    body: config.body
+  });
 
   try {
     const response = await fetch(url, config);
@@ -265,5 +308,172 @@ export const adminLoansAPI = {
   },
 };
 
-export default { authAPI, adminAPI, loansAPI, adminLoansAPI };
+// Company API calls
+export const companyAPI = {
+  // Register company
+  register: async (companyData) => {
+    return apiCall('/company/register', {
+      method: 'POST',
+      body: JSON.stringify(companyData),
+    });
+  },
+
+  // Login company
+  login: async (credentials) => {
+    return apiCall('/company/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  },
+
+  // Get current company
+  getMe: async (token) => {
+    return apiCall('/company/me', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Update company profile
+  updateProfile: async (token, profileData) => {
+    return apiCall('/company/profile', {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(profileData),
+    });
+  },
+};
+
+// Internship API calls
+export const internshipAPI = {
+  // Get all internships
+  getAll: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/internships${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+    });
+  },
+
+  // Get single internship
+  getById: async (id) => {
+    return apiCall(`/internships/${id}`, {
+      method: 'GET',
+    });
+  },
+
+  // Company: Create internship
+  create: async (token, internshipData) => {
+    return apiCall('/internships', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: internshipData, // Pass object, let apiCall handle stringification
+    });
+  },
+
+  // Company: Get my internships
+  getMyInternships: async (token) => {
+    return apiCall('/internships/company/my-internships', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Company: Update internship
+  update: async (token, id, updateData) => {
+    return apiCall(`/internships/${id}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: updateData, // Pass object, let apiCall handle stringification
+    });
+  },
+
+  // Company: Delete internship
+  delete: async (token, id) => {
+    return apiCall(`/internships/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+};
+
+// Application API calls
+export const applicationAPI = {
+  // Apply to internship
+  apply: async (token, applicationData) => {
+    return apiCall('/applications', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(applicationData),
+    });
+  },
+
+  // Get single application
+  getById: async (token, id) => {
+    return apiCall(`/applications/${id}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Company: Get my applications
+  getCompanyApplications: async (token, params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/applications/company/my-applications${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // User: Get my applications
+  getMyApplications: async (token, params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/applications/user/my-applications${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Company: Update application status
+  updateStatus: async (token, id, status, notes = '') => {
+    return apiCall(`/applications/${id}/status`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status, notes }),
+    });
+  },
+
+  // Company: View application
+  view: async (token, id) => {
+    return apiCall(`/applications/${id}/view`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+};
+
+export default { authAPI, adminAPI, companyAPI, internshipAPI, applicationAPI, loansAPI, adminLoansAPI };
 

@@ -1,22 +1,97 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
+import { internshipAPI, applicationAPI, companyAPI } from '../../utils/api';
 
 const CompanyInternshipsPage = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isPostingJob, setIsPostingJob] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [myInternships, setMyInternships] = useState([]);
+    const [applications, setApplications] = useState([]);
+    const [companyInfo, setCompanyInfo] = useState(null);
+    const [stats, setStats] = useState({
+        totalJobsPosted: 0,
+        activeApplications: 0,
+        hiredCandidates: 0,
+        responseRate: '0%'
+    });
+
+    // Check authentication on mount and load data
+    useEffect(() => {
+        const companyToken = localStorage.getItem('companyToken');
+        const userType = localStorage.getItem('userType');
+
+        if (!companyToken || userType !== 'company') {
+            navigate('/company/login', { replace: true });
+            return;
+        }
+
+        loadCompanyData(companyToken);
+    }, [navigate]);
+
+    const loadCompanyData = async (token) => {
+        setIsLoading(true);
+        try {
+            // Load company info
+            const companyResponse = await companyAPI.getMe(token);
+            if (companyResponse.success) {
+                setCompanyInfo(companyResponse.data.company);
+            }
+
+            // Load internships
+            const internshipsResponse = await internshipAPI.getMyInternships(token);
+            if (internshipsResponse.success) {
+                setMyInternships(internshipsResponse.data.internships || []);
+
+                // Calculate stats
+                const totalJobs = internshipsResponse.data.internships.length;
+                let totalApplicants = 0;
+                let hiredCount = 0;
+
+                // Load applications
+                const appsResponse = await applicationAPI.getCompanyApplications(token);
+                if (appsResponse.success) {
+                    const allApps = appsResponse.data.applications || [];
+                    setApplications(allApps);
+
+                    totalApplicants = allApps.length;
+                    hiredCount = allApps.filter(app => app.status === 'hired').length;
+
+                    const activeApps = allApps.filter(app =>
+                        app.status === 'pending' || app.status === 'shortlisted'
+                    ).length;
+
+                    setStats({
+                        totalJobsPosted: totalJobs,
+                        activeApplications: activeApps,
+                        hiredCandidates: hiredCount,
+                        responseRate: totalJobs > 0 ? `${Math.round((totalApplicants / totalJobs) * 100)}%` : '0%'
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error loading company data:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
     const [jobFormData, setJobFormData] = useState({
         title: '',
-        company: '',
         location: '',
         duration: '3 months',
         description: '',
-        requirements: '',
+        requirements: [],
+        responsibilities: '',
         salary: '',
-        type: 'internship'
+        stipend: '',
+        type: 'Internship',
+        category: 'Technology',
+        skills: '',
+        openings: '1',
+        applicationDeadline: ''
     });
-    const [selectedApplication, setSelectedApplication] = useState(null);
     const [companyProfile, setCompanyProfile] = useState({
         name: 'TechCorp Solutions',
         industry: 'Technology',
@@ -32,32 +107,159 @@ const CompanyInternshipsPage = () => {
         });
     };
 
-    const handlePostJob = (e) => {
-        e.preventDefault();
-        setIsPostingJob(true);
-        
-        // Simulate API call
-        setTimeout(() => {
-            setIsPostingJob(false);
-            alert('Job posted successfully!');
-            setJobFormData({
-                title: '',
-                company: '',
-                location: '',
-                duration: '3 months',
-                description: '',
-                requirements: '',
-                salary: '',
-                type: 'internship'
-            });
-            setActiveTab('dashboard');
-        }, 2000);
+    // Array field helpers (similar to loan module)
+    const addArrayItem = (field) => {
+        setJobFormData({
+            ...jobFormData,
+            [field]: [...(jobFormData[field] || []), '']
+        });
     };
 
-    const handleApplicationAction = (applicationId, action) => {
-        // Simulate API call
-        alert(`Application ${action} successfully!`);
-        // Update application status in real app
+    const updateArrayItem = (field, index, value) => {
+        const updatedArray = [...(jobFormData[field] || [])];
+        updatedArray[index] = value;
+        setJobFormData({
+            ...jobFormData,
+            [field]: updatedArray
+        });
+    };
+
+    const removeArrayItem = (field, index) => {
+        const updatedArray = (jobFormData[field] || []).filter((_, i) => i !== index);
+        setJobFormData({
+            ...jobFormData,
+            [field]: updatedArray
+        });
+    };
+
+    const handlePostJob = async (e) => {
+        e.preventDefault();
+
+        // If editing, use update handler instead
+        if (editingInternship) {
+            return handleUpdateInternship(e);
+        }
+
+        setIsPostingJob(true);
+
+        try {
+            const token = localStorage.getItem('companyToken');
+            if (!token) {
+                navigate('/company/login');
+                return;
+            }
+
+            // Parse responsibilities from responsibilities field - split by newlines
+            const responsibilities = jobFormData.responsibilities
+                ? jobFormData.responsibilities.split('\n').filter(r => r.trim())
+                : [];
+
+            // Parse skills from comma-separated string
+            const skills = jobFormData.skills
+                ? jobFormData.skills.split(',').map(s => s.trim()).filter(s => s)
+                : [];
+
+            // Process requirements array - filter out empty strings
+            const requirements = Array.isArray(jobFormData.requirements)
+                ? jobFormData.requirements.filter(r => r && r.trim()).map(r => r.trim())
+                : [];
+
+            // Validate required fields
+            if (!jobFormData.title || !jobFormData.location || !jobFormData.duration ||
+                !jobFormData.description || !jobFormData.category || !jobFormData.salary) {
+                alert('Please fill all required fields');
+                setIsPostingJob(false);
+                return;
+            }
+
+            // Build internship data object matching backend schema exactly
+            const internshipData = {
+                title: jobFormData.title?.trim() || '',
+                location: jobFormData.location?.trim() || '',
+                duration: jobFormData.duration?.trim() || '',
+                stipend: (jobFormData.salary?.trim() || jobFormData.stipend?.trim() || '').replace(/\/month$/i, '') + '/month',
+                type: jobFormData.type || 'Internship',
+                category: jobFormData.category || 'Technology',
+                description: jobFormData.description?.trim() || '',
+                requirements: requirements,
+                responsibilities: Array.isArray(responsibilities) && responsibilities.length > 0 ? responsibilities : [],
+                skills: Array.isArray(skills) && skills.length > 0 ? skills : [],
+                isRemote: jobFormData.location?.toLowerCase().includes('remote') || false,
+                openings: parseInt(jobFormData.openings) || 1,
+                applicationDeadline: jobFormData.applicationDeadline ? new Date(jobFormData.applicationDeadline).toISOString() : null
+            };
+
+            console.log('Sending internship data:', JSON.stringify(internshipData, null, 2));
+
+            const response = await internshipAPI.create(token, internshipData);
+
+            if (response.success) {
+                alert('Internship posted successfully!');
+                setJobFormData({
+                    title: '',
+                    location: '',
+                    duration: '3 months',
+                    description: '',
+                    requirements: [],
+                    responsibilities: '',
+                    salary: '',
+                    stipend: '',
+                    type: 'Internship',
+                    category: 'Technology',
+                    skills: '',
+                    openings: '1',
+                    applicationDeadline: ''
+                });
+                setActiveTab('dashboard');
+
+                // Reload internships
+                await loadCompanyData(token);
+            } else {
+                alert(response.message || 'Failed to post internship');
+            }
+        } catch (error) {
+            console.error('Error posting internship:', error);
+            alert(error.message || 'Failed to post internship. Please try again.');
+        } finally {
+            setIsPostingJob(false);
+        }
+    };
+
+    const handleApplicationAction = async (applicationId, action) => {
+        try {
+            const token = localStorage.getItem('companyToken');
+            if (!token) {
+                navigate('/company/login');
+                return;
+            }
+
+            // Map action to status
+            let status = 'pending';
+            if (action === 'shortlist') status = 'shortlisted';
+            else if (action === 'reject') status = 'rejected';
+            else if (action === 'hire') status = 'hired';
+
+            const response = await applicationAPI.updateStatus(token, applicationId, status);
+
+            if (response.success) {
+                alert(`Application ${action}ed successfully!`);
+
+                // Update local applications state
+                setApplications(prev => prev.map(app =>
+                    app._id === applicationId
+                        ? { ...app, status, statusUpdatedAt: new Date() }
+                        : app
+                ));
+
+                // Reload data
+                await loadCompanyData(token);
+            } else {
+                alert(response.message || `Failed to ${action} application`);
+            }
+        } catch (error) {
+            console.error('Error updating application:', error);
+            alert(error.message || `Failed to ${action} application`);
+        }
     };
 
     const handleProfileChange = (e) => {
@@ -67,7 +269,7 @@ const CompanyInternshipsPage = () => {
         });
     };
 
-    const handleProfileUpdate = (e) => {
+    const handleProfileUpdate = async (e) => {
         e.preventDefault();
         alert('Profile updated successfully!');
     };
@@ -75,43 +277,34 @@ const CompanyInternshipsPage = () => {
     const tabs = [
         { id: 'dashboard', name: 'Dashboard' },
         { id: 'post', name: 'Post Job' },
+        { id: 'my-internships', name: 'My Internships' },
         { id: 'applications', name: 'Applications' },
         { id: 'profile', name: 'Profile' }
     ];
 
-    const stats = [
-        { label: 'Total Jobs Posted', value: '12', change: '+2 this month' },
-        { label: 'Active Applications', value: '45', change: '+15 this week' },
-        { label: 'Hired Candidates', value: '8', change: '+3 this month' },
-        { label: 'Response Rate', value: '85%', change: '+5% this month' }
+    const statsData = [
+        { label: 'Total Jobs Posted', value: stats.totalJobsPosted.toString(), change: `${myInternships.length} active` },
+        { label: 'Active Applications', value: stats.activeApplications.toString(), change: `${applications.filter(a => a.status === 'pending').length} pending` },
+        { label: 'Hired Candidates', value: stats.hiredCandidates.toString(), change: `${stats.hiredCandidates} total` },
+        { label: 'Response Rate', value: stats.responseRate, change: 'Average per job' }
     ];
 
-    const recentApplications = [
-        {
-            id: 1,
-            candidate: 'John Doe',
-            position: 'Frontend Developer Intern',
-            status: 'New',
-            appliedDate: '2024-01-20',
-            experience: '1 year'
-        },
-        {
-            id: 2,
-            candidate: 'Jane Smith',
-            position: 'Backend Developer Intern',
-            status: 'Under Review',
-            appliedDate: '2024-01-19',
-            experience: '2 years'
-        },
-        {
-            id: 3,
-            candidate: 'Mike Johnson',
-            position: 'UI/UX Designer Intern',
-            status: 'Shortlisted',
-            appliedDate: '2024-01-18',
-            experience: '6 months'
-        }
-    ];
+    const recentApplications = applications
+        .sort((a, b) => new Date(b.appliedAt || b.createdAt) - new Date(a.appliedAt || a.createdAt))
+        .slice(0, 10)
+        .map(app => ({
+            id: app._id,
+            candidate: app.name || `${app.user?.firstName || ''} ${app.user?.lastName || ''}`.trim() || 'N/A',
+            position: app.internship?.title || 'N/A',
+            status: app.status === 'pending' ? 'New' :
+                app.status === 'shortlisted' ? 'Under Review' :
+                    app.status.charAt(0).toUpperCase() + app.status.slice(1),
+            appliedDate: app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() :
+                app.createdAt ? new Date(app.createdAt).toLocaleDateString() : 'N/A',
+            experience: app.experience || 'N/A',
+            email: app.email || app.user?.email || '',
+            phone: app.phone || app.user?.phone || ''
+        }));
 
     const renderDashboard = () => (
         <motion.div
@@ -122,7 +315,7 @@ const CompanyInternshipsPage = () => {
         >
             {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-4">
-                {stats.map((stat, index) => (
+                {statsData.map((stat, index) => (
                     <motion.div
                         key={stat.label}
                         initial={{ opacity: 0, scale: 0.8 }}
@@ -163,11 +356,10 @@ const CompanyInternshipsPage = () => {
                                 <p className="text-xs text-gray-500">{app.experience} experience</p>
                             </div>
                             <div className="text-right">
-                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                    app.status === 'New' ? 'bg-blue-100 text-blue-800' :
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${app.status === 'New' ? 'bg-blue-100 text-blue-800' :
                                     app.status === 'Under Review' ? 'bg-yellow-100 text-yellow-800' :
-                                    'bg-green-100 text-green-800'
-                                }`}>
+                                        'bg-green-100 text-green-800'
+                                    }`}>
                                     {app.status}
                                 </span>
                                 <p className="text-xs text-gray-500 mt-1">{app.appliedDate}</p>
@@ -204,7 +396,7 @@ const CompanyInternshipsPage = () => {
                         ease: "linear"
                     }}
                 />
-                
+
                 {/* Rotating Border */}
                 <motion.div
                     className="absolute -inset-1 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-3xl"
@@ -217,7 +409,7 @@ const CompanyInternshipsPage = () => {
                         ease: "linear"
                     }}
                 />
-                
+
                 {/* Inner Container */}
                 <div className="relative bg-white rounded-3xl p-8 shadow-2xl">
                     {/* Form Header with Premium Effects */}
@@ -239,9 +431,9 @@ const CompanyInternshipsPage = () => {
                                 ease: "easeInOut"
                             }}
                         />
-                        
+
                         <h3 className="relative text-3xl font-bold text-gray-800 text-center py-4">
-                            Post New Internship
+                            {editingInternship ? 'Edit Internship' : 'Post New Internship'}
                             <motion.div
                                 className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"
                                 animate={{
@@ -254,8 +446,35 @@ const CompanyInternshipsPage = () => {
                                 }}
                             />
                         </h3>
+                        {editingInternship && (
+                            <div className="text-center mt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEditingInternship(null);
+                                        setJobFormData({
+                                            title: '',
+                                            location: '',
+                                            duration: '3 months',
+                                            description: '',
+                                            requirements: '',
+                                            salary: '',
+                                            stipend: '',
+                                            type: 'Internship',
+                                            category: 'Technology',
+                                            skills: '',
+                                            openings: '1',
+                                            applicationDeadline: ''
+                                        });
+                                    }}
+                                    className="text-sm text-gray-600 hover:text-gray-800 underline"
+                                >
+                                    Cancel editing
+                                </button>
+                            </div>
+                        )}
                     </motion.div>
-                    
+
                     <form onSubmit={handlePostJob} className="space-y-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-3">Job Title</label>
@@ -282,29 +501,6 @@ const CompanyInternshipsPage = () => {
                             </motion.div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-3">Company</label>
-                            <motion.div
-                                className="relative"
-                                whileFocus={{ scale: 1.02 }}
-                                transition={{ duration: 0.2 }}
-                            >
-                                <motion.div
-                                    className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 rounded-xl opacity-0"
-                                    whileFocus={{ opacity: 1 }}
-                                    transition={{ duration: 0.3 }}
-                                />
-                                <input
-                                    type="text"
-                                    name="company"
-                                    value={jobFormData.company}
-                                    onChange={handleJobFormChange}
-                                    required
-                                    className="relative w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-transparent bg-white/90 backdrop-blur-sm transition-all duration-300"
-                                    placeholder="Your company name"
-                                />
-                            </motion.div>
-                        </div>
-                        <div>
                             <label className="block text-sm font-medium text-gray-700 mb-3">Location</label>
                             <motion.div
                                 className="relative"
@@ -327,126 +523,368 @@ const CompanyInternshipsPage = () => {
                                 />
                             </motion.div>
                         </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
-                        <select 
-                            name="duration"
-                            value={jobFormData.duration}
-                            onChange={handleJobFormChange}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                            <option value="3 months">3 months</option>
-                            <option value="6 months">6 months</option>
-                            <option value="1 year">1 year</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Salary/Stipend</label>
-                        <input
-                            type="text"
-                            name="salary"
-                            value={jobFormData.salary}
-                            onChange={handleJobFormChange}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="e.g., ₹15,000/month"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                        <textarea
-                            name="description"
-                            value={jobFormData.description}
-                            onChange={handleJobFormChange}
-                            required
-                            rows={4}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Describe the internship role and requirements..."
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Requirements</label>
-                        <textarea
-                            name="requirements"
-                            value={jobFormData.requirements}
-                            onChange={handleJobFormChange}
-                            rows={3}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="List the required skills and qualifications..."
-                        />
-                    </div>
-                    {/* Premium Submit Button */}
-                    <motion.div
-                        className="relative mt-8"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                    >
-                        {/* Button Border Effect */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
+                            <select
+                                name="duration"
+                                value={jobFormData.duration}
+                                onChange={handleJobFormChange}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="3 months">3 months</option>
+                                <option value="6 months">6 months</option>
+                                <option value="1 year">1 year</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Salary/Stipend</label>
+                            <input
+                                type="text"
+                                name="salary"
+                                value={jobFormData.salary}
+                                onChange={handleJobFormChange}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="e.g., ₹15,000/month"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                            <textarea
+                                name="description"
+                                value={jobFormData.description}
+                                onChange={handleJobFormChange}
+                                required
+                                rows={4}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Describe the internship role and requirements..."
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+                            <select
+                                name="category"
+                                value={jobFormData.category}
+                                onChange={handleJobFormChange}
+                                required
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="">Select Category</option>
+                                <option value="Technology">Technology</option>
+                                <option value="Design">Design</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Finance">Finance</option>
+                                <option value="Legal">Legal</option>
+                                <option value="Operations">Operations</option>
+                                <option value="Content">Content</option>
+                                <option value="Sales">Sales</option>
+                                <option value="HR">HR</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Type *</label>
+                            <select
+                                name="type"
+                                value={jobFormData.type}
+                                onChange={handleJobFormChange}
+                                required
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="Internship">Internship</option>
+                                <option value="Full-time">Full-time</option>
+                                <option value="Part-time">Part-time</option>
+                                <option value="Contract">Contract</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Openings *</label>
+                            <input
+                                type="number"
+                                name="openings"
+                                value={jobFormData.openings}
+                                onChange={handleJobFormChange}
+                                required
+                                min="1"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Number of positions"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Skills (comma-separated)</label>
+                            <input
+                                type="text"
+                                name="skills"
+                                value={jobFormData.skills}
+                                onChange={handleJobFormChange}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="e.g., React, Node.js, MongoDB"
+                            />
+                        </div>
+                        <div className="bg-gray-50 rounded-xl p-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-4">
+                                <svg className="w-5 h-5 inline-block mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Requirements
+                            </label>
+                            <div className="space-y-2">
+                                {jobFormData.requirements.map((requirement, index) => (
+                                    <div key={index} className="flex items-center space-x-2">
+                                        <input
+                                            type="text"
+                                            value={requirement}
+                                            onChange={(e) => updateArrayItem('requirements', index, e.target.value)}
+                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Enter requirement (e.g., Bachelor's degree, 2+ years experience)"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeArrayItem('requirements', index)}
+                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={() => addArrayItem('requirements')}
+                                    className="w-full mt-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium flex items-center justify-center gap-2"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Add Requirement
+                                </button>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">Add qualification requirements, experience needed, etc.</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Responsibilities</label>
+                            <textarea
+                                name="responsibilities"
+                                value={jobFormData.responsibilities}
+                                onChange={handleJobFormChange}
+                                rows={4}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="List the responsibilities (one per line). Each line will be treated as a separate responsibility..."
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Each line will be treated as a separate responsibility</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Application Deadline</label>
+                            <input
+                                type="date"
+                                name="applicationDeadline"
+                                value={jobFormData.applicationDeadline}
+                                onChange={handleJobFormChange}
+                                min={new Date().toISOString().split('T')[0]}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Select application deadline"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Internships with expired deadlines will not be shown to users</p>
+                        </div>
+                        {/* Premium Submit Button */}
                         <motion.div
-                            className={`absolute -inset-1 rounded-2xl ${
-                                isPostingJob 
-                                    ? 'bg-gray-400' 
-                                    : 'bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600'
-                            }`}
-                            animate={!isPostingJob ? {
-                                background: [
-                                    'linear-gradient(45deg, #3B82F6, #8B5CF6, #6366F1)',
-                                    'linear-gradient(45deg, #8B5CF6, #6366F1, #3B82F6)',
-                                    'linear-gradient(45deg, #6366F1, #3B82F6, #8B5CF6)',
-                                    'linear-gradient(45deg, #3B82F6, #8B5CF6, #6366F1)'
-                                ]
-                            } : {}}
-                            transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: "linear"
-                            }}
-                        />
-                        
-                        {/* Shimmer Effect */}
-                        {!isPostingJob && (
+                            className="relative mt-8"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            {/* Button Border Effect */}
                             <motion.div
-                                className="absolute -inset-1 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-2xl"
-                                animate={{
-                                    x: ['-100%', '100%']
-                                }}
+                                className={`absolute -inset-1 rounded-2xl ${(isPostingJob || isUpdatingInternship)
+                                    ? 'bg-gray-400'
+                                    : 'bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600'
+                                    }`}
+                                animate={!(isPostingJob || isUpdatingInternship) ? {
+                                    background: [
+                                        'linear-gradient(45deg, #3B82F6, #8B5CF6, #6366F1)',
+                                        'linear-gradient(45deg, #8B5CF6, #6366F1, #3B82F6)',
+                                        'linear-gradient(45deg, #6366F1, #3B82F6, #8B5CF6)',
+                                        'linear-gradient(45deg, #3B82F6, #8B5CF6, #6366F1)'
+                                    ]
+                                } : {}}
                                 transition={{
                                     duration: 2,
                                     repeat: Infinity,
-                                    repeatDelay: 1,
-                                    ease: "easeInOut"
+                                    ease: "linear"
                                 }}
                             />
-                        )}
-                        
-                        <motion.button
-                            type="submit"
-                            disabled={isPostingJob}
-                            className={`relative w-full md:w-auto md:px-12 py-4 px-8 rounded-2xl font-bold text-lg transition-all duration-300 ${
-                                isPostingJob 
-                                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+
+                            {/* Shimmer Effect */}
+                            {!isPostingJob && (
+                                <motion.div
+                                    className="absolute -inset-1 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-2xl"
+                                    animate={{
+                                        x: ['-100%', '100%']
+                                    }}
+                                    transition={{
+                                        duration: 2,
+                                        repeat: Infinity,
+                                        repeatDelay: 1,
+                                        ease: "easeInOut"
+                                    }}
+                                />
+                            )}
+
+                            <motion.button
+                                type="submit"
+                                disabled={isPostingJob || isUpdatingInternship}
+                                className={`relative w-full md:w-auto md:px-12 py-4 px-8 rounded-2xl font-bold text-lg transition-all duration-300 ${(isPostingJob || isUpdatingInternship)
+                                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
                                     : 'bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white shadow-2xl'
-                            }`}
-                            whileHover={!isPostingJob ? {
-                                boxShadow: "0 20px 40px rgba(59, 130, 246, 0.4)",
-                                y: -2
-                            } : {}}
-                        >
-                            <motion.span
-                                animate={isPostingJob ? {
-                                    opacity: [0.5, 1, 0.5]
+                                    }`}
+                                whileHover={!(isPostingJob || isUpdatingInternship) ? {
+                                    boxShadow: "0 20px 40px rgba(59, 130, 246, 0.4)",
+                                    y: -2
                                 } : {}}
-                                transition={{
-                                    duration: 1,
-                                    repeat: Infinity,
-                                    ease: "easeInOut"
-                                }}
                             >
-                                {isPostingJob ? 'Posting...' : 'Post Internship'}
-                            </motion.span>
-                        </motion.button>
-                    </motion.div>
-                </form>
+                                <motion.span
+                                    animate={(isPostingJob || isUpdatingInternship) ? {
+                                        opacity: [0.5, 1, 0.5]
+                                    } : {}}
+                                    transition={{
+                                        duration: 1,
+                                        repeat: Infinity,
+                                        ease: "easeInOut"
+                                    }}
+                                >
+                                    {isPostingJob ? 'Posting...' : isUpdatingInternship ? 'Updating...' : editingInternship ? 'Update Internship' : 'Post Internship'}
+                                </motion.span>
+                            </motion.button>
+                        </motion.div>
+                    </form>
                 </div>
+            </div>
+        </motion.div>
+    );
+
+    const renderMyInternships = () => (
+        <motion.div
+            key="my-internships"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+        >
+            <div className="bg-white rounded-2xl p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-2xl font-bold text-gray-800">My Internships</h3>
+                    <span className="text-sm text-gray-600">
+                        {myInternships.length} {myInternships.length === 1 ? 'internship' : 'internships'} posted
+                    </span>
+                </div>
+
+                {isLoading ? (
+                    <div className="text-center py-12">
+                        <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-gray-600">Loading internships...</p>
+                    </div>
+                ) : myInternships.length === 0 ? (
+                    <div className="text-center py-12">
+                        <svg className="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <p className="text-gray-600 text-lg mb-2">No internships posted yet</p>
+                        <p className="text-gray-500 text-sm mb-4">Start by posting your first internship!</p>
+                        <button
+                            onClick={() => setActiveTab('post')}
+                            className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                        >
+                            Post Your First Internship
+                        </button>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {myInternships.map((internship, index) => (
+                            <motion.div
+                                key={internship._id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                className="bg-gradient-to-r from-white to-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow"
+                            >
+                                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                                    <div className="flex-1">
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div>
+                                                <h4 className="text-xl font-bold text-gray-800 mb-1">{internship.title}</h4>
+                                                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 mb-2">
+                                                    <span className="flex items-center">
+                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        </svg>
+                                                        {internship.location}
+                                                    </span>
+                                                    <span className="flex items-center">
+                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        {internship.duration}
+                                                    </span>
+                                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                                                        {internship.category}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p className="text-gray-700 mb-3 line-clamp-2">{internship.description}</p>
+                                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                                            {Array.isArray(internship.skills) && internship.skills.length > 0 && (
+                                                internship.skills.slice(0, 5).map((skill, idx) => (
+                                                    <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs">
+                                                        {skill}
+                                                    </span>
+                                                ))
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                                            <span className="font-semibold text-green-600">₹{internship.stipend || 'Not specified'}</span>
+                                            <span>{internship.openings || 1} {internship.openings === 1 ? 'opening' : 'openings'}</span>
+                                            <span>Posted {new Date(internship.postedDate || internship.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row gap-2">
+                                        <button
+                                            onClick={() => handleEditInternship(internship)}
+                                            disabled={isDeletingInternship === internship._id}
+                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteInternship(internship._id)}
+                                            disabled={isDeletingInternship === internship._id}
+                                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                        >
+                                            {isDeletingInternship === internship._id ? (
+                                                <>
+                                                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                    Deleting...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                    Delete
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                )}
             </div>
         </motion.div>
     );
@@ -472,11 +910,10 @@ const CompanyInternshipsPage = () => {
                             <p className="text-gray-600">{app.position}</p>
                             <p className="text-sm text-gray-500">Applied on {app.appliedDate}</p>
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            app.status === 'New' ? 'bg-blue-100 text-blue-800' :
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${app.status === 'New' ? 'bg-blue-100 text-blue-800' :
                             app.status === 'Under Review' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-green-100 text-green-800'
-                        }`}>
+                                'bg-green-100 text-green-800'
+                            }`}>
                             {app.status}
                         </span>
                     </div>
@@ -615,7 +1052,9 @@ const CompanyInternshipsPage = () => {
                             localStorage.removeItem('isLoggedIn');
                             localStorage.removeItem('companyName');
                             localStorage.removeItem('companyEmail');
-                            navigate('/');
+                            localStorage.removeItem('companyToken');
+                            localStorage.removeItem('companyData');
+                            navigate('/company/login');
                         }}
                         className="px-3 py-1 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors font-semibold backdrop-blur-sm"
                     >
@@ -645,15 +1084,17 @@ const CompanyInternshipsPage = () => {
                                 localStorage.removeItem('isLoggedIn');
                                 localStorage.removeItem('companyName');
                                 localStorage.removeItem('companyEmail');
-                                navigate('/');
+                                localStorage.removeItem('companyToken');
+                                localStorage.removeItem('companyData');
+                                navigate('/company/login');
                             }}
                             className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors font-semibold"
                         >
                             Logout
                         </button>
                     </div>
-                    </div>
                 </div>
+            </div>
 
             {/* Tab Navigation */}
             <div className="bg-gradient-to-br from-orange-50 to-orange-100/30 border-b border-gray-200">
@@ -663,11 +1104,10 @@ const CompanyInternshipsPage = () => {
                             <motion.button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`relative py-2.5 md:py-3 text-xs md:text-sm font-semibold rounded-xl transition-all duration-300 whitespace-nowrap px-4 md:px-5 ${
-                                    activeTab === tab.id
-                                        ? 'text-white'
-                                        : 'text-gray-800'
-                                }`}
+                                className={`relative py-2.5 md:py-3 text-xs md:text-sm font-semibold rounded-xl transition-all duration-300 whitespace-nowrap px-4 md:px-5 ${activeTab === tab.id
+                                    ? 'text-white'
+                                    : 'text-gray-800'
+                                    }`}
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
@@ -686,7 +1126,7 @@ const CompanyInternshipsPage = () => {
                                         }}
                                     />
                                 )}
-                                
+
                                 {/* Tab Content */}
                                 <span className="relative z-10 block">
                                     {tab.name}
@@ -701,6 +1141,7 @@ const CompanyInternshipsPage = () => {
             <div className="p-4 md:p-6 max-w-7xl mx-auto pb-20 md:pb-6">
                 {activeTab === 'dashboard' && renderDashboard()}
                 {activeTab === 'post' && renderPostJob()}
+                {activeTab === 'my-internships' && renderMyInternships()}
                 {activeTab === 'applications' && renderApplications()}
                 {activeTab === 'profile' && renderProfile()}
             </div>

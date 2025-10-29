@@ -1,24 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { internships } from '../../data/internships';
 import logo from '../../assets/logo.png';
+import { applicationAPI, internshipAPI } from '../../utils/api';
 
 // Bottom Nav Icons
-const HomeIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-indigo-600' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg> );
-const BriefcaseIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-indigo-600' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> );
-const ChatIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-indigo-600' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> );
-const PlusIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-white' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> );
-const UserIcon = ({ className }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-6 w-6 text-gray-400"} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg> );
-const BellIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg> );
+const HomeIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-indigo-600' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>);
+const BriefcaseIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-indigo-600' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>);
+const ChatIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-indigo-600' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>);
+const PlusIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-white' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>);
+const UserIcon = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" className={className || "h-6 w-6 text-gray-400"} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>);
+const BellIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>);
 
 // Form Icons
-const UserIconForm = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> );
-const EmailIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> );
-const PhoneIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg> );
-const LocationIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg> );
-const BriefcaseIconForm = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> );
-const UploadIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg> );
+const UserIconForm = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>);
+const EmailIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>);
+const PhoneIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>);
+const LocationIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>);
+const BriefcaseIconForm = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>);
+const UploadIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>);
 
 const InternshipApplicationPage = () => {
   const { internshipId } = useParams();
@@ -35,8 +36,43 @@ const InternshipApplicationPage = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [internship, setInternship] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const internship = internships.find(i => i.id === internshipId);
+  useEffect(() => {
+    const loadInternship = async () => {
+      try {
+        const response = await internshipAPI.getById(internshipId);
+        if (response.success) {
+          setInternship(response.data.internship);
+        } else {
+          // Fallback to mock data if API fails
+          const mockInternship = internships.find(i => i.id === internshipId);
+          setInternship(mockInternship);
+        }
+      } catch (error) {
+        console.error('Error loading internship:', error);
+        // Fallback to mock data
+        const mockInternship = internships.find(i => i.id === internshipId);
+        setInternship(mockInternship);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadInternship();
+  }, [internshipId]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!internship) {
     return <div className="text-center py-10">Internship not found.</div>;
@@ -45,8 +81,8 @@ const InternshipApplicationPage = () => {
   // Animation variants
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: { duration: 0.6, ease: "easeOut" }
     }
@@ -64,8 +100,8 @@ const InternshipApplicationPage = () => {
 
   const scaleIn = {
     hidden: { opacity: 0, scale: 0.8 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       scale: 1,
       transition: { duration: 0.5, ease: "easeOut" }
     }
@@ -77,7 +113,7 @@ const InternshipApplicationPage = () => {
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -93,7 +129,7 @@ const InternshipApplicationPage = () => {
       ...prev,
       resume: file
     }));
-    
+
     if (errors.resume) {
       setErrors(prev => ({
         ...prev,
@@ -104,63 +140,99 @@ const InternshipApplicationPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
     }
-    
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
     }
-    
+
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
     } else if (!/^[0-9]{10}$/.test(formData.phone.replace(/\D/g, ''))) {
       newErrors.phone = 'Phone number must be 10 digits';
     }
-    
+
     if (!formData.address.trim()) {
       newErrors.address = 'Address is required';
     }
-    
+
     if (!formData.position.trim()) {
       newErrors.position = 'Position is required';
     }
-    
+
     if (!formData.experience.trim()) {
       newErrors.experience = 'Experience is required';
     }
-    
+
     if (!formData.resume) {
       newErrors.resume = 'Resume is required';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please login to apply');
+        navigate('/login');
+        return;
+      }
+
+      // Prepare application data
+      const applicationData = {
+        internshipId: internship._id || internshipId,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        position: formData.position || internship.title,
+        experience: formData.experience
+      };
+
+      // TODO: Handle file upload for resume
+      // For now, we'll just send the file name
+      if (formData.resume) {
+        applicationData.resume = {
+          fileName: formData.resume.name
+        };
+      }
+
+      const response = await applicationAPI.apply(token, applicationData);
+
+      if (response.success) {
+        setIsSubmitting(false);
+        setIsSuccess(true);
+
+        // Reset form after success
+        setTimeout(() => {
+          setIsSuccess(false);
+          navigate(`/internships/${internshipId}`);
+        }, 3000);
+      } else {
+        setIsSubmitting(false);
+        alert(response.message || 'Failed to submit application');
+      }
+    } catch (error) {
+      console.error('Error submitting application:', error);
       setIsSubmitting(false);
-      setIsSuccess(true);
-      
-      // Reset form after success
-      setTimeout(() => {
-        setIsSuccess(false);
-        navigate(`/internships/${internshipId}`);
-      }, 3000);
-    }, 2000);
+      alert(error.message || 'Failed to submit application. Please try again.');
+    }
   };
 
   if (isSuccess) {
@@ -173,7 +245,7 @@ const InternshipApplicationPage = () => {
           className="bg-white rounded-2xl p-8 text-center shadow-2xl max-w-md w-full"
         >
           <motion.div
-            animate={{ 
+            animate={{
               scale: [1, 1.2, 1],
               rotate: [0, 10, -10, 0]
             }}
@@ -201,14 +273,14 @@ const InternshipApplicationPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 md:bg-gradient-to-br md:from-gray-50 md:via-blue-50 md:to-indigo-50 overflow-y-auto pb-20">
       {/* Mobile Header */}
-      <motion.header 
+      <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="md:hidden bg-white px-4 py-3 flex justify-between items-center border-b border-gray-200"
       >
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={() => navigate(-1)}
             className="text-gray-600 hover:text-gray-800"
           >
@@ -231,7 +303,7 @@ const InternshipApplicationPage = () => {
           {/* Main Form */}
           <div className="lg:col-span-2">
             {/* Job Summary */}
-            <motion.div 
+            <motion.div
               initial="hidden"
               animate="visible"
               variants={staggerContainer}
@@ -246,7 +318,7 @@ const InternshipApplicationPage = () => {
                   <p className="text-lg text-gray-600">{internship.company}</p>
                 </div>
               </motion.div>
-              
+
               <motion.div variants={fadeInUp} className="flex flex-wrap gap-3">
                 <span className="px-3 py-2 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
                   {internship.stipend}{internship.stipendPerMonth}
@@ -261,7 +333,7 @@ const InternshipApplicationPage = () => {
             </motion.div>
 
             {/* Application Form */}
-            <motion.form 
+            <motion.form
               initial="hidden"
               animate="visible"
               variants={staggerContainer}
@@ -276,7 +348,7 @@ const InternshipApplicationPage = () => {
                   </div>
                   Personal Information
                 </h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Name */}
                   <motion.div variants={scaleIn}>
@@ -286,9 +358,8 @@ const InternshipApplicationPage = () => {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                        errors.name ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${errors.name ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                        }`}
                       placeholder="Enter your full name"
                     />
                     {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
@@ -306,9 +377,8 @@ const InternshipApplicationPage = () => {
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className={`w-full px-4 py-3 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                          errors.email ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-4 py-3 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${errors.email ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                          }`}
                         placeholder="Enter your email address"
                       />
                     </div>
@@ -327,9 +397,8 @@ const InternshipApplicationPage = () => {
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
-                        className={`w-full px-4 py-3 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                          errors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-4 py-3 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${errors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                          }`}
                         placeholder="Enter your phone number"
                       />
                     </div>
@@ -348,9 +417,8 @@ const InternshipApplicationPage = () => {
                         value={formData.address}
                         onChange={handleInputChange}
                         rows={3}
-                        className={`w-full px-4 py-3 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none ${
-                          errors.address ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-4 py-3 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none ${errors.address ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                          }`}
                         placeholder="Enter your complete address"
                       />
                     </div>
@@ -367,7 +435,7 @@ const InternshipApplicationPage = () => {
                   </div>
                   Professional Information
                 </h3>
-                
+
                 <div className="space-y-6">
                   {/* Position */}
                   <motion.div variants={scaleIn}>
@@ -377,9 +445,8 @@ const InternshipApplicationPage = () => {
                       name="position"
                       value={formData.position}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                        errors.position ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${errors.position ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                        }`}
                       placeholder="e.g., Web Development Intern"
                     />
                     {errors.position && <p className="text-red-500 text-xs mt-1">{errors.position}</p>}
@@ -393,9 +460,8 @@ const InternshipApplicationPage = () => {
                       value={formData.experience}
                       onChange={handleInputChange}
                       rows={5}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none ${
-                        errors.experience ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none ${errors.experience ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                        }`}
                       placeholder="Describe your relevant experience, skills, and why you're interested in this position..."
                     />
                     {errors.experience && <p className="text-red-500 text-xs mt-1">{errors.experience}</p>}
@@ -411,13 +477,12 @@ const InternshipApplicationPage = () => {
                   </div>
                   Resume Upload
                 </h3>
-                
-                <motion.div 
+
+                <motion.div
                   variants={scaleIn}
                   whileHover={{ scale: 1.02 }}
-                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
-                    errors.resume ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
-                  }`}
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${errors.resume ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+                    }`}
                 >
                   <input
                     type="file"
@@ -491,20 +556,19 @@ const InternshipApplicationPage = () => {
               <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Ready to Apply?</h3>
                 <p className="text-gray-600 mb-6">Make sure all information is correct before submitting your application.</p>
-                
+
                 <motion.button
                   type="submit"
                   disabled={isSubmitting}
-                  whileHover={{ 
-                    scale: isSubmitting ? 1 : 1.02, 
+                  whileHover={{
+                    scale: isSubmitting ? 1 : 1.02,
                     boxShadow: isSubmitting ? "0 10px 20px rgba(0,0,0,0.1)" : "0 20px 40px rgba(59, 130, 246, 0.3)"
                   }}
                   whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-                  className={`w-full py-4 px-6 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 relative overflow-hidden ${
-                    isSubmitting 
-                      ? 'bg-gray-400 cursor-not-allowed' 
-                      : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:shadow-xl'
-                  } text-white`}
+                  className={`w-full py-4 px-6 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 relative overflow-hidden ${isSubmitting
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:shadow-xl'
+                    } text-white`}
                   onClick={handleSubmit}
                 >
                   {isSubmitting ? (
@@ -519,11 +583,11 @@ const InternshipApplicationPage = () => {
                   ) : (
                     <div className="flex items-center justify-center gap-2">
                       <motion.span
-                        animate={{ 
+                        animate={{
                           rotate: [0, 10, -10, 0],
                           scale: [1, 1.1, 1]
                         }}
-                        transition={{ 
+                        transition={{
                           duration: 2,
                           repeat: Infinity,
                           repeatDelay: 3
@@ -538,7 +602,7 @@ const InternshipApplicationPage = () => {
                     </div>
                   )}
                 </motion.button>
-                
+
                 <p className="text-center text-sm text-gray-500 mt-4">
                   🔒 Your information is secure and will only be shared with the employer
                 </p>
@@ -563,7 +627,7 @@ const InternshipApplicationPage = () => {
       {/* Mobile Layout */}
       <div className="md:hidden">
         {/* Job Summary */}
-        <motion.div 
+        <motion.div
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
@@ -578,7 +642,7 @@ const InternshipApplicationPage = () => {
               <p className="text-sm text-gray-600">{internship.company}</p>
             </div>
           </motion.div>
-          
+
           <motion.div variants={fadeInUp} className="flex flex-wrap gap-2">
             <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
               {internship.stipend}{internship.stipendPerMonth}
@@ -593,7 +657,7 @@ const InternshipApplicationPage = () => {
         </motion.div>
 
         {/* Application Form */}
-        <motion.form 
+        <motion.form
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
@@ -606,7 +670,7 @@ const InternshipApplicationPage = () => {
               <UserIconForm />
               Personal Information
             </h3>
-            
+
             <div className="space-y-4">
               {/* Name */}
               <motion.div variants={scaleIn}>
@@ -616,9 +680,8 @@ const InternshipApplicationPage = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                    errors.name ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${errors.name ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    }`}
                   placeholder="Enter your full name"
                 />
                 {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
@@ -636,9 +699,8 @@ const InternshipApplicationPage = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                      errors.email ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-4 py-3 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${errors.email ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      }`}
                     placeholder="Enter your email address"
                   />
                 </div>
@@ -657,9 +719,8 @@ const InternshipApplicationPage = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                      errors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-4 py-3 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${errors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      }`}
                     placeholder="Enter your phone number"
                   />
                 </div>
@@ -678,9 +739,8 @@ const InternshipApplicationPage = () => {
                     value={formData.address}
                     onChange={handleInputChange}
                     rows={3}
-                    className={`w-full px-4 py-3 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none ${
-                      errors.address ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-4 py-3 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none ${errors.address ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      }`}
                     placeholder="Enter your complete address"
                   />
                 </div>
@@ -695,7 +755,7 @@ const InternshipApplicationPage = () => {
               <BriefcaseIconForm />
               Professional Information
             </h3>
-            
+
             <div className="space-y-4">
               {/* Position */}
               <motion.div variants={scaleIn}>
@@ -705,9 +765,8 @@ const InternshipApplicationPage = () => {
                   name="position"
                   value={formData.position}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                    errors.position ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${errors.position ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    }`}
                   placeholder="e.g., Web Development Intern"
                 />
                 {errors.position && <p className="text-red-500 text-xs mt-1">{errors.position}</p>}
@@ -721,9 +780,8 @@ const InternshipApplicationPage = () => {
                   value={formData.experience}
                   onChange={handleInputChange}
                   rows={4}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none ${
-                    errors.experience ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none ${errors.experience ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    }`}
                   placeholder="Describe your relevant experience, skills, and why you're interested in this position..."
                 />
                 {errors.experience && <p className="text-red-500 text-xs mt-1">{errors.experience}</p>}
@@ -737,13 +795,12 @@ const InternshipApplicationPage = () => {
               <UploadIcon />
               Resume Upload
             </h3>
-            
-            <motion.div 
+
+            <motion.div
               variants={scaleIn}
               whileHover={{ scale: 1.02 }}
-              className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 ${
-                errors.resume ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
-              }`}
+              className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 ${errors.resume ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+                }`}
             >
               <input
                 type="file"
@@ -778,16 +835,15 @@ const InternshipApplicationPage = () => {
             <motion.button
               type="submit"
               disabled={isSubmitting}
-              whileHover={{ 
-                scale: isSubmitting ? 1 : 1.02, 
+              whileHover={{
+                scale: isSubmitting ? 1 : 1.02,
                 boxShadow: isSubmitting ? "0 10px 20px rgba(0,0,0,0.1)" : "0 20px 40px rgba(59, 130, 246, 0.3)"
               }}
               whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-              className={`w-full py-4 px-6 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 relative overflow-hidden ${
-                isSubmitting 
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:shadow-xl'
-              } text-white`}
+              className={`w-full py-4 px-6 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 relative overflow-hidden ${isSubmitting
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:shadow-xl'
+                } text-white`}
             >
               {isSubmitting ? (
                 <div className="flex items-center justify-center gap-2">
@@ -801,11 +857,11 @@ const InternshipApplicationPage = () => {
               ) : (
                 <div className="flex items-center justify-center gap-2">
                   <motion.span
-                    animate={{ 
+                    animate={{
                       rotate: [0, 10, -10, 0],
                       scale: [1, 1.1, 1]
                     }}
-                    transition={{ 
+                    transition={{
                       duration: 2,
                       repeat: Infinity,
                       repeatDelay: 3
@@ -817,13 +873,13 @@ const InternshipApplicationPage = () => {
                     </svg>
                   </motion.span>
                   <span>Submit Application</span>
-                  <motion.svg 
-                    className="w-5 h-5" 
-                    fill="none" 
-                    stroke="currentColor" 
+                  <motion.svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
                     animate={{ x: [0, 5, 0] }}
-                    transition={{ 
+                    transition={{
                       duration: 1.5,
                       repeat: Infinity
                     }}
@@ -833,8 +889,8 @@ const InternshipApplicationPage = () => {
                 </div>
               )}
             </motion.button>
-            
-            <motion.p 
+
+            <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}

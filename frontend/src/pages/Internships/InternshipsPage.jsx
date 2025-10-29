@@ -1,20 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { internships, internshipCategories } from '../../data/internships';
 import BottomNavbar from '../../components/common/BottomNavbar';
 import logo from '../../assets/logo.png';
+import { internshipAPI } from '../../utils/api';
 
 // Icon Components
-const MenuIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg> );
-const MessageIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg> );
-const StarIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg> );
-const HomeIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-indigo-600' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg> );
-const BriefcaseIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-indigo-600' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> );
-const SearchIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg> );
-const HeartIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg> );
-const ClipboardIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg> );
-const UserIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> );
+const MenuIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>);
+const MessageIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>);
+const StarIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>);
+const HomeIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-indigo-600' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>);
+const BriefcaseIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-indigo-600' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>);
+const SearchIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>);
+const HeartIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>);
+const ClipboardIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>);
+const UserIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>);
 
 const InternshipsPage = () => {
   const navigate = useNavigate();
@@ -44,43 +44,105 @@ const InternshipsPage = () => {
     workType: '',
     duration: ''
   });
-  const [filteredInternships, setFilteredInternships] = useState(recommendedInternships);
+  const [filteredInternships, setFilteredInternships] = useState([]);
 
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({ ...prev, [filterType]: value }));
   };
 
-  const applyFilters = () => {
-    let filtered = [...internships];
-    if (filters.location && filters.location !== 'All') {
-      filtered = filtered.filter(i => i.location && i.location.toLowerCase().includes(filters.location.toLowerCase()));
-    }
-    if (filters.domain && filters.domain !== 'All') {
-      filtered = filtered.filter(i => i.category === filters.domain);
-    }
-    if (filters.workType && filters.workType !== 'All') {
-      filtered = filtered.filter(i => i.type === filters.workType);
-    }
-    if (filters.stipendRange && filters.stipendRange !== 'All') {
-      filtered = filtered.filter(i => {
-        const stipend = parseInt((i.stipend || '').replace(/[^\d]/g, '')) || 0;
-        switch (filters.stipendRange) {
-          case '0-10k': return stipend <= 10000;
-          case '10k-20k': return stipend > 10000 && stipend <= 20000;
-          case '20k-30k': return stipend > 20000 && stipend <= 30000;
-          case '30k-50k': return stipend > 30000 && stipend <= 50000;
-          case '50k+': return stipend > 50000;
-          default: return true;
+  const applyFilters = async () => {
+    try {
+      setIsLoading(true);
+      // Build backend filter params
+      const params = { limit: 50 };
+
+      if (filters.domain && filters.domain !== 'All') {
+        params.category = filters.domain;
+      }
+
+      if (filters.location && filters.location !== 'All') {
+        // Extract location name if it's in format "Type (Location)"
+        let locationName = filters.location;
+        if (locationName.includes('(')) {
+          locationName = locationName.split('(')[1].replace(')', '').trim();
         }
-      });
+
+        // Check if remote
+        if (filters.location.toLowerCase().includes('remote')) {
+          params.remote = 'true';
+        } else {
+          params.location = locationName;
+        }
+      }
+
+      if (filters.workType && filters.workType !== 'All') {
+        params.type = filters.workType;
+      }
+
+      // Fetch filtered internships from backend
+      const response = await internshipAPI.getAll(params);
+      if (response.success && response.data.internships) {
+        const normalized = response.data.internships.map(i => ({
+          ...i,
+          id: i._id || i.id,
+          company: i.companyName || i.company?.companyName || 'Company',
+          stipendPerMonth: i.stipendPerMonth || '/month',
+          postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
+          icon: i.icon || '💼',
+          color: i.color || 'from-blue-500 to-cyan-500'
+        }));
+
+        // Apply client-side stipend range filter if needed
+        let filtered = normalized;
+        if (filters.stipendRange && filters.stipendRange !== 'All') {
+          filtered = normalized.filter(i => {
+            const stipend = parseInt((i.stipend || '').replace(/[^\d]/g, '')) || 0;
+            switch (filters.stipendRange) {
+              case '0-10k': return stipend <= 10000;
+              case '10k-20k': return stipend > 10000 && stipend <= 20000;
+              case '20k-30k': return stipend > 20000 && stipend <= 30000;
+              case '30k-50k': return stipend > 30000 && stipend <= 50000;
+              case '50k+': return stipend > 50000;
+              default: return true;
+            }
+          });
+        }
+
+        setFilteredInternships(filtered);
+        setApiInternships(filtered); // Update main list
+      }
+    } catch (error) {
+      console.error('Error applying filters:', error);
+    } finally {
+      setIsLoading(false);
+      setIsFilterOpen(false);
     }
-    setFilteredInternships(filtered.slice(0, 8));
-    setIsFilterOpen(false);
   };
 
-  const clearFilters = () => {
+  const clearFilters = async () => {
     setFilters({ location: '', domain: '', datePosted: '', stipendRange: '', workType: '', duration: '' });
-    setFilteredInternships(recommendedInternships);
+    try {
+      setIsLoading(true);
+      // Reload all internships
+      const response = await internshipAPI.getAll({ limit: 100 });
+      if (response.success && response.data.internships) {
+        const normalized = response.data.internships.map(i => ({
+          ...i,
+          id: i._id || i.id,
+          company: i.companyName || i.company?.companyName || 'Company',
+          stipendPerMonth: i.stipendPerMonth || '/month',
+          postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
+          icon: i.icon || '💼',
+          color: i.color || 'from-blue-500 to-cyan-500'
+        }));
+        setApiInternships(normalized);
+        setFilteredInternships(normalized.slice(0, 8));
+      }
+    } catch (error) {
+      console.error('Error clearing filters:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getActiveFiltersCount = () => Object.values(filters).filter(v => v && v !== 'All').length;
@@ -93,7 +155,7 @@ const InternshipsPage = () => {
       transition: { duration: 0.5, ease: "easeOut" }
     }
   };
-  
+
   // Premium professional background colors for trending cards
   const cardBackgrounds = [
     'from-slate-700 to-indigo-700',
@@ -103,7 +165,7 @@ const InternshipsPage = () => {
     'from-rose-600 to-pink-700',
     'from-cyan-600 to-blue-600',
   ];
-  
+
   // placement courses removed per user request
 
   // placement course click handler removed
@@ -150,40 +212,49 @@ const InternshipsPage = () => {
 
   return (
     <div className="min-h-screen pb-20 relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 md:bg-gradient-to-br md:from-gray-50 md:via-blue-50 md:to-indigo-50">
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading internships...</p>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Header */}
-      <motion.header 
+      <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="md:hidden sticky top-0 z-50 bg-gradient-to-r from-orange-400 to-orange-500 shadow-lg"
       >
         <div className="flex items-center justify-between px-4 py-3">
-            <motion.button 
-              whileHover={{ scale: 1.1, rotate: 90 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
-              title="Menu"
-            >
+          <motion.button
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
+            title="Menu"
+          >
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </motion.button>
-          
+
           <Link to="/" className="flex items-center">
-            <motion.img 
+            <motion.img
               whileHover={{ scale: 1.1 }}
               transition={{ type: "spring", stiffness: 300 }}
-              src={logo} 
-              alt="CreateBharat Logo" 
-              className="h-12 w-auto object-contain" 
+              src={logo}
+              alt="CreateBharat Logo"
+              className="h-12 w-auto object-contain"
             />
           </Link>
-          
+
           <div className="flex items-center gap-2">
             {/* Filter Button */}
-            <motion.button 
+            <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -194,7 +265,7 @@ const InternshipsPage = () => {
               </svg>
               <span className="text-sm font-medium text-white">Filter</span>
               {getActiveFiltersCount() > 0 && (
-                <motion.span 
+                <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   className="bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
@@ -206,6 +277,9 @@ const InternshipsPage = () => {
 
             {/* For Companies Button - Moved to replace message icon */}
             <Link to="/company/login">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
               <motion.button 
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -243,7 +317,7 @@ const InternshipsPage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
-              
+
               {/* Company Login Button */}
               <Link to="/company/login">
                 <button className="flex items-center gap-2 px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium">
@@ -253,7 +327,7 @@ const InternshipsPage = () => {
                   Company Login
                 </button>
               </Link>
-              
+
               {/* Filter Button */}
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -308,48 +382,49 @@ const InternshipsPage = () => {
                       </div>
                     </div>
 
-                    <h4 className="font-semibold text-lg mb-4">{internship.title}</h4>
+                        <h4 className="font-semibold text-lg mb-4">{internship.title}</h4>
 
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-white/90">
-                        <span>📍</span>
-                        <span>{internship.location}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-white/90">
-                        <span>💼</span>
-                        <span>{internship.duration} experience</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-white/90">
-                        <span>💰</span>
-                        <span>{internship.stipend}/month</span>
-                      </div>
-                    </div>
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center gap-2 text-sm text-white/90">
+                            <span>📍</span>
+                            <span>{internship.location}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-white/90">
+                            <span>💼</span>
+                            <span>{internship.duration} experience</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-white/90">
+                            <span>💰</span>
+                            <span>{internship.stipend}/month</span>
+                          </div>
+                        </div>
 
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="px-2 py-1 bg-white/20 text-white text-xs rounded-md">
-                        {internship.postedDate}
-                      </span>
-                      <span className="px-2 py-1 bg-white/20 text-white text-xs font-medium rounded-full">
-                        Internship
-                      </span>
-                    </div>
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="px-2 py-1 bg-white/20 text-white text-xs rounded-md">
+                            {internship.postedDate}
+                          </span>
+                          <span className="px-2 py-1 bg-white/20 text-white text-xs font-medium rounded-full">
+                            Internship
+                          </span>
+                        </div>
 
-                    <div className="flex gap-2">
-                      <Link to={`/internships/${internship.id}`}>
-                        <button className="bg-white text-gray-900 text-center py-2 px-4 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors flex-1">
-                          Apply Now
-                        </button>
-                      </Link>
-                      <Link to={`/internships/${internship.id}`}>
-                        <button className="bg-white/20 border border-white/30 text-white text-center py-2 px-4 rounded-lg font-semibold text-sm hover:bg-white/30 transition-colors">
-                          Know More
-                        </button>
-                      </Link>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+                        <div className="flex gap-2">
+                          <Link to={`/internships/${internship.id}`}>
+                            <button className="bg-white text-gray-900 text-center py-2 px-4 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors flex-1">
+                              Apply Now
+                            </button>
+                          </Link>
+                          <Link to={`/internships/${internship.id}`}>
+                            <button className="bg-white/20 border border-white/30 text-white text-center py-2 px-4 rounded-lg font-semibold text-sm hover:bg-white/30 transition-colors">
+                              Know More
+                            </button>
+                          </Link>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
             {/* Desktop Recommended Internships Section */}
             <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
@@ -379,49 +454,49 @@ const InternshipsPage = () => {
                       </div>
                     </div>
 
-                    <h4 className="font-semibold text-gray-800 text-base mb-4 line-clamp-2">{internship.title}</h4>
+                        <h4 className="font-semibold text-gray-800 text-base mb-4 line-clamp-2">{internship.title}</h4>
 
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span>📍</span>
-                        <span>{internship.location}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span>💼</span>
-                        <span>{internship.duration} experience</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span>💰</span>
-                        <span>{internship.stipend}/month</span>
-                      </div>
-                    </div>
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <span>📍</span>
+                            <span>{internship.location}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <span>💼</span>
+                            <span>{internship.duration} experience</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <span>💰</span>
+                            <span>{internship.stipend}/month</span>
+                          </div>
+                        </div>
 
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">
-                        {internship.postedDate}
-                      </span>
-                      <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
-                        Internship
-                      </span>
-                    </div>
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">
+                            {internship.postedDate}
+                          </span>
+                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                            Internship
+                          </span>
+                        </div>
 
-                    <div className="flex flex-wrap gap-2 mb-4 min-h-[24px]">
-                      {internship.popular && (
-                        <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
-                          Popular
-                        </span>
-                      )}
-                      {internship.remote && (
-                        <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
-                          Remote
-                        </span>
-                      )}
-                      {internship.urgent && (
-                        <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                          Urgent
-                        </span>
-                      )}
-                    </div>
+                        <div className="flex flex-wrap gap-2 mb-4 min-h-[24px]">
+                          {internship.popular && (
+                            <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
+                              Popular
+                            </span>
+                          )}
+                          {internship.remote && (
+                            <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                              Remote
+                            </span>
+                          )}
+                          {internship.urgent && (
+                            <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+                              Urgent
+                            </span>
+                          )}
+                        </div>
 
                     <div className="mt-auto">
                       <Link to={`/internships/${internship.id}`}>
@@ -435,9 +510,9 @@ const InternshipsPage = () => {
               </div>
             </div>
 
-            {/* Placement courses removed for internships page */}
+              {/* Placement courses removed for internships page */}
+            </div>
           </div>
-        </div>
 
         {/* Mobile Layout */}
         <div className="md:hidden">
@@ -817,23 +892,23 @@ const InternshipsPage = () => {
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
           className="fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl z-50 overflow-hidden flex flex-col"
         >
-        {/* Filter Header */}
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Filter Internships</h2>
-            <motion.button
-              whileHover={{ scale: 1.1, rotate: 90 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setIsFilterOpen(false)}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </motion.button>
+          {/* Filter Header */}
+          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Filter Internships</h2>
+              <motion.button
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setIsFilterOpen(false)}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </motion.button>
+            </div>
+            <p className="text-indigo-100 text-sm">Find the perfect internship for you</p>
           </div>
-          <p className="text-indigo-100 text-sm">Find the perfect internship for you</p>
-        </div>
 
         {/* Filter Content */}
         <div className="p-6 space-y-6 overflow-y-auto flex-1 pb-20 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
@@ -953,7 +1028,7 @@ const InternshipsPage = () => {
                 </motion.button>
               ))}
               </div>
-          </motion.div>
+            </motion.div>
 
           {/* Stipend Range Filter */}
           <motion.div
@@ -1030,27 +1105,27 @@ const InternshipsPage = () => {
           </motion.div>
         </div>
 
-        {/* Filter Actions */}
-        <div className="bg-white border-t border-gray-200 p-4 flex-shrink-0">
-          <div className="flex gap-3">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={clearFilters}
-              className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-            >
-              Clear All
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={applyFilters}
-              className="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 shadow-lg"
-            >
-              Apply Filters
-            </motion.button>
+          {/* Filter Actions */}
+          <div className="bg-white border-t border-gray-200 p-4 flex-shrink-0">
+            <div className="flex gap-3">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={clearFilters}
+                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+              >
+                Clear All
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={applyFilters}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 shadow-lg"
+              >
+                Apply Filters
+              </motion.button>
+            </div>
           </div>
-        </div>
         </motion.div>
       )}
 
@@ -1082,7 +1157,7 @@ const InternshipsPage = () => {
                 </svg>
               </button>
             </div>
-            
+
             <div className="space-y-2">
               <Link to="/" className="block px-4 py-3 hover:bg-gray-100 rounded-lg transition-colors">
                 <span className="font-medium text-gray-900">Home</span>

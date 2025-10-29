@@ -35,33 +35,33 @@ const CompanySignupPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.companyName.trim()) {
       newErrors.companyName = 'Company name is required';
     }
-    
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Invalid email format';
     }
-    
+
     if (!formData.password.trim()) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-    
+
     if (!formData.confirmPassword.trim()) {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
-    
+
     if (!formData.industry.trim()) {
       newErrors.industry = 'Industry is required';
     }
-    
+
     if (!formData.companySize.trim()) {
       newErrors.companySize = 'Company size is required';
     }
@@ -72,11 +72,11 @@ const CompanySignupPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsLoading(true);
     
     // Simulate API call
@@ -114,7 +114,7 @@ const CompanySignupPage = () => {
                 <img src={logo} alt="CreateBharat" className="w-16 h-16 md:w-20 md:h-20" />
               </motion.div>
             </div>
-            
+
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -123,7 +123,7 @@ const CompanySignupPage = () => {
             >
               Create Company Account
             </motion.h1>
-            
+
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -160,11 +160,10 @@ const CompanySignupPage = () => {
                     name="companyName"
                     value={formData.companyName}
                     onChange={handleChange}
-                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${
-                      errors.companyName 
-                        ? 'border-red-500 focus:border-red-500' 
-                        : 'border-gray-300 focus:border-indigo-500'
-                    } focus:ring-2 focus:ring-indigo-200 outline-none`}
+                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${errors.companyName
+                      ? 'border-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:border-indigo-500'
+                      } focus:ring-2 focus:ring-indigo-200 outline-none`}
                     placeholder="Enter your company name"
                   />
                 </motion.div>
@@ -202,11 +201,10 @@ const CompanySignupPage = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${
-                      errors.email 
-                        ? 'border-red-500 focus:border-red-500' 
-                        : 'border-gray-300 focus:border-indigo-500'
-                    } focus:ring-2 focus:ring-indigo-200 outline-none`}
+                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${errors.email
+                      ? 'border-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:border-indigo-500'
+                      } focus:ring-2 focus:ring-indigo-200 outline-none`}
                     placeholder="company@example.com"
                   />
                 </motion.div>
@@ -244,11 +242,10 @@ const CompanySignupPage = () => {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${
-                      errors.password 
-                        ? 'border-red-500 focus:border-red-500' 
-                        : 'border-gray-300 focus:border-indigo-500'
-                    } focus:ring-2 focus:ring-indigo-200 outline-none`}
+                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${errors.password
+                      ? 'border-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:border-indigo-500'
+                      } focus:ring-2 focus:ring-indigo-200 outline-none`}
                     placeholder="Enter password (min 6 characters)"
                   />
                 </motion.div>
@@ -286,11 +283,10 @@ const CompanySignupPage = () => {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${
-                      errors.confirmPassword 
-                        ? 'border-red-500 focus:border-red-500' 
-                        : 'border-gray-300 focus:border-indigo-500'
-                    } focus:ring-2 focus:ring-indigo-200 outline-none`}
+                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${errors.confirmPassword
+                      ? 'border-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:border-indigo-500'
+                      } focus:ring-2 focus:ring-indigo-200 outline-none`}
                     placeholder="Re-enter your password"
                   />
                 </motion.div>
@@ -318,11 +314,10 @@ const CompanySignupPage = () => {
                   name="industry"
                   value={formData.industry}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 ${
-                    errors.industry 
-                      ? 'border-red-500 focus:border-red-500' 
-                      : 'border-gray-300 focus:border-indigo-500'
-                  } focus:ring-2 focus:ring-indigo-200 outline-none`}
+                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 ${errors.industry
+                    ? 'border-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:border-indigo-500'
+                    } focus:ring-2 focus:ring-indigo-200 outline-none`}
                 >
                   <option value="">Select industry</option>
                   <option value="Technology">Technology</option>
@@ -358,11 +353,10 @@ const CompanySignupPage = () => {
                   name="companySize"
                   value={formData.companySize}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 ${
-                    errors.companySize 
-                      ? 'border-red-500 focus:border-red-500' 
-                      : 'border-gray-300 focus:border-indigo-500'
-                  } focus:ring-2 focus:ring-indigo-200 outline-none`}
+                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 ${errors.companySize
+                    ? 'border-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:border-indigo-500'
+                    } focus:ring-2 focus:ring-indigo-200 outline-none`}
                 >
                   <option value="">Select company size</option>
                   <option value="1-10 employees">1-10 employees</option>
@@ -439,11 +433,10 @@ const CompanySignupPage = () => {
                 whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={isLoading}
-                className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg ${
-                  isLoading
-                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white hover:from-indigo-600 hover:to-indigo-700 hover:shadow-xl'
-                }`}
+                className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg ${isLoading
+                  ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white hover:from-indigo-600 hover:to-indigo-700 hover:shadow-xl'
+                  }`}
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">
