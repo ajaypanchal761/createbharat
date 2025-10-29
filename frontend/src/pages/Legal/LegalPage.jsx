@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavbar from '../../components/common/BottomNavbar';
 import logo from '../../assets/logo.png';
 
@@ -18,6 +18,8 @@ const DocumentIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" c
 const UserIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> );
 
 const LegalPage = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   const legalServices = [
     { id: 1, name: 'GST Registration', icon: '📋', color: 'from-blue-500 to-cyan-500' },
     { id: 2, name: 'GST Filing', icon: '📄', color: 'from-green-500 to-emerald-500' },
@@ -77,9 +79,7 @@ const LegalPage = () => {
           <motion.button 
             whileHover={{ scale: 1.1, rotate: 90 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => {
-                alert('Menu feature coming soon!');
-            }}
+            onClick={() => setIsMobileMenuOpen(true)}
             className="p-2 hover:bg-white/20 rounded-lg transition-colors"
           >
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,19 +87,46 @@ const LegalPage = () => {
             </svg>
           </motion.button>
           
-          <Link to="/" className="flex items-center">
-            <motion.img 
-              whileHover={{ scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 300 }}
-              src={logo} 
-              alt="CreateBharat Logo" 
-              className="h-12 w-auto object-contain" 
-            />
-          </Link>
+          <h1 className="text-xl font-bold text-white">Legal Services</h1>
           
           <div className="w-10"></div>
         </div>
       </motion.header>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex">
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              className="w-64 bg-white h-full shadow-xl"
+            >
+              <div className="p-6">
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="mb-6 p-2 hover:bg-gray-100 rounded-lg"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                <div className="space-y-2">
+                  <Link to="/" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Home</Link>
+                  <Link to="/loans" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Loans</Link>
+                  <Link to="/internships" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Internships</Link>
+                  <Link to="/mentors" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Mentors</Link>
+                  <Link to="/legal" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Legal Services</Link>
+                  <Link to="/training" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Training</Link>
+                  <Link to="/profile" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Profile</Link>
+                </div>
+              </div>
+            </motion.div>
+            <div className="flex-1" onClick={() => setIsMobileMenuOpen(false)} />
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Main Content */}
       <div className="px-4 pt-6 pb-4">
@@ -199,8 +226,6 @@ const LegalPage = () => {
         tabs={[
           { name: 'Home', path: '/', icon: <HomeIcon /> },
           { name: 'Services', path: '/legal', icon: <BriefcaseIcon /> },
-          { name: 'Consult', path: '/legal/consult', icon: <ChatIcon /> },
-          { name: 'Documents', path: '/legal/documents', icon: <DocumentIcon /> },
           { name: 'Profile', path: '/profile', icon: <UserIcon /> }
         ]}
       />

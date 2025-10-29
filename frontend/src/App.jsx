@@ -2,12 +2,12 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { UserProvider } from './contexts/UserContext';
 import Navbar from './components/common/Navbar';
+import ProtectedRoute from './components/common/ProtectedRoute';
 import HomePage from './pages/Home/HomePage';
 import LoansPage from './pages/Loans/LoansPage';
 import LoanApplicationPage from './pages/Loans/LoanApplicationPage';
 import LoanStatusPage from './pages/Loans/LoanStatusPage';
 import LoanDetailPage from './pages/Loans/LoanDetailPage';
-import InternshipLoginPage from './pages/Internships/InternshipLoginPage';
 import InternshipsPage from './pages/Internships/InternshipsPage';
 import InternshipDetailPage from './pages/Internships/InternshipDetailPage';
 import InternshipApplicationPage from './pages/Internships/InternshipApplicationPage';
@@ -16,8 +16,10 @@ import AppliedInternshipsPage from './pages/Internships/AppliedInternshipsPage';
 import InternshipProfilePage from './pages/Internships/InternshipProfilePage';
 import CourseDetailPage from './pages/Internships/CourseDetailPage';
 import TrainingPage from './pages/Training/TrainingPage';
+import ModulesListPage from './pages/Training/ModulesListPage';
 import ModuleDetailPage from './pages/Training/ModuleDetailPage';
 import TopicDetailPage from './pages/Training/TopicDetailPage';
+import CertificatePage from './pages/Training/CertificatePage';
 import LegalPage from './pages/Legal/LegalPage';
 import LegalServiceDetailPage from './pages/Legal/LegalServiceDetailPage';
 import LegalDocumentUploadPage from './pages/Legal/LegalDocumentUploadPage';
@@ -54,60 +56,63 @@ function App() {
       <Router>
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
           <Routes>
-            <Route path="/internships/login" element={<InternshipLoginPage />} />
+            <Route path="/company/login" element={<CompanyLoginPage />} />
             <Route path="/company/internships" element={<CompanyInternshipsPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/admin/login" element={<AdminLoginPage />} />
             <Route path="/*" element={
-              <>
-                <Navbar />
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/loans" element={<LoansPage />} />
-                  <Route path="/loans/apply" element={<LoanApplicationPage />} />
-                  <Route path="/loans/status" element={<LoanStatusPage />} />
-                  <Route path="/loans/:schemeId" element={<LoanDetailPage />} />
-                  <Route path="/internships" element={<InternshipsPage />} />
-          <Route path="/internships/saved" element={<SavedInternshipsPage />} />
-          <Route path="/internships/applied" element={<AppliedInternshipsPage />} />
-          <Route path="/internships/profile" element={<InternshipProfilePage />} />
-          <Route path="/internships/course/:courseId" element={<CourseDetailPage />} />
-          <Route path="/internships/:internshipId" element={<InternshipDetailPage />} />
-          <Route path="/internships/:internshipId/apply" element={<InternshipApplicationPage />} />
-          <Route path="/training" element={<TrainingPage />} />
-          <Route path="/training/module/:moduleId" element={<ModuleDetailPage />} />
-          <Route path="/training/module/:moduleId/topic/:topicId" element={<TopicDetailPage />} />
-          <Route path="/legal" element={<LegalPage />} />
-          <Route path="/legal/consult" element={<LegalConsultPage />} />
-          <Route path="/legal/documents" element={<LegalDocumentsPage />} />
-          <Route path="/legal/service/:serviceId" element={<LegalServiceDetailPage />} />
-          <Route path="/legal/service/:serviceId/upload" element={<LegalDocumentUploadPage />} />
-          <Route path="/legal/service/:serviceId/payment" element={<LegalPaymentPage />} />
-          <Route path="/mentors" element={<MentorCategoryPage />} />
-          <Route path="/mentors/category/:categoryId" element={<MentorListingPage />} />
-          <Route path="/mentors/:mentorId" element={<MentorDetailPage />} />
-          <Route path="/mentors/:mentorId/book/:slotId" element={<MentorBookingPage />} />
-          <Route path="/mentors/dashboard" element={<MentorDashboard />} />
-          <Route path="/mentors/become-mentor" element={<BecomeMentorPage />} />
-          <Route path="/mentors/profile" element={<MentorProfilePage />} />
-          <Route path="/analytics" element={<AnalyticsPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/mobile-login" element={<LoginPage />} />
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="loans" element={<AdminLoansPage />} />
-            <Route path="legal" element={<AdminLegalPage />} />
-            <Route path="training" element={<AdminTrainingPage />} />
-            <Route path="users" element={<AdminUsersPage />} />
-          </Route>
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/company/login" element={<CompanyLoginPage />} />
-          <Route path="/app-development" element={<AppDevelopmentPage />} />
-          </Routes>
-        </>
-      } />
+              <ProtectedRoute>
+                <>
+                  <Navbar />
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/loans" element={<LoansPage />} />
+                    <Route path="/loans/apply" element={<LoanApplicationPage />} />
+                    <Route path="/loans/status" element={<LoanStatusPage />} />
+                    <Route path="/loans/:schemeId" element={<LoanDetailPage />} />
+                    <Route path="/internships" element={<InternshipsPage />} />
+            <Route path="/internships/saved" element={<SavedInternshipsPage />} />
+            <Route path="/internships/applied" element={<AppliedInternshipsPage />} />
+            <Route path="/internships/profile" element={<InternshipProfilePage />} />
+            <Route path="/internships/course/:courseId" element={<CourseDetailPage />} />
+            <Route path="/internships/:internshipId" element={<InternshipDetailPage />} />
+            <Route path="/internships/:internshipId/apply" element={<InternshipApplicationPage />} />
+            <Route path="/training" element={<TrainingPage />} />
+            <Route path="/training/modules/entrepreneurship-mastery" element={<ModulesListPage />} />
+            <Route path="/training/module/:moduleId" element={<ModuleDetailPage />} />
+            <Route path="/training/module/:moduleId/topic/:topicId" element={<TopicDetailPage />} />
+            <Route path="/training/certificate" element={<CertificatePage />} />
+            <Route path="/legal" element={<LegalPage />} />
+            <Route path="/legal/consult" element={<LegalConsultPage />} />
+            <Route path="/legal/documents" element={<LegalDocumentsPage />} />
+            <Route path="/legal/service/:serviceId" element={<LegalServiceDetailPage />} />
+            <Route path="/legal/service/:serviceId/upload" element={<LegalDocumentUploadPage />} />
+            <Route path="/legal/service/:serviceId/payment" element={<LegalPaymentPage />} />
+            <Route path="/mentors" element={<MentorCategoryPage />} />
+            <Route path="/mentors/category/:categoryId" element={<MentorListingPage />} />
+            <Route path="/mentors/:mentorId" element={<MentorDetailPage />} />
+            <Route path="/mentors/:mentorId/book/:slotId" element={<MentorBookingPage />} />
+            <Route path="/mentors/dashboard" element={<MentorDashboard />} />
+            <Route path="/mentors/become-mentor" element={<BecomeMentorPage />} />
+            <Route path="/mentors/profile" element={<MentorProfilePage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/mobile-login" element={<LoginPage />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="loans" element={<AdminLoansPage />} />
+              <Route path="legal" element={<AdminLegalPage />} />
+              <Route path="training" element={<AdminTrainingPage />} />
+              <Route path="users" element={<AdminUsersPage />} />
+            </Route>
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/app-development" element={<AppDevelopmentPage />} />
+                  </Routes>
+                </>
+              </ProtectedRoute>
+            } />
       </Routes>
     </div>
     </Router>

@@ -223,30 +223,7 @@ const InternshipApplicationPage = () => {
         </Link>
       </motion.header>
 
-      {/* Desktop Header */}
-      <div className="hidden md:block bg-white shadow-lg border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={() => navigate(-1)}
-                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
-              >
-                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Apply for Internship</h1>
-                <p className="text-gray-600 mt-1">{internship.title} at {internship.company}</p>
-              </div>
-            </div>
-            <Link to="/">
-              <img src={logo} alt="CreateBharat Logo" className="w-10 h-10 object-contain" />
-            </Link>
-          </div>
-        </div>
-      </div>
+      {/* Desktop Header - Removed to avoid duplication with main Navbar */}
 
       {/* Desktop Layout */}
       <div className="hidden md:block max-w-7xl mx-auto px-8 py-8">

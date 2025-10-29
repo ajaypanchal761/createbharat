@@ -110,8 +110,12 @@ const HomePage = () => {
             return;
         }
 
-        // For other services, navigate to login
-        navigate('/login');
+        // For other services, go directly if authenticated; otherwise go to login
+        if (isAuthenticated()) {
+            navigate(servicePath);
+        } else {
+            navigate('/login');
+        }
     };
 
 
@@ -393,7 +397,7 @@ const HomePage = () => {
                                     Loans
                                 </Link>
                                 <Link 
-                                    to="/internships/login" 
+                                    to="/internships" 
                                     className="block py-2 text-gray-700 hover:text-orange-500 font-medium transition-colors"
                                     onClick={() => setIsMobileMenuOpen(false)}
                                 >
@@ -595,7 +599,7 @@ const HomePage = () => {
                             { 
                                 name: 'Internships', 
                                 image: internshipImg,
-                                path: '/internships/login'
+                                path: '/internships'
                             },
                             { 
                                 name: 'Legal Services', 
@@ -711,9 +715,7 @@ const HomePage = () => {
                             <motion.button
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
-                                onClick={() => {
-                                    alert('Get Started feature coming soon!');
-                                }}
+                                onClick={(e) => handleServiceClick(e, '/training')}
                                 className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                             >
                                 Get Started
@@ -843,9 +845,7 @@ const HomePage = () => {
                             <motion.button
                                             whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
-                                onClick={() => {
-                                    alert('Learn More feature coming soon!');
-                                }}
+                                onClick={(e) => handleServiceClick(e, '/mentors')}
                                 className="px-8 py-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 transition-all duration-300"
                             >
                                 Learn More
@@ -991,7 +991,7 @@ const HomePage = () => {
                             <nav className="hidden lg:flex items-center space-x-8">
                                 <Link to="/" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Home</Link>
                                 <Link to="/loans" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Loans</Link>
-                                <Link to="/internships/login" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Internships</Link>
+                                <Link to="/internships" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Internships</Link>
                                 <Link to="/legal" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Legal</Link>
                                 <Link to="/mentors" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Mentors</Link>
                                 <Link to="/training" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Training</Link>
@@ -1055,9 +1055,7 @@ const HomePage = () => {
                   <motion.button
                                         whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                                        onClick={() => {
-                                            alert('Get Started feature coming soon!');
-                                        }}
+                                        onClick={(e) => handleServiceClick(e, '/training')}
                                         className="px-8 py-4 bg-gradient-to-r from-orange-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                                     >
                                         Get Started
@@ -1065,9 +1063,7 @@ const HomePage = () => {
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                                        onClick={() => {
-                                            alert('Learn More feature coming soon!');
-                                        }}
+                                        onClick={(e) => handleServiceClick(e, '/mentors')}
                                         className="px-8 py-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 transition-all duration-300"
                                     >
                                         Learn More
@@ -1153,7 +1149,7 @@ const HomePage = () => {
                                     icon: <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6" /></svg>,
                                     desc: 'Find the perfect internship opportunities to kickstart your career',
                                     features: ['Top Companies', 'Remote Options', 'Mentorship'],
-                    path: '/internships/login'
+                    path: '/internships'
                   },
                   { 
                                     name: 'Legal Services', 
@@ -1248,9 +1244,7 @@ const HomePage = () => {
                           <motion.button
                             whileHover={{ scale: 1.08 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                                alert('Learn More feature coming soon!');
-                            }}
+                            onClick={(e) => handleServiceClick(e, service.path)}
                             className="w-full py-3 bg-gradient-to-r from-orange-600 via-orange-700 to-purple-600 text-white font-bold rounded-2xl hover:shadow-xl transition-all duration-300 text-sm shadow-lg relative overflow-hidden group"
                           >
                             <span className="relative z-10">Learn More</span>
@@ -1298,9 +1292,7 @@ const HomePage = () => {
                           <motion.button
                             whileHover={{ scale: 1.08 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                                alert('Learn More feature coming soon!');
-                            }}
+                            onClick={(e) => handleServiceClick(e, service.path)}
                             className="w-full py-4 bg-gradient-to-r from-orange-600 via-orange-700 to-purple-600 text-white font-bold rounded-2xl hover:shadow-xl transition-all duration-300 text-lg shadow-lg relative overflow-hidden group"
                           >
                             <span className="relative z-10">Learn More</span>
@@ -1421,7 +1413,7 @@ const HomePage = () => {
                                 <h4 className="text-lg font-semibold mb-4">Services</h4>
                                 <ul className="space-y-2 text-gray-400">
                                     <li><Link to="/loans" className="hover:text-white transition-colors">Loans</Link></li>
-                                    <li><Link to="/internships/login" className="hover:text-white transition-colors">Internships</Link></li>
+                                    <li><Link to="/internships" className="hover:text-white transition-colors">Internships</Link></li>
                                     <li><Link to="/legal" className="hover:text-white transition-colors">Legal Services</Link></li>
                                     <li><Link to="/mentors" className="hover:text-white transition-colors">Mentorship</Link></li>
                                 </ul>

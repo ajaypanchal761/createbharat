@@ -70,38 +70,7 @@ const InternshipDetailPage = () => {
         </button>
       </motion.header>
 
-      {/* Desktop Header */}
-      <div className="hidden md:block bg-white shadow-lg border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={() => navigate(-1)}
-                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
-              >
-                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">{internship.title}</h1>
-                <p className="text-gray-600 mt-1">{internship.company} • {internship.location}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium">
-                Save for Later
-              </button>
-              <button 
-                onClick={() => navigate(`/internships/${internshipId}/apply`)}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-              >
-                Apply Now
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Desktop Header - Removed to avoid duplication with main Navbar */}
 
       {/* Main Content */}
       <div className="bg-white px-4 py-4 md:px-8 md:py-8">

@@ -332,15 +332,7 @@ const LegalDocumentUploadPage = () => {
             <ArrowLeftIcon />
           </motion.button>
           
-          <div className="flex items-center">
-            <motion.img 
-              whileHover={{ scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 300 }}
-              src={logo} 
-              alt="CreateBharat Logo" 
-              className="h-12 w-auto object-contain" 
-            />
-          </div>
+          <h1 className="text-xl font-bold text-gray-900">Upload Documents</h1>
           
           <div className="w-10"></div>
         </div>

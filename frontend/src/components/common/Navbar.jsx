@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useUser } from '../../contexts/UserContext';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { AnimatePresence, motion } from 'framer-motion';
 import logo from '../../assets/logo.png';
@@ -8,6 +9,8 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, logout } = useUser();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,8 +41,6 @@ const Navbar = () => {
     location.pathname === '/' || 
     location.pathname.startsWith('/admin') || 
     location.pathname === '/company/internships' ||
-    location.pathname === '/company/login' ||
-    location.pathname === '/internships/login' ||
     location.pathname === '/mentors' ||
     location.pathname === '/mentors/profile'
   ) {
@@ -86,40 +87,20 @@ const Navbar = () => {
           </Link>
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation (webview) - simplified, no active tab styling */}
           <div className="hidden md:flex items-center space-x-2">
-            {navLinks.map((link, index) => (
-              <div
-                key={link.name}
-                className="relative"
-              >
-              <Link
-                to={link.path}
+            {navLinks.map((link) => (
+              <div key={link.name} className="relative">
+                <Link
+                  to={link.path}
                   className={`group relative px-6 py-3 rounded-2xl text-sm font-semibold ${
-                    location.pathname === link.path
-                      ? scrolled
-                        ? 'text-orange-600 bg-orange-50 shadow-lg border border-orange-200'
-                        : 'text-white bg-white/20 shadow-lg backdrop-blur-sm'
-                      : scrolled
-                      ? 'text-gray-700 hover:text-orange-600 hover:bg-gray-50 hover:shadow-md'
-                      : 'text-white/90 hover:text-white hover:bg-white/10 hover:backdrop-blur-sm'
+                    scrolled ? 'text-gray-700' : 'text-white/90'
                   }`}
                 >
                   <span className="flex items-center space-x-2">
                     <span>{link.name}</span>
                   </span>
-                  
-                  {/* Active indicator */}
-                  <div
-                    className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 rounded-full ${
-                      location.pathname === link.path
-                        ? scrolled
-                          ? 'bg-orange-600'
-                          : 'bg-white'
-                        : 'bg-transparent'
-                    }`}
-                  />
-              </Link>
+                </Link>
               </div>
             ))}
           </div>
@@ -128,18 +109,43 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-4">
             {/* CTA Buttons */}
             <div className="flex items-center space-x-3">
-              <div>
-            <Link
-              to="/login"
-                  className={`px-6 py-3 rounded-2xl font-bold text-sm shadow-lg ${
-                    scrolled
-                      ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 hover:shadow-xl'
-                      : 'bg-white text-orange-600 hover:bg-gray-50 hover:shadow-xl'
-                  }`}
-            >
-              Login
-            </Link>
-              </div>
+              {isAuthenticated() ? (
+                <div className="flex items-center space-x-3">
+                  <Link
+                    to="/profile"
+                    className={`px-6 py-3 rounded-2xl font-bold text-sm shadow-lg ${
+                      scrolled
+                        ? 'bg-white text-orange-600 hover:bg-gray-50 hover:shadow-xl border border-orange-200'
+                        : 'bg-white text-orange-600 hover:bg-gray-50 hover:shadow-xl'
+                    }`}
+                  >
+                    Profile
+                  </Link>
+                  <button
+                    onClick={() => { logout(); navigate('/'); }}
+                    className={`px-6 py-3 rounded-2xl font-bold text-sm shadow-lg ${
+                      scrolled
+                        ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 hover:shadow-xl'
+                        : 'bg-red-600 text-white hover:bg-red-700 hover:shadow-xl'
+                    }`}
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <Link
+                    to="/login"
+                    className={`px-6 py-3 rounded-2xl font-bold text-sm shadow-lg ${
+                      scrolled
+                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 hover:shadow-xl'
+                        : 'bg-white text-orange-600 hover:bg-gray-50 hover:shadow-xl'
+                    }`}
+                  >
+                    Login
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
 
@@ -170,43 +176,37 @@ const Navbar = () => {
             className="md:hidden bg-white/95 backdrop-blur-xl shadow-2xl border-t border-gray-200/50"
           >
             <div className="max-w-7xl mx-auto px-4 py-4">
-              {navLinks.map((link, index) => (
-                <motion.div
-                  key={link.name}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                >
-              <Link
-                to={link.path}
-                onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-medium ${
-                      location.pathname === link.path
-                        ? 'text-orange-600 bg-orange-50 shadow-lg'
-                        : 'text-gray-700 hover:text-orange-600 hover:bg-gray-50'
+              {navLinks.map((link) => (
+                <div key={link.name} className="relative">
+                  <Link
+                    to={link.path}
+                    className={`group relative px-6 py-3 rounded-2xl text-sm font-semibold ${
+                      scrolled ? 'text-gray-700' : 'text-white/90'
                     }`}
                   >
-                    <span>{link.name}</span>
-              </Link>
-                </motion.div>
+                    <span className="flex items-center space-x-2">
+                      <span>{link.name}</span>
+                    </span>
+                  </Link>
+                </div>
               ))}
                 <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.5 }}
-                className="mt-6 pt-6 border-t border-gray-200"
-              >
-                <div className="space-y-3">
-              <Link
-                to="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                    className="block w-full text-center px-5 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 shadow-lg"
-              >
-                Login
-              </Link>
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.5 }}
+                  className="mt-6 pt-6 border-t border-gray-200"
+                >
+                  <div className="space-y-3">
+                    <Link
+                      to="/login"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block w-full text-center px-5 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 shadow-lg"
+                    >
+                      Login
+                    </Link>
+                  </div>
+                </motion.div>
             </div>
-              </motion.div>
-          </div>
           </motion.div>
       )}
       </AnimatePresence>

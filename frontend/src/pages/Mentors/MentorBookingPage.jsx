@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../../assets/logo.png';
 
 // Icons
@@ -28,6 +28,7 @@ const MentorBookingPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Mock mentor data
   const mentor = {
@@ -163,13 +164,51 @@ const MentorBookingPage = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <button 
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
                 <MenuIcon />
               </button>
             </div>
           </div>
         </div>
       </motion.header>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex">
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              className="w-64 bg-white h-full shadow-xl"
+            >
+              <div className="p-6">
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="mb-6 p-2 hover:bg-gray-100 rounded-lg"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                <div className="space-y-2">
+                  <Link to="/" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Home</Link>
+                  <Link to="/loans" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Loans</Link>
+                  <Link to="/internships" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Internships</Link>
+                  <Link to="/mentors" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Mentors</Link>
+                  <Link to="/legal" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Legal Services</Link>
+                  <Link to="/training" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Training</Link>
+                  <Link to="/profile" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Profile</Link>
+                </div>
+              </div>
+            </motion.div>
+            <div className="flex-1" onClick={() => setIsMobileMenuOpen(false)} />
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Main Content */}
       <div className="px-4 pt-6 pb-4">
