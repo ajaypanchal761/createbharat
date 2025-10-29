@@ -134,12 +134,6 @@ const LoansPage = () => {
               <button className="px-4 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors font-medium">
                 All Schemes
               </button>
-              <button className="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium">
-                Micro Loans
-              </button>
-              <button className="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium">
-                Startup Loans
-              </button>
             </div>
           </div>
         </div>
@@ -157,65 +151,25 @@ const LoansPage = () => {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ scale: 1.05, y: -8 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               className="group relative"
             >
-              {/* Animated Border */}
-              <motion.div
-                className="absolute -inset-0.5 bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 rounded-2xl blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"
-                animate={{
-                  background: [
-                    "linear-gradient(45deg, #f97316, #ef4444, #ec4899)",
-                    "linear-gradient(45deg, #ec4899, #f97316, #ef4444)",
-                    "linear-gradient(45deg, #ef4444, #ec4899, #f97316)"
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-              />
-
               <Link to={`/loans/${loan.id}`}>
-                <div className={`relative bg-gradient-to-br ${loan.bgColor} backdrop-blur-lg rounded-2xl p-4 md:p-5 shadow-lg border border-white/40 overflow-hidden h-52 md:h-48 hover:shadow-xl transition-all duration-300`}>
+                <div className={`relative bg-gradient-to-br ${loan.bgColor} rounded-2xl p-4 md:p-5 shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-200 flex flex-col`}>
                   {/* Image */}
                   <div className="relative mb-3 md:mb-4">
-                    <motion.div
-                      whileHover={{ scale: 1.05, rotate: 1 }}
-                      transition={{ duration: 0.3 }}
-                      className="w-full h-16 md:h-20 rounded-lg overflow-hidden shadow-md"
-                    >
+                    <div className="w-full h-20 md:h-24 rounded-lg overflow-hidden bg-gray-100">
                       {loan.skeleton ? (
                         <div className="w-full h-full bg-gray-200 animate-pulse rounded" />
                       ) : (
                         <img
                           src={loan.image}
                           alt={loan.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                         />
                       )}
-                    </motion.div>
-                    {/* Gradient Overlay */}
-                    <motion.div
-                      whileHover={{ opacity: 0.4 }}
-                      className={`absolute inset-0 bg-gradient-to-t ${loan.color} opacity-30 rounded-lg transition-opacity duration-300`}
-                    ></motion.div>
-
-                    {/* Floating Icon */}
-                    <motion.div
-                      animate={{
-                        y: [0, -3, 0],
-                        rotate: [0, 3, -3, 0]
-                      }}
-                      transition={{
-                        duration: 2.5,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                      className={`absolute top-1 right-1 w-6 h-6 md:w-7 md:h-7 bg-gradient-to-r ${loan.color} rounded-full flex items-center justify-center shadow-md`}
-                    >
-                      <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                      </svg>
-                    </motion.div>
+                    </div>
                   </div>
 
                   {/* Title */}
@@ -234,32 +188,15 @@ const LoansPage = () => {
                   {/* Action Button */}
                   <div className="flex justify-end">
                     <motion.div
-                      whileHover={{ scale: 1.15, rotate: 8 }}
-                      whileTap={{ scale: 0.9 }}
-                      className={`w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r ${loan.color} rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r ${loan.color} rounded-full flex items-center justify-center transition-all duration-200`}
                     >
                       <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </motion.div>
                   </div>
-
-                  {/* Hover Glow Effect */}
-                  <motion.div
-                    className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r ${loan.color}20`}
-                    initial={false}
-                    animate={{
-                      scale: [1, 1.05, 1]
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                    style={{
-                      filter: 'blur(15px)'
-                    }}
-                  />
                 </div>
               </Link>
             </motion.div>

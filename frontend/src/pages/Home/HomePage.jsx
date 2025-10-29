@@ -995,6 +995,7 @@ const HomePage = () => {
                                 <Link to="/legal" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Legal</Link>
                                 <Link to="/mentors" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Mentors</Link>
                                 <Link to="/training" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Training</Link>
+                                <Link to="/app-development" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Web Development</Link>
                             </nav>
                             
                             <div className="flex items-center gap-4">
@@ -1176,10 +1177,10 @@ const HomePage = () => {
                     path: '/training'
                   },
                                 { 
-                                    name: 'Development', 
+                                    name: 'Web Development', 
                                     color: 'from-indigo-500 to-orange-500', 
                                     icon: <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
-                                    desc: 'Custom app development solutions for your business needs',
+                                    desc: 'Custom web development solutions for your business needs',
                                     features: ['Custom Apps', 'Mobile & Web', 'Full Support'],
                                     path: '/app-development'
                                 }

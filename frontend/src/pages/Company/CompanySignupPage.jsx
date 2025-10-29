@@ -12,6 +12,7 @@ const CompanySignupPage = () => {
     confirmPassword: '',
     industry: '',
     companySize: '',
+    location: '',
     website: '',
     description: ''
   });
@@ -66,6 +67,10 @@ const CompanySignupPage = () => {
       newErrors.companySize = 'Company size is required';
     }
     
+    if (!formData.location.trim()) {
+      newErrors.location = 'Location is required';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -84,6 +89,7 @@ const CompanySignupPage = () => {
       // For demo purposes, save company data
       localStorage.setItem('companyEmail', formData.email);
       localStorage.setItem('companyName', formData.companyName);
+      localStorage.setItem('companyLocation', formData.location);
       localStorage.setItem('userType', 'company');
       localStorage.setItem('isLoggedIn', 'true');
       
@@ -378,6 +384,49 @@ const CompanySignupPage = () => {
                     className="mt-1 text-sm text-red-600"
                   >
                     {errors.companySize}
+                  </motion.p>
+                )}
+              </motion.div>
+
+              {/* Location Field */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.15 }}
+              >
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Location *
+                </label>
+                <motion.div
+                  whileFocus={{ scale: 1.02 }}
+                  className="relative"
+                >
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${
+                      errors.location 
+                        ? 'border-red-500 focus:border-red-500' 
+                        : 'border-gray-300 focus:border-indigo-500'
+                    } focus:ring-2 focus:ring-indigo-200 outline-none`}
+                    placeholder="e.g., Mumbai, Maharashtra"
+                  />
+                </motion.div>
+                {errors.location && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-1 text-sm text-red-600"
+                  >
+                    {errors.location}
                   </motion.p>
                 )}
               </motion.div>

@@ -18,9 +18,10 @@ const CompanyInternshipsPage = () => {
     });
     const [selectedApplication, setSelectedApplication] = useState(null);
     const [companyProfile, setCompanyProfile] = useState({
-        name: 'TechCorp Solutions',
+        name: localStorage.getItem('companyName') || 'TechCorp Solutions',
         industry: 'Technology',
         size: '51-200 employees',
+        location: localStorage.getItem('companyLocation') || '',
         website: 'www.techcorp.com',
         description: 'Leading technology company focused on innovation'
     });
@@ -69,6 +70,9 @@ const CompanyInternshipsPage = () => {
 
     const handleProfileUpdate = (e) => {
         e.preventDefault();
+        // Save location to localStorage
+        localStorage.setItem('companyLocation', companyProfile.location);
+        localStorage.setItem('companyName', companyProfile.name);
         alert('Profile updated successfully!');
     };
 
@@ -556,6 +560,18 @@ const CompanyInternshipsPage = () => {
                             <option value="51-200 employees">51-200 employees</option>
                             <option value="200+ employees">200+ employees</option>
                         </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                        <input
+                            type="text"
+                            name="location"
+                            value={companyProfile.location}
+                            onChange={handleProfileChange}
+                            required
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="e.g., Mumbai, Maharashtra"
+                        />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Website</label>

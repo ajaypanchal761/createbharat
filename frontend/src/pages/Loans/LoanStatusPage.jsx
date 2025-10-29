@@ -75,6 +75,7 @@ const LoanStatusPage = () => {
     { key: 'rejected', label: 'Rejected', count: loanApplications.filter(app => app.status === 'rejected').length }
   ];
 
+  // Filter applications based on selected status
   const filteredApplications = selectedStatus === 'all' 
     ? loanApplications 
     : loanApplications.filter(app => app.status === selectedStatus);
@@ -131,12 +132,12 @@ const LoanStatusPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Header */}
+      {/* Header - Mobile Only */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="flex items-center justify-between px-4 py-4 bg-white/90 backdrop-blur-lg border-b border-gradient-to-r from-blue-200 to-purple-200 shadow-lg"
+        className="md:hidden flex items-center justify-between px-4 py-4 bg-white/90 backdrop-blur-lg border-b border-gradient-to-r from-blue-200 to-purple-200 shadow-lg"
       >
         <motion.div 
           whileHover={{ scale: 1.05 }}
@@ -165,60 +166,61 @@ const LoanStatusPage = () => {
       </motion.header>
 
       {/* Main Content */}
-      <div className="px-4 pb-20 pt-6">
+      <div className="px-4 pb-20 pt-6 md:px-8 md:pt-8">
         <motion.div
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
-          className="max-w-4xl mx-auto"
+          className="max-w-6xl mx-auto"
         >
-          {/* Status Summary */}
+          {/* Desktop Header */}
+          <div className="hidden md:block mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Loan Application Status</h1>
+            <p className="text-lg text-gray-600 mb-6">Track and manage your loan applications</p>
+          </div>
+
+          {/* Status Filter Buttons - Webview Only */}
           <motion.div
             variants={fadeInUp}
-            className="bg-white/90 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-white/40 mb-6"
+            className="hidden md:flex items-center gap-3 mb-8 flex-wrap"
           >
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Application Summary</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {statusFilters.map((filter) => (
-                <motion.button
-                  key={filter.key}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedStatus(filter.key)}
-                  className={`p-4 rounded-lg border-2 transition-all duration-300 ${
+            {statusFilters.map((filter) => (
+              <motion.button
+                key={filter.key}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setSelectedStatus(filter.key)}
+                className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                  selectedStatus === filter.key
+                    ? 'bg-blue-600 text-white shadow-lg'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span>{filter.label}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                     selectedStatus === filter.key
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
-                >
-                  <div className="text-center">
-                    <div className={`text-2xl font-bold ${
-                      selectedStatus === filter.key ? 'text-blue-600' : 'text-gray-600'
-                    }`}>
-                      {filter.count}
-                    </div>
-                    <div className={`text-sm ${
-                      selectedStatus === filter.key ? 'text-blue-600' : 'text-gray-500'
-                    }`}>
-                      {filter.label}
-                    </div>
-                  </div>
-                </motion.button>
-              ))}
-            </div>
+                      ? 'bg-white/20 text-white'
+                      : 'bg-gray-200 text-gray-700'
+                  }`}>
+                    {filter.count}
+                  </span>
+                </div>
+              </motion.button>
+            ))}
           </motion.div>
 
           {/* Applications List */}
           <motion.div
             variants={staggerContainer}
-            className="space-y-4"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
           >
             {filteredApplications.map((application) => (
               <motion.div
                 key={application.id}
                 variants={fadeInUp}
                 whileHover={{ scale: 1.02 }}
-                className={`${application.bgColor} ${application.borderColor} border-2 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300`}
+                className={`${application.bgColor} ${application.borderColor} border-2 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 h-full`}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>

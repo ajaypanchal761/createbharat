@@ -223,54 +223,6 @@ const LoanDetailPage = () => {
                         </ul>
                       </motion.div>
                     )}
-
-                    {/* Eligibility Section */}
-                    {loan.eligibility && loan.eligibility.length > 0 && (
-                      <motion.div
-                        className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm"
-                      >
-                        <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                          <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          Eligibility Criteria
-                        </h4>
-                        <ul className="space-y-2">
-                          {loan.eligibility.map((criteria, index) => (
-                            <li key={index} className="flex items-start">
-                              <svg className="w-4 h-4 text-green-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                              <span className="text-gray-700 text-sm">{criteria}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </motion.div>
-                    )}
-
-                    {/* Required Documents Section */}
-                    {loan.documents && loan.documents.length > 0 && (
-                      <motion.div
-                        className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm"
-                      >
-                        <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                          <svg className="w-5 h-5 text-purple-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          Required Documents
-                        </h4>
-                        <ul className="space-y-2">
-                          {loan.documents.map((document, index) => (
-                            <li key={index} className="flex items-start">
-                              <svg className="w-4 h-4 text-blue-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                              </svg>
-                              <span className="text-gray-700 text-sm">{document}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </motion.div>
-                    )}
                   </motion.div>
                 </motion.div>
               </motion.div>
@@ -558,9 +510,30 @@ const LoanDetailPage = () => {
               whileHover={{ scale: 1.02, y: -2 }}
               className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-white/20 w-full"
             >
-              <p className="text-gray-700 leading-relaxed mb-4 text-sm w-full">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">About {loan.name}</h3>
+              <p className="text-gray-700 leading-relaxed mb-6 text-sm w-full">
                 {loan.description || `The ${loan.name} is a government-backed financial assistance program designed to support entrepreneurs and businesses in India. This scheme provides access to affordable credit facilities with competitive interest rates and flexible repayment terms.`}
               </p>
+
+              {/* Key Features - Mobile */}
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm">
+                  <h4 className="font-semibold text-gray-900 mb-2 text-sm">💰 Loan Amount</h4>
+                  <p className="text-xs text-gray-700 font-medium">₹{loan.minAmount?.toLocaleString()} - ₹{loan.maxAmount?.toLocaleString()}</p>
+                </div>
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 shadow-sm">
+                  <h4 className="font-semibold text-gray-900 mb-2 text-sm">📈 Interest Rate</h4>
+                  <p className="text-xs text-gray-700 font-medium">{loan.interestRate || 'Contact for details'}</p>
+                </div>
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 shadow-sm">
+                  <h4 className="font-semibold text-gray-900 mb-2 text-sm">⏰ Repayment</h4>
+                  <p className="text-xs text-gray-700 font-medium">{loan.tenure || 'Flexible terms'}</p>
+                </div>
+                <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4 shadow-sm">
+                  <h4 className="font-semibold text-gray-900 mb-2 text-sm">📋 Processing</h4>
+                  <p className="text-xs text-gray-700 font-medium">{loan.processingTime || 'Quick approval'}</p>
+                </div>
+              </div>
 
               {/* Know More Button */}
               <motion.button
@@ -675,70 +648,6 @@ const LoanDetailPage = () => {
                 )}
               </motion.div>
             </motion.div>
-          </motion.div>
-
-          {/* Downloadable Checklists */}
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={staggerContainer}
-            className="space-y-3 mb-8"
-          >
-            {loan.documents && loan.documents.length > 0 ? (
-              loan.documents.map((document, index) => (
-                <motion.div
-                  key={index}
-                  variants={scaleIn}
-                  whileHover={{ scale: 1.03, y: -5, rotateY: 5 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="relative group"
-                >
-                  {/* Animated Border */}
-                  <motion.div
-                    className="absolute -inset-1 bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 rounded-2xl blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"
-                    animate={{
-                      background: [
-                        "linear-gradient(45deg, #f97316, #ef4444, #ec4899)",
-                        "linear-gradient(45deg, #ec4899, #f97316, #ef4444)",
-                        "linear-gradient(45deg, #ef4444, #ec4899, #f97316)"
-                      ]
-                    }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                  />
-
-                  <div className="relative bg-white/90 backdrop-blur-lg rounded-xl p-4 shadow-lg border border-white/20">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <motion.div
-                          whileHover={{ rotate: 360, scale: 1.1 }}
-                          transition={{ duration: 0.6 }}
-                          className="w-8 h-8 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md"
-                        >
-                          <span className="text-white text-xs font-bold">PDF</span>
-                        </motion.div>
-                        <div>
-                          <h3 className="font-bold text-gray-900 text-xs mb-1">{document}</h3>
-                          <p className="text-xs text-gray-600">Required document for loan application</p>
-                        </div>
-                      </div>
-                      <motion.div
-                        whileHover={{ scale: 1.2, rotate: 10 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center cursor-pointer shadow-md"
-                      >
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      </motion.div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No documents specified</p>
-              </div>
-            )}
           </motion.div>
 
           {/* How To Apply Section */}
@@ -903,6 +812,83 @@ const LoanDetailPage = () => {
                   </p>
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Quick Info Card - Mobile */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="mb-8"
+          >
+            <motion.div
+              whileHover={{ scale: 1.02, y: -2 }}
+              className="bg-gradient-to-br from-white to-blue-50 rounded-2xl p-6 shadow-xl border border-blue-100"
+            >
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <span className="text-2xl">⚡</span>
+                Quick Info
+              </h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center pb-3 border-b border-gray-200">
+                  <span className="text-gray-600 flex items-center gap-2">
+                    <span className="text-lg">💰</span>
+                    Interest Rate
+                  </span>
+                  <span className="font-bold text-green-600 text-lg">{loan.interestRate || 'Contact for details'}</span>
+                </div>
+                <div className="flex justify-between items-center pb-3 border-b border-gray-200">
+                  <span className="text-gray-600 flex items-center gap-2">
+                    <span className="text-lg">💵</span>
+                    Loan Amount
+                  </span>
+                  <span className="font-bold text-blue-600 text-lg">₹{loan.minAmount?.toLocaleString()} - ₹{loan.maxAmount?.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center pb-3 border-b border-gray-200">
+                  <span className="text-gray-600 flex items-center gap-2">
+                    <span className="text-lg">⏱️</span>
+                    Processing Time
+                  </span>
+                  <span className="font-bold text-purple-600 text-lg">{loan.processingTime || 'Quick approval'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 flex items-center gap-2">
+                    <span className="text-lg">📅</span>
+                    Repayment
+                  </span>
+                  <span className="font-bold text-orange-600 text-lg">{loan.tenure || 'Flexible terms'}</span>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Contact/Help Card - Mobile */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            className="mb-8"
+          >
+            <motion.div
+              whileHover={{ scale: 1.02, y: -2 }}
+              className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 shadow-xl border border-indigo-400"
+            >
+              <h3 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
+                <span className="text-2xl">💬</span>
+                Need Help?
+              </h3>
+              <p className="text-white/90 text-sm mb-6">Our loan experts are here to assist you with any questions about this scheme.</p>
+              <motion.button
+                whileHover={{ scale: 1.05, boxShadow: "0 10px 25px rgba(255, 255, 255, 0.3)" }}
+                whileTap={{ scale: 0.95 }}
+                className="w-full bg-white text-indigo-600 py-4 rounded-xl hover:bg-gray-100 transition-colors font-bold text-lg shadow-lg flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                Contact Support
+              </motion.button>
             </motion.div>
           </motion.div>
         </div>
