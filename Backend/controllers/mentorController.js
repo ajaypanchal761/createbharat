@@ -427,34 +427,18 @@ const createBooking = async (req, res) => {
 
     const { sessionType, date, time, message } = req.body;
 
-    // Determine duration and price based on session type using new pricing structure
-    let details = null;
-    const pricing = mentor.pricing || {};
+    // Determine duration and price based on session type
+    const sessionDetails = {
+      '20min': { duration: '20-25 minutes', price: mentor.pricing.email || 100 },
+      '50min': { duration: '50-60 minutes', price: (mentor.pricing.email || 100) * 2 },
+      '90min': { duration: '90-120 minutes', price: (mentor.pricing.email || 100) * 3 }
+    };
 
-    if (sessionType === '20min') {
-      details = {
-        duration: pricing.quickConsultation?.duration || '20-25 minutes',
-        price: pricing.quickConsultation?.price || 150,
-        label: pricing.quickConsultation?.label || 'Quick consultation'
-      };
-    } else if (sessionType === '50min') {
-      details = {
-        duration: pricing.inDepthSession?.duration || '50-60 minutes',
-        price: pricing.inDepthSession?.price || 300,
-        label: pricing.inDepthSession?.label || 'In-depth session'
-      };
-    } else if (sessionType === '90min') {
-      details = {
-        duration: pricing.comprehensiveConsultation?.duration || '90-120 minutes',
-        price: pricing.comprehensiveConsultation?.price || 450,
-        label: pricing.comprehensiveConsultation?.label || 'Comprehensive consultation'
-      };
-    }
-
+    const details = sessionDetails[sessionType];
     if (!details) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid session type. Must be "20min", "50min", or "90min"'
+        message: 'Invalid session type'
       });
     }
 

@@ -694,7 +694,7 @@ const MentorProfilePage = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <button
-              onClick={() => navigate('/mentors/dashboard')}
+              onClick={() => navigate('/mentors')}
               className="p-2 hover:bg-white/20 rounded-lg transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -704,12 +704,6 @@ const MentorProfilePage = () => {
             <h1 className="text-xl font-bold">Mentor Profile</h1>
           </div>
           <div className="flex items-center space-x-2">
-            <Link
-              to="/mentors/dashboard"
-              className="px-3 py-1 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors text-sm"
-            >
-              Dashboard
-            </Link>
             {isEditing ? (
               <>
                 <button
@@ -743,7 +737,7 @@ const MentorProfilePage = () => {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => navigate('/mentors/dashboard')}
+              onClick={() => navigate('/mentors')}
               className="p-2 hover:bg-white/20 rounded-lg transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -753,12 +747,6 @@ const MentorProfilePage = () => {
             <h1 className="text-2xl font-bold">Mentor Profile</h1>
           </div>
           <div className="flex items-center space-x-3">
-            <Link
-              to="/mentors/dashboard"
-              className="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors"
-            >
-              Dashboard
-            </Link>
             {isEditing ? (
               <>
                 <button
