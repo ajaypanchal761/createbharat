@@ -297,35 +297,6 @@ const MentorProfilePage = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Contact Methods</h3>
-        <div className="space-y-3">
-          {Object.entries(formData.contactMethods).map(([method, enabled]) => (
-            <div key={method} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">
-                  {method === 'videoCall' && '📹'}
-                  {method === 'phoneCall' && '📞'}
-                  {method === 'chat' && '💬'}
-                  {method === 'email' && '📧'}
-                </span>
-                <span className="font-medium text-gray-800 capitalize">
-                  {method === 'videoCall' && 'Video Call'}
-                  {method === 'phoneCall' && 'Phone Call'}
-                  {method === 'chat' && 'Chat'}
-                  {method === 'email' && 'Email'}
-                </span>
-              </div>
-              <input
-                type="checkbox"
-                checked={enabled}
-                onChange={(e) => handleNestedInputChange('contactMethods', method, e.target.checked)}
-                className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 
@@ -334,45 +305,40 @@ const MentorProfilePage = () => {
       <div className="bg-white rounded-xl p-6 shadow-lg">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Session Pricing (USD per hour)</h3>
         <div className="space-y-4">
-          {Object.entries(formData.pricing).map(([method, price]) => (
-            <div key={method} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">
-                  {method === 'videoCall' && '📹'}
-                  {method === 'phoneCall' && '📞'}
-                  {method === 'chat' && '💬'}
-                  {method === 'email' && '📧'}
-                </span>
-                <span className="font-medium text-gray-800 capitalize">
-                  {method === 'videoCall' && 'Video Call'}
-                  {method === 'phoneCall' && 'Phone Call'}
-                  {method === 'chat' && 'Chat'}
-                  {method === 'email' && 'Email'}
-                </span>
+          {Object.entries(formData.pricing)
+            .filter(([method]) => method === 'email')
+            .map(([method, price]) => (
+              <div key={method} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <span className="text-2xl">📧</span>
+                  <span className="font-medium text-gray-800">Email Consultation</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-gray-500">$</span>
+                  <input
+                    type="number"
+                    value={price}
+                    onChange={(e) => handleNestedInputChange('pricing', method, parseInt(e.target.value))}
+                    className="w-20 px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-right"
+                    min="0"
+                  />
+                  <span className="text-gray-500">/hr</span>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-gray-500">$</span>
-                <input
-                  type="number"
-                  value={price}
-                  onChange={(e) => handleNestedInputChange('pricing', method, parseInt(e.target.value))}
-                  className="w-20 px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-right"
-                  min="0"
-                />
-                <span className="text-gray-500">/hr</span>
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
+        <p className="text-sm text-gray-600 mt-4">
+          Note: Session links will be shared via email within 24 hours after booking confirmation.
+        </p>
       </div>
 
       <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-2">💡 Pricing Tips</h3>
         <ul className="text-sm text-gray-600 space-y-1">
-          <li>• Video calls typically command higher rates</li>
           <li>• Consider your experience level when setting prices</li>
           <li>• Research market rates for your specialization</li>
           <li>• Start competitive and adjust based on demand</li>
+          <li>• Session links will be shared via email after payment</li>
         </ul>
       </div>
     </div>

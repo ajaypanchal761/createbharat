@@ -42,7 +42,6 @@ const MentorDetailPage = () => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
-  const [bookingType, setBookingType] = useState('');
 
   // Mock mentor data
   const mentor = {
@@ -108,8 +107,8 @@ const MentorDetailPage = () => {
   };
 
   const handleConfirmBooking = () => {
-    if (!selectedDate || !selectedTime || !bookingType) {
-      alert('Please fill in all booking details');
+    if (!selectedDate || !selectedTime) {
+      alert('Please select date and time');
       return;
     }
     setIsBooking(true);
@@ -245,38 +244,6 @@ const MentorDetailPage = () => {
               </div>
             </div>
 
-            {/* Booking Type */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Consultation Type</h3>
-              <div className="space-y-3">
-                {[
-                  { id: 'video', name: 'Video Call', description: 'Face-to-face consultation via video', icon: '📹' },
-                  { id: 'phone', name: 'Phone Call', description: 'Audio consultation via phone', icon: '📞' },
-                  { id: 'chat', name: 'Chat Session', description: 'Text-based consultation', icon: '💬' }
-                ].map((type) => (
-                  <motion.div
-                    key={type.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setBookingType(type.id)}
-                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                      bookingType === type.id
-                        ? 'border-orange-500 bg-orange-50'
-                        : 'border-gray-200 hover:border-orange-300'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <span className="text-2xl">{type.icon}</span>
-                      <div>
-                        <h4 className="font-medium text-gray-900">{type.name}</h4>
-                        <p className="text-sm text-gray-600">{type.description}</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
             {/* Action Buttons */}
             <div className="flex space-x-3">
               <button
@@ -289,9 +256,9 @@ const MentorDetailPage = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleConfirmBooking}
-                disabled={!selectedDate || !selectedTime || !bookingType}
+                disabled={!selectedDate || !selectedTime}
                 className={`flex-1 py-3 px-4 font-medium rounded-lg transition-all ${
-                  selectedDate && selectedTime && bookingType
+                  selectedDate && selectedTime
                     ? 'bg-orange-600 text-white hover:bg-orange-700'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}

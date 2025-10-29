@@ -121,6 +121,12 @@ const BecomeMentorPage = () => {
               <img src={logo} alt="Logo" className="h-8 w-auto" />
             </div>
             <div className="flex items-center space-x-4">
+              <Link
+                to="/mentors/login"
+                className="px-4 py-2 bg-gradient-to-r from-orange-500 to-purple-600 text-white rounded-lg hover:from-orange-600 hover:to-purple-700 transition-colors font-medium hidden md:block"
+              >
+                Mentor Login
+              </Link>
               <button 
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -160,6 +166,9 @@ const BecomeMentorPage = () => {
                   <Link to="/training" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Training</Link>
                   <Link to="/profile" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Profile</Link>
                   <Link to="/mentors/become-mentor" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Become a Mentor</Link>
+                  <Link to="/mentors/login" className="block py-3 px-4 rounded-lg bg-gradient-to-r from-orange-500 to-purple-600 text-white font-medium hover:from-orange-600 hover:to-purple-700">
+                    👨‍🏫 Mentor Admin Login
+                  </Link>
                 </div>
               </div>
             </motion.div>
@@ -215,6 +224,27 @@ const BecomeMentorPage = () => {
                   <span className="text-gray-700">{requirement}</span>
                 </div>
               ))}
+            </div>
+          </motion.div>
+
+          {/* Already a Mentor Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.45 }}
+            className="bg-gradient-to-r from-orange-50 to-purple-50 rounded-xl p-6 shadow-lg border-2 border-orange-200 mb-6"
+          >
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Already a Mentor?</h3>
+                <p className="text-gray-600 text-sm">Access your mentor dashboard to manage sessions and bookings</p>
+              </div>
+              <Link
+                to="/mentors/login"
+                className="px-6 py-3 bg-gradient-to-r from-orange-500 to-purple-600 text-white rounded-lg hover:from-orange-600 hover:to-purple-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl whitespace-nowrap"
+              >
+                👨‍🏫 Mentor Admin Login
+              </Link>
             </div>
           </motion.div>
 

@@ -693,34 +693,55 @@ const HomePage = () => {
                             <span className="text-6xl font-bold text-gray-400">SUCCESS</span>
                                                         </motion.div>
                         
-                        <div className="relative z-10 flex items-center justify-between">
-                            <div className="flex-1">
-                                <motion.h2 
-                                    className="text-lg font-bold text-gray-800 mb-2"
-                                    initial={{ opacity: 0, x: -30 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.3 }}
-                                >
-                                    Start Your Journey
-                                </motion.h2>
-                                <motion.p 
-                                    className="text-sm text-gray-600"
-                                    initial={{ opacity: 0, x: -30 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.4 }}
-                                >
-                                    Access all services in one place
-                                </motion.p>
-                                                    </div>
+                        <div className="relative z-10">
+                            <motion.h2 
+                                className="text-lg font-bold text-gray-800 mb-3"
+                                initial={{ opacity: 0, x: -30 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.3 }}
+                            >
+                                Start Your Journey
+                            </motion.h2>
+                            
+                            {/* Bank Account Service Card */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.4 }}
+                                className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-4 mb-4 shadow-lg"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-3xl">🏦</span>
+                                        <div>
+                                            <h3 className="font-bold text-white text-base">Bank Account Opening</h3>
+                                            <p className="text-xs text-blue-100">Coming Soon</p>
+                                        </div>
+                                    </div>
+                                    <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="px-4 py-2 bg-white text-blue-600 font-semibold rounded-lg text-sm"
+                                        disabled
+                                    >
+                                        Coming Soon
+                                    </motion.button>
+                                </div>
+                            </motion.div>
+
+                            {/* Get Started Button */}
                             <motion.button
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
+                                initial={{ opacity: 0, x: -30 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.5 }}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
                                 onClick={(e) => handleServiceClick(e, '/training')}
-                                className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                                className="w-full py-3 bg-gradient-to-r from-orange-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                             >
                                 Get Started
                             </motion.button>
-                                                </div>
+                        </div>
                             </motion.div>
 
                     {/* Middle Service Grid - 4 Columns */}
@@ -1102,6 +1123,38 @@ const HomePage = () => {
                 </div>
               </motion.div>
             </div>
+          </div>
+        </section>
+
+        {/* Bank Account Service Banner - Desktop */}
+        <section className="hidden md:block py-8 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+          <div className="max-w-7xl mx-auto px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-xl overflow-hidden"
+            >
+              <div className="px-8 py-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                    <span className="text-3xl">🏦</span>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-white mb-1">Bank Account Opening</h3>
+                    <p className="text-blue-100 text-sm">Coming Soon - Zero paperwork, instant account opening</p>
+                  </div>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  disabled
+                  className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-xl shadow-lg disabled:opacity-75 disabled:cursor-not-allowed"
+                >
+                  Coming Soon
+                </motion.button>
+              </div>
+            </motion.div>
           </div>
         </section>
 

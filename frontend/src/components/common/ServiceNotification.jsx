@@ -36,9 +36,9 @@ const ServiceNotification = ({
       };
     } else if (type === 'mentor') {
       return {
-        icon: '👨‍🏫',
-        title: 'Mentor Will Connect Soon!',
-        message: `${mentorName} will connect with you within 24 hours for your session`,
+        icon: '📧',
+        title: 'Link Will Be Shared Soon!',
+        message: `${mentorName} आपको 24 घंटे के अंदर Gmail पर session link share करेंगे`,
         bgColor: 'from-purple-500 to-pink-600',
         iconBg: 'bg-purple-100',
         textColor: 'text-purple-800'

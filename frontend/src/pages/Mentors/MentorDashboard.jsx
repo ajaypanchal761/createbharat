@@ -80,6 +80,66 @@ const MentorDashboard = () => {
       time: '3:00 PM',
       message: 'Completed session on startup funding strategies.',
       specialties: ['Startup Strategy', 'Funding']
+    },
+    {
+      id: 5,
+      studentName: 'Rajesh Kumar',
+      studentEmail: 'rajesh@example.com',
+      sessionType: '50-60 minutes',
+      amount: 300,
+      status: 'accepted',
+      date: '2024-01-18',
+      time: '4:00 PM',
+      message: 'Need guidance on digital marketing and brand building.',
+      specialties: ['Marketing', 'Brand Building']
+    },
+    {
+      id: 6,
+      studentName: 'Priya Sharma',
+      studentEmail: 'priya@example.com',
+      sessionType: '20-25 minutes',
+      amount: 150,
+      status: 'pending',
+      date: '2024-01-19',
+      time: '9:00 AM',
+      message: 'Looking for advice on financial planning and investment strategies.',
+      specialties: ['Finance', 'Investment']
+    },
+    {
+      id: 7,
+      studentName: 'Amit Patel',
+      studentEmail: 'amit@example.com',
+      sessionType: '90-120 minutes',
+      amount: 450,
+      status: 'completed',
+      date: '2024-01-13',
+      time: '5:00 PM',
+      message: 'Great session on product development and market research.',
+      specialties: ['Product Development', 'Market Research']
+    },
+    {
+      id: 8,
+      studentName: 'Neha Gupta',
+      studentEmail: 'neha@example.com',
+      sessionType: '50-60 minutes',
+      amount: 300,
+      status: 'accepted',
+      date: '2024-01-20',
+      time: '1:00 PM',
+      message: 'Want to learn about customer acquisition and retention strategies.',
+      specialties: ['Customer Acquisition', 'Retention']
+    },
+    {
+      id: 9,
+      studentName: 'Vikram Singh',
+      studentEmail: 'vikram@example.com',
+      sessionType: '20-25 minutes',
+      amount: 150,
+      status: 'completed',
+      date: '2024-01-12',
+      time: '6:00 PM',
+      message: 'Excellent consultation on business operations and efficiency.',
+      specialties: ['Operations', 'Efficiency']
     }
   ];
 

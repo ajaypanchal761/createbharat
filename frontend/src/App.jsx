@@ -35,6 +35,8 @@ import MentorBookingPage from './pages/Mentors/MentorBookingPage';
 import MentorDashboard from './pages/Mentors/MentorDashboard';
 import BecomeMentorPage from './pages/Mentors/BecomeMentorPage';
 import MentorProfilePage from './pages/Mentors/MentorProfilePage';
+import MentorLoginPage from './pages/Mentors/MentorLoginPage';
+import MentorSignupPage from './pages/Mentors/MentorSignupPage';
 import LoginPage from './pages/Auth/LoginPage';
 import SignupPage from './pages/Auth/SignupPage';
 import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage';
@@ -71,6 +73,8 @@ function App() {
             <Route path="/admin/login" element={<AdminLoginPage />} />
             <Route path="/ca/login" element={<CALoginPage />} />
             <Route path="/ca/signup" element={<CASignupPage />} />
+            <Route path="/mentors/login" element={<MentorLoginPage />} />
+            <Route path="/mentors/signup" element={<MentorSignupPage />} />
             <Route path="/*" element={
               <ProtectedRoute>
                 <>
