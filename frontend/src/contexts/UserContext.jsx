@@ -43,7 +43,12 @@ export const UserProvider = ({ children }) => {
             // Save user data to localStorage
             localStorage.setItem('userData', JSON.stringify(userData));
             localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('userEmail', userData.email);
+            if (userData.email) {
+                localStorage.setItem('userEmail', userData.email);
+            }
+            if (userData.phone) {
+                localStorage.setItem('userPhone', userData.phone);
+            }
             setUser(userData);
             return true;
         } catch (error) {

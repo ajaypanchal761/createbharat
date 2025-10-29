@@ -275,7 +275,6 @@ const LoansPage = () => {
         tabs={[
           { name: 'Home', path: '/', icon: <HomeIcon /> },
           { name: 'Loans', path: '/loans', icon: <BriefcaseIcon /> },
-          { name: 'Apply', path: '/loans/apply', icon: <PlusIcon /> },
           { name: 'Status', path: '/loans/status', icon: <BarChartIcon /> },
           { name: 'Profile', path: '/profile', icon: <UserIcon /> }
         ]}

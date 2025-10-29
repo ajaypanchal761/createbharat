@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import ServiceNotification from '../../components/common/ServiceNotification';
 import logo from '../../assets/logo.png';
 
 // Icons
@@ -73,6 +74,7 @@ const LegalPaymentPage = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
 
   const paymentMethods = [
     {
@@ -136,11 +138,16 @@ const LegalPaymentPage = () => {
     await new Promise(resolve => setTimeout(resolve, 3000));
     setIsProcessing(false);
     setIsCompleted(true);
+    
+    // Show notification after payment completion (only after success)
+    setTimeout(() => {
+      setShowNotification(true);
+    }, 1500);
 
-    // Redirect to success page or home after 3 seconds
+    // Redirect to success page or home after 8 seconds (giving time for notification)
     setTimeout(() => {
       navigate('/legal');
-    }, 3000);
+    }, 8000);
   };
 
   if (!service) {
@@ -185,6 +192,15 @@ const LegalPaymentPage = () => {
         >
           Back to Legal Services
         </motion.button>
+        
+        {/* Service Notification - Only show after successful payment */}
+        {showNotification && isCompleted && (
+          <ServiceNotification
+            type="legal"
+            serviceName={service.name}
+            onClose={() => setShowNotification(false)}
+          />
+        )}
       </motion.div>
     );
   }

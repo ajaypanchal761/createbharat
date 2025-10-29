@@ -34,7 +34,8 @@ const LegalPage = () => {
     { id: 11, name: 'Proprietorship Company Registration', icon: '👤', color: 'from-violet-500 to-purple-500' },
     { id: 12, name: 'Partnership Company Registration', icon: '🤝', color: 'from-red-500 to-pink-500' },
     { id: 13, name: 'Private Limited/LLP Company Registration', icon: '🏛️', color: 'from-blue-600 to-indigo-600' },
-    { id: 14, name: 'NGO Registration', icon: '❤️', color: 'from-green-600 to-emerald-600' }
+    { id: 14, name: 'NGO Registration', icon: '❤️', color: 'from-green-600 to-emerald-600' },
+    { id: 15, name: 'Project Report', icon: '📊', color: 'from-amber-500 to-yellow-500' }
   ];
 
   // Animation variants

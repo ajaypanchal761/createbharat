@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { 
     FaHome, 
     FaMoneyBillWave, 
-    FaGavel, 
     FaGraduationCap, 
     FaUsers, 
     FaChartBar, 
@@ -28,12 +27,6 @@ const AdminSidebar = ({ isOpen, isMobile, onClose }) => {
             path: '/admin/loans',
             icon: FaMoneyBillWave,
             description: 'Loan Management'
-        },
-        {
-            name: 'Legal',
-            path: '/admin/legal',
-            icon: FaGavel,
-            description: 'Legal Services'
         },
         {
             name: 'Training',

@@ -241,12 +241,38 @@ const CompanyLoginPage = () => {
               </motion.button>
             </form>
 
-            {/* Demo Login Hint */}
+            {/* Signup Section */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
-              className="mt-6 p-4 bg-orange-50 rounded-xl border border-orange-200"
+              className="mt-6 space-y-4"
+            >
+              {/* Divider */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-gray-300"></div>
+                <span className="text-sm text-gray-500 font-medium">Or</span>
+                <div className="flex-1 h-px bg-gray-300"></div>
+              </div>
+
+              {/* Signup Button */}
+              <Link to="/company/signup">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg bg-gradient-to-r from-indigo-500 to-indigo-600 text-white hover:from-indigo-600 hover:to-indigo-700 hover:shadow-xl"
+                >
+                  Create Company Account
+                </motion.button>
+              </Link>
+            </motion.div>
+
+            {/* Demo Login Hint */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.1 }}
+              className="mt-4 p-4 bg-orange-50 rounded-xl border border-orange-200"
             >
               <p className="text-sm text-orange-700 text-center">
                 <strong>Demo:</strong> Use any email and password to login
@@ -257,7 +283,7 @@ const CompanyLoginPage = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 1.1 }}
+              transition={{ delay: 1.2 }}
               className="mt-6 text-center"
             >
               <Link

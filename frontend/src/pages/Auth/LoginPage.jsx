@@ -83,9 +83,9 @@ const LoginPage = () => {
                         localStorage.setItem('adminEmail', userResponse.data.user.email);
                         navigate('/admin/dashboard');
                     } else {
+                        // login() function already sets isLoggedIn and userData
                         login(userData);
                         localStorage.setItem('userType', 'user');
-                        localStorage.setItem('isLoggedIn', 'true');
                         navigate('/');
                     }
                 } else {

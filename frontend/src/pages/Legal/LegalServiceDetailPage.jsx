@@ -1,5 +1,5 @@
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 // Icons
@@ -30,6 +30,33 @@ const CheckIcon = () => (
 const LegalServiceDetailPage = () => {
   const { serviceId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get the selected GST type from URL params
+  const urlParams = new URLSearchParams(location.search);
+  const selectedGSTType = urlParams.get('type');
+
+  // GST Type display names mapping
+  const gstTypeNames = {
+    'proprietorship': 'Proprietorship (Individual Firm)',
+    'partnership': 'Partnership Firm',
+    'llp': 'LLP (Limited Liability Partnership)',
+    'private-limited': 'Private Limited Company',
+    'public-limited': 'Public Limited Company',
+    'huf': 'HUF (Hindu Undivided Family)',
+    'trust-society-ngo': 'Trust / Society / NGO',
+    'government': 'Government Department / Local Authority',
+    'casual': 'Casual Taxable Person'
+  };
+
+  // Redirect to specific pages based on serviceId (only if no type parameter for GST)
+  useEffect(() => {
+    if (serviceId === '1' && !selectedGSTType) {
+      navigate('/legal/gst-registration-type');
+    } else if (serviceId === '15') {
+      navigate('/legal/project-report');
+    }
+  }, [serviceId, navigate, selectedGSTType]);
 
   const legalServices = {
     1: {
@@ -531,6 +558,25 @@ const LegalServiceDetailPage = () => {
           </motion.div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{service.name}</h1>
           <p className="text-gray-600">{service.description}</p>
+          
+          {/* GST Type Display */}
+          {serviceId === '1' && selectedGSTType && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="mt-4 inline-block"
+            >
+              <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl shadow-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">📋</span>
+                  <span className="font-semibold">
+                    Selected Type: {gstTypeNames[selectedGSTType] || selectedGSTType}
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Service Details */}

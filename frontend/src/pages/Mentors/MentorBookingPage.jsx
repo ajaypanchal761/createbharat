@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import ServiceNotification from '../../components/common/ServiceNotification';
 import logo from '../../assets/logo.png';
 
 // Icons
@@ -29,6 +30,7 @@ const MentorBookingPage = () => {
   const [isCompleted, setIsCompleted] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
 
   // Mock mentor data
   const mentor = {
@@ -65,6 +67,11 @@ const MentorBookingPage = () => {
     setTimeout(() => {
       setIsProcessing(false);
       setIsCompleted(true);
+      
+      // Show notification after booking completion (only after success)
+      setTimeout(() => {
+        setShowNotification(true);
+      }, 1500);
     }, 3000);
   };
 
@@ -139,6 +146,15 @@ const MentorBookingPage = () => {
               Browse More Mentors
             </Link>
           </div>
+          
+          {/* Service Notification - Only show after successful booking */}
+          {showNotification && isCompleted && (
+            <ServiceNotification
+              type="mentor"
+              mentorName={mentor.name}
+              onClose={() => setShowNotification(false)}
+            />
+          )}
         </motion.div>
       </div>
     );

@@ -94,14 +94,14 @@ const InternshipsPage = () => {
     }
   };
   
-  // Different background colors for trending cards
+  // Premium professional background colors for trending cards
   const cardBackgrounds = [
-    'from-orange-500 to-indigo-500',
-    'from-purple-500 to-pink-500',
-    'from-emerald-500 to-teal-500',
-    'from-orange-500 to-amber-500',
-    'from-rose-500 to-red-500',
-    'from-cyan-500 to-orange-500',
+    'from-slate-700 to-indigo-700',
+    'from-blue-600 to-indigo-600',
+    'from-emerald-600 to-teal-700',
+    'from-violet-600 to-purple-700',
+    'from-rose-600 to-pink-700',
+    'from-cyan-600 to-blue-600',
   ];
   
   // placement courses removed per user request
@@ -182,20 +182,6 @@ const InternshipsPage = () => {
           </Link>
           
           <div className="flex items-center gap-2">
-            {/* For Companies Button */}
-            <Link to="/company/login">
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-1 px-2 py-2 bg-indigo-600 backdrop-blur-sm rounded-lg border border-indigo-700 hover:bg-indigo-700 transition-all duration-200"
-              >
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                <span className="text-xs font-medium text-white hidden sm:inline">Company</span>
-              </motion.button>
-            </Link>
-
             {/* Filter Button */}
             <motion.button 
               whileHover={{ scale: 1.05 }}
@@ -217,26 +203,20 @@ const InternshipsPage = () => {
                 </motion.span>
               )}
             </motion.button>
-          
-          <motion.button 
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => {
-              // Handle message icon click
-              alert('Messages feature coming soon!');
-            }}
-            className="p-2 hover:bg-white/20 rounded-lg transition-colors relative"
-            title="Messages"
-          >
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-            <motion.span 
-              animate={{ scale: [1, 1.3, 1] }}
-              transition={{ repeat: Infinity, duration: 2 }}
-              className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"
-            />
-          </motion.button>
+
+            {/* For Companies Button - Moved to replace message icon */}
+            <Link to="/company/login">
+              <motion.button 
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                title="For Companies"
+              >
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </motion.button>
+            </Link>
           </div>
         </div>
       </motion.header>
@@ -264,13 +244,13 @@ const InternshipsPage = () => {
                 </svg>
               </div>
               
-              {/* For Companies Button */}
+              {/* Company Login Button */}
               <Link to="/company/login">
                 <button className="flex items-center gap-2 px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
-                  For Companies
+                  Company Login
                 </button>
               </Link>
               
