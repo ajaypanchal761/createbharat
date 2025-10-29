@@ -34,7 +34,6 @@ const Navbar = () => {
     { name: 'Legal', path: '/legal' },
     { name: 'Mentors', path: '/mentors' },
     { name: 'Training', path: '/training' },
-    { name: 'Web Development', path: '/app-development' },
   ];
 
   // Don't render navbar on homepage, admin routes, company routes, internship login, or mentor category/profile pages

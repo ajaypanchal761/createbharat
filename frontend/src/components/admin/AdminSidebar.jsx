@@ -8,7 +8,6 @@ import {
     FaUsers, 
     FaChartBar, 
     FaCog,
-    FaCode,
     FaChevronLeft,
     FaChevronRight
 } from 'react-icons/fa';
@@ -46,12 +45,6 @@ const AdminSidebar = ({ isOpen, isMobile, onClose }) => {
             path: '/admin/analytics',
             icon: FaChartBar,
             description: 'Reports & Insights'
-        },
-        {
-            name: 'App Development',
-            path: '/admin/app-development',
-            icon: FaCode,
-            description: 'Project Management'
         },
         {
             name: 'Settings',

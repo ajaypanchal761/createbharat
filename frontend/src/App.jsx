@@ -41,8 +41,6 @@ import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage';
 import CALoginPage from './pages/CA/CALoginPage';
 import CASignupPage from './pages/CA/CASignupPage';
 import CADashboard from './pages/CA/CADashboard';
-import CAAddServicePage from './pages/CA/CAAddServicePage';
-import CAEditServicePage from './pages/CA/CAEditServicePage';
 import AnalyticsPage from './pages/Analytics/AnalyticsPage';
 import TermsPage from './pages/Legal/TermsPage';
 import AdminLayout from './components/admin/AdminLayout';
@@ -52,7 +50,6 @@ import AdminLegalPage from './pages/Admin/AdminLegalPage';
 import AdminLoginPage from './pages/Admin/AdminLoginPage';
 import AdminUsersPage from './pages/Admin/AdminUsersPage';
 import AdminTrainingPage from './pages/Admin/AdminTrainingPage';
-import AdminAppDevelopmentPage from './pages/Admin/AdminAppDevelopmentPage';
 import ProfilePage from './pages/Profile/ProfilePage';
 import CompanyInternshipsPage from './pages/Company/CompanyInternshipsPage';
 import CompanyLoginPage from './pages/Company/CompanyLoginPage';
@@ -119,11 +116,8 @@ function App() {
                       <Route path="loans" element={<AdminLoansPage />} />
                       <Route path="training" element={<AdminTrainingPage />} />
                       <Route path="users" element={<AdminUsersPage />} />
-                      <Route path="app-development" element={<AdminAppDevelopmentPage />} />
                     </Route>
                     <Route path="/ca/dashboard" element={<CADashboard />} />
-                    <Route path="/ca/services/add" element={<CAAddServicePage />} />
-                    <Route path="/ca/services/:serviceId/edit" element={<CAEditServicePage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/app-development" element={<AppDevelopmentPage />} />
                   </Routes>

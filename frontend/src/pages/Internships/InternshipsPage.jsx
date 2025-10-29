@@ -203,19 +203,19 @@ const InternshipsPage = () => {
                 </motion.span>
               )}
             </motion.button>
-          
+
             {/* For Companies Button - Moved to replace message icon */}
             <Link to="/company/login">
-          <motion.button 
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+              <motion.button 
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                 title="For Companies"
-          >
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              >
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-          </motion.button>
+                </svg>
+              </motion.button>
             </Link>
           </div>
         </div>
@@ -424,11 +424,11 @@ const InternshipsPage = () => {
                     </div>
 
                     <div className="mt-auto">
-                    <Link to={`/internships/${internship.id}`}>
-                      <button className="w-full bg-orange-600 text-white text-center py-2.5 rounded-lg font-semibold text-sm hover:bg-orange-700 transition-colors">
-                        View Details
-                      </button>
-                    </Link>
+                      <Link to={`/internships/${internship.id}`}>
+                        <button className="w-full bg-orange-600 text-white text-center py-2.5 rounded-lg font-semibold text-sm hover:bg-orange-700 transition-colors">
+                          View Details
+                        </button>
+                      </Link>
                     </div>
                   </motion.div>
                 ))}
@@ -521,13 +521,13 @@ const InternshipsPage = () => {
                       </span>
                     </div>
                   </div>
-                    <motion.div 
-                      whileHover={{ rotate: 360, scale: 1.1 }}
-                      transition={{ duration: 0.6 }}
-                      className={`w-10 h-10 bg-gradient-to-br ${internship.color} rounded-lg flex items-center justify-center text-lg shadow-sm flex-shrink-0`}
-                    >
-                      {internship.icon}
-                    </motion.div>
+                  <motion.div 
+                    whileHover={{ rotate: 360, scale: 1.1 }}
+                    transition={{ duration: 0.6 }}
+                    className={`w-10 h-10 bg-gradient-to-br ${internship.color} rounded-lg flex items-center justify-center text-lg shadow-sm flex-shrink-0`}
+                  >
+                    {internship.icon}
+                  </motion.div>
                 </div>
 
                 {/* Job Title */}
