@@ -93,29 +93,12 @@ const CompanyInternshipsPage = () => {
         applicationDeadline: ''
     });
     const [companyProfile, setCompanyProfile] = useState({
-        name: '',
-        industry: '',
-        size: '',
-        website: '',
-        description: ''
+        name: 'TechCorp Solutions',
+        industry: 'Technology',
+        size: '51-200 employees',
+        website: 'www.techcorp.com',
+        description: 'Leading technology company focused on innovation'
     });
-    const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
-    const [editingInternship, setEditingInternship] = useState(null);
-    const [isUpdatingInternship, setIsUpdatingInternship] = useState(false);
-    const [isDeletingInternship, setIsDeletingInternship] = useState(null);
-
-    // Update companyProfile when companyInfo loads
-    useEffect(() => {
-        if (companyInfo) {
-            setCompanyProfile({
-                name: companyInfo.companyName || '',
-                industry: companyInfo.industry || '',
-                size: companyInfo.companySize || '',
-                website: companyInfo.website || '',
-                description: companyInfo.description || ''
-            });
-        }
-    }, [companyInfo]);
 
     const handleJobFormChange = (e) => {
         setJobFormData({
@@ -288,182 +271,7 @@ const CompanyInternshipsPage = () => {
 
     const handleProfileUpdate = async (e) => {
         e.preventDefault();
-        setIsUpdatingProfile(true);
-
-        try {
-            const token = localStorage.getItem('companyToken');
-            if (!token) {
-                navigate('/company/login');
-                return;
-            }
-
-            const profileData = {
-                companyName: companyProfile.name,
-                industry: companyProfile.industry,
-                companySize: companyProfile.size,
-                website: companyProfile.website || '',
-                description: companyProfile.description || ''
-            };
-
-            const response = await companyAPI.updateProfile(token, profileData);
-
-            if (response.success) {
-                alert('Profile updated successfully!');
-
-                // Reload company data
-                await loadCompanyData(token);
-
-                // Update local companyInfo
-                if (response.data.company) {
-                    setCompanyInfo(response.data.company);
-                }
-            } else {
-                alert(response.message || 'Failed to update profile');
-            }
-        } catch (error) {
-            console.error('Error updating profile:', error);
-            alert(error.message || 'Failed to update profile. Please try again.');
-        } finally {
-            setIsUpdatingProfile(false);
-        }
-    };
-
-    const handleEditInternship = (internship) => {
-        setEditingInternship(internship);
-        // Populate form with internship data
-        setJobFormData({
-            title: internship.title || '',
-            location: internship.location || '',
-            duration: internship.duration || '3 months',
-            description: internship.description || '',
-            requirements: Array.isArray(internship.requirements) ? [...internship.requirements] : (internship.requirements ? [internship.requirements] : []),
-            responsibilities: Array.isArray(internship.responsibilities) ? internship.responsibilities.join('\n') : '',
-            salary: internship.stipend?.replace('/month', '') || '',
-            stipend: internship.stipend || '',
-            type: internship.type || 'Internship',
-            category: internship.category || 'Technology',
-            skills: Array.isArray(internship.skills) ? internship.skills.join(', ') : '',
-            openings: internship.openings?.toString() || '1',
-            applicationDeadline: internship.applicationDeadline
-                ? new Date(internship.applicationDeadline).toISOString().split('T')[0]
-                : ''
-        });
-        setActiveTab('post');
-        // Scroll to top
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const handleUpdateInternship = async (e) => {
-        e.preventDefault();
-        if (!editingInternship) return;
-
-        setIsUpdatingInternship(true);
-
-        try {
-            const token = localStorage.getItem('companyToken');
-            if (!token) {
-                navigate('/company/login');
-                return;
-            }
-
-            // Parse responsibilities and skills
-            const responsibilities = jobFormData.responsibilities
-                ? jobFormData.responsibilities.split('\n').filter(r => r.trim())
-                : [];
-            const skills = jobFormData.skills
-                ? jobFormData.skills.split(',').map(s => s.trim()).filter(s => s)
-                : [];
-
-            // Process requirements array - filter out empty strings
-            const requirements = Array.isArray(jobFormData.requirements)
-                ? jobFormData.requirements.filter(r => r && r.trim()).map(r => r.trim())
-                : [];
-
-            // Validate required fields
-            if (!jobFormData.title || !jobFormData.location || !jobFormData.duration ||
-                !jobFormData.description || !jobFormData.category || !jobFormData.salary) {
-                alert('Please fill all required fields');
-                setIsUpdatingInternship(false);
-                return;
-            }
-
-            const updateData = {
-                title: jobFormData.title?.trim() || '',
-                location: jobFormData.location?.trim() || '',
-                duration: jobFormData.duration?.trim() || '',
-                stipend: (jobFormData.salary?.trim() || jobFormData.stipend?.trim() || '').replace(/\/month$/i, '') + '/month',
-                type: jobFormData.type || 'Internship',
-                category: jobFormData.category || 'Technology',
-                description: jobFormData.description?.trim() || '',
-                requirements: requirements,
-                responsibilities: Array.isArray(responsibilities) && responsibilities.length > 0 ? responsibilities : [],
-                skills: Array.isArray(skills) && skills.length > 0 ? skills : [],
-                isRemote: jobFormData.location?.toLowerCase().includes('remote') || false,
-                openings: parseInt(jobFormData.openings) || 1,
-                applicationDeadline: jobFormData.applicationDeadline ? new Date(jobFormData.applicationDeadline).toISOString() : null
-            };
-
-            const response = await internshipAPI.update(token, editingInternship._id, updateData);
-
-            if (response.success) {
-                alert('Internship updated successfully!');
-                setEditingInternship(null);
-                setJobFormData({
-                    title: '',
-                    location: '',
-                    duration: '3 months',
-                    description: '',
-                    requirements: [],
-                    responsibilities: '',
-                    salary: '',
-                    stipend: '',
-                    type: 'Internship',
-                    category: 'Technology',
-                    skills: '',
-                    openings: '1',
-                    applicationDeadline: ''
-                });
-                setActiveTab('my-internships');
-                await loadCompanyData(token);
-            } else {
-                alert(response.message || 'Failed to update internship');
-            }
-        } catch (error) {
-            console.error('Error updating internship:', error);
-            alert(error.message || 'Failed to update internship. Please try again.');
-        } finally {
-            setIsUpdatingInternship(false);
-        }
-    };
-
-    const handleDeleteInternship = async (internshipId) => {
-        if (!window.confirm('Are you sure you want to delete this internship? This action cannot be undone.')) {
-            return;
-        }
-
-        setIsDeletingInternship(internshipId);
-
-        try {
-            const token = localStorage.getItem('companyToken');
-            if (!token) {
-                navigate('/company/login');
-                return;
-            }
-
-            const response = await internshipAPI.delete(token, internshipId);
-
-            if (response.success) {
-                alert('Internship deleted successfully!');
-                await loadCompanyData(token);
-            } else {
-                alert(response.message || 'Failed to delete internship');
-            }
-        } catch (error) {
-            console.error('Error deleting internship:', error);
-            alert(error.message || 'Failed to delete internship. Please try again.');
-        } finally {
-            setIsDeletingInternship(null);
-        }
+        alert('Profile updated successfully!');
     };
 
     const tabs = [
@@ -1140,129 +948,87 @@ const CompanyInternshipsPage = () => {
         </motion.div>
     );
 
-    const renderProfile = () => {
-        if (isLoading && !companyInfo) {
-            return (
-                <div className="flex items-center justify-center py-20">
-                    <div className="text-center">
-                        <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                        <p className="text-gray-600">Loading profile...</p>
+    const renderProfile = () => (
+        <motion.div
+            key="profile"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+        >
+            <div className="bg-white rounded-2xl p-6 shadow-lg">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Company Profile</h3>
+                <form onSubmit={handleProfileUpdate} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+                        <input
+                            type="text"
+                            name="name"
+                            value={companyProfile.name}
+                            onChange={handleProfileChange}
+                            required
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
                     </div>
-                </div>
-            );
-        }
-
-        return (
-            <motion.div
-                key="profile"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-6"
-            >
-                <div className="bg-white rounded-2xl p-6 shadow-lg">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-bold text-gray-800">Company Profile</h3>
-                        {companyInfo && (
-                            <div className="text-sm text-gray-500">
-                                Email: {companyInfo.email}
-                            </div>
-                        )}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Industry</label>
+                        <input
+                            type="text"
+                            name="industry"
+                            value={companyProfile.industry}
+                            onChange={handleProfileChange}
+                            required
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
                     </div>
-                    <form onSubmit={handleProfileUpdate} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Company Name *</label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={companyProfile.name}
-                                onChange={handleProfileChange}
-                                required
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="Enter company name"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Industry *</label>
-                            <input
-                                type="text"
-                                name="industry"
-                                value={companyProfile.industry}
-                                onChange={handleProfileChange}
-                                required
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="e.g., Technology, Finance, Healthcare"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Company Size *</label>
-                            <select
-                                name="size"
-                                value={companyProfile.size}
-                                onChange={handleProfileChange}
-                                required
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                                <option value="">Select company size</option>
-                                <option value="1-10 employees">1-10 employees</option>
-                                <option value="11-50 employees">11-50 employees</option>
-                                <option value="51-200 employees">51-200 employees</option>
-                                <option value="201-500 employees">201-500 employees</option>
-                                <option value="500+ employees">500+ employees</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Website</label>
-                            <input
-                                type="url"
-                                name="website"
-                                value={companyProfile.website}
-                                onChange={handleProfileChange}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="https://www.example.com"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                            <textarea
-                                name="description"
-                                value={companyProfile.description}
-                                onChange={handleProfileChange}
-                                rows={4}
-                                maxLength={1000}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="Describe your company, mission, values, etc."
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                                {companyProfile.description.length}/1000 characters
-                            </p>
-                        </div>
-                        <motion.button
-                            type="submit"
-                            disabled={isUpdatingProfile}
-                            whileHover={{ scale: isUpdatingProfile ? 1 : 1.02 }}
-                            whileTap={{ scale: isUpdatingProfile ? 1 : 0.98 }}
-                            className={`w-full md:w-auto md:px-8 py-3 rounded-lg font-medium transition-colors ${isUpdatingProfile
-                                ? 'bg-gray-400 text-white cursor-not-allowed'
-                                : 'bg-blue-600 text-white hover:bg-blue-700'
-                                }`}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Company Size</label>
+                        <select 
+                            name="size"
+                            value={companyProfile.size}
+                            onChange={handleProfileChange}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
-                            {isUpdatingProfile ? (
-                                <span className="flex items-center gap-2">
-                                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Updating...
-                                </span>
-                            ) : (
-                                'Update Profile'
-                            )}
-                        </motion.button>
-                    </form>
-                </div>
-            </motion.div>
-        );
-    };
+                            <option value="1-10 employees">1-10 employees</option>
+                            <option value="11-50 employees">11-50 employees</option>
+                            <option value="51-200 employees">51-200 employees</option>
+                            <option value="200+ employees">200+ employees</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Website</label>
+                        <input
+                            type="url"
+                            name="website"
+                            value={companyProfile.website}
+                            onChange={handleProfileChange}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea
+                            name="description"
+                            value={companyProfile.description}
+                            onChange={handleProfileChange}
+                            rows={3}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                    </div>
+                    <motion.button
+                        type="submit"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full md:w-auto md:px-8 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                    >
+                        Update Profile
+                    </motion.button>
+                </form>
+            </div>
+        </motion.div>
+    );
+
+    const companyEmail = localStorage.getItem('companyEmail') || 'company@example.com';
+    const companyName = localStorage.getItem('companyName') || 'Your Company';
 
     return (
         <div className="min-h-screen bg-gray-50">

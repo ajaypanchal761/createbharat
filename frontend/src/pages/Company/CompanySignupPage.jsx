@@ -65,7 +65,7 @@ const CompanySignupPage = () => {
     if (!formData.companySize.trim()) {
       newErrors.companySize = 'Company size is required';
     }
-
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -78,54 +78,18 @@ const CompanySignupPage = () => {
     }
 
     setIsLoading(true);
-
-    try {
-      const { companyAPI } = await import('../../utils/api');
-
-      // Prepare company data
-      const companyData = {
-        companyName: formData.companyName,
-        email: formData.email,
-        password: formData.password,
-        industry: formData.industry,
-        companySize: formData.companySize
-      };
-
-      // Only include optional fields if they have values
-      if (formData.website && formData.website.trim() !== '') {
-        companyData.website = formData.website.trim();
-      }
-      if (formData.description && formData.description.trim() !== '') {
-        companyData.description = formData.description.trim();
-      }
-
-      const response = await companyAPI.register(companyData);
-
-      if (response.success && response.data) {
-        // Save company data and token
-        localStorage.setItem('companyToken', response.data.token);
-        localStorage.setItem('companyData', JSON.stringify(response.data.company));
-        localStorage.setItem('companyEmail', response.data.company.email);
-        localStorage.setItem('companyName', response.data.company.companyName);
-        localStorage.setItem('userType', 'company');
-        localStorage.setItem('isLoggedIn', 'true');
-
-        setIsLoading(false);
-        // Navigate to dashboard after successful registration
-        navigate('/company/internships');
-      }
-    } catch (error) {
-      console.error('Registration error:', error);
+    
+    // Simulate API call
+    setTimeout(() => {
+      // For demo purposes, save company data
+      localStorage.setItem('companyEmail', formData.email);
+      localStorage.setItem('companyName', formData.companyName);
+      localStorage.setItem('userType', 'company');
+      localStorage.setItem('isLoggedIn', 'true');
+      
       setIsLoading(false);
-
-      // Set form errors based on error message
-      const errorMessage = error.message || 'Registration failed. Please try again.';
-      if (errorMessage.includes('email') || errorMessage.includes('Email')) {
-        setErrors({ email: errorMessage });
-      } else {
-        setErrors({ companyName: errorMessage });
-      }
-    }
+      navigate('/company/internships');
+    }, 1500);
   };
 
   return (
