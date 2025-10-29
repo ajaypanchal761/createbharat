@@ -18,6 +18,7 @@ const applicationRoutes = require('./routes/applicationRoutes');
 const testRoutes = require('./routes/testRoutes');
 const loanSchemeRoutes = require('./routes/loanSchemeRoutes');
 const adminLoanSchemeRoutes = require('./routes/loanSchemeRoutes').adminLoanSchemeRoutes;
+const mentorRoutes = require('./routes/mentorRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -88,6 +89,7 @@ app.use('/api/company', companyRoutes);
 app.use('/api/internships', internshipRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/loans', loanSchemeRoutes);
+app.use('/api/mentors', mentorRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin', adminLoanSchemeRoutes);
 app.use('/api/test', testRoutes);
@@ -103,6 +105,7 @@ app.get('/', (req, res) => {
       users: '/api/users',
       company: '/api/company',
       loans: '/api/loans',
+      mentors: '/api/mentors',
       admin: '/api/admin'
     }
   });

@@ -545,5 +545,118 @@ export const applicationAPI = {
   },
 };
 
-export default { authAPI, adminAPI, companyAPI, internshipAPI, applicationAPI, loansAPI, adminLoansAPI };
+// Mentor API calls
+export const mentorAPI = {
+  // Register mentor
+  register: async (mentorData) => {
+    return apiCall('/mentors/register', {
+      method: 'POST',
+      body: JSON.stringify(mentorData),
+    });
+  },
+
+  // Login mentor
+  login: async (credentials) => {
+    return apiCall('/mentors/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  },
+
+  // Get current mentor
+  getMe: async (token) => {
+    return apiCall('/mentors/me/profile', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Update mentor profile
+  updateProfile: async (token, profileData) => {
+    return apiCall('/mentors/profile', {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(profileData),
+    });
+  },
+
+  // Get all mentors (public)
+  getAll: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/mentors${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+    });
+  },
+
+  // Get mentor by ID (public)
+  getById: async (id) => {
+    return apiCall(`/mentors/${id}`, {
+      method: 'GET',
+    });
+  },
+
+  // Mentor: Get dashboard bookings
+  getMentorBookings: async (token, params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/mentors/dashboard/bookings${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Mentor: Update booking status
+  updateBookingStatus: async (token, bookingId, status) => {
+    return apiCall(`/mentors/bookings/${bookingId}/status`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status }),
+    });
+  },
+};
+
+// Mentor Booking API calls (for users)
+export const mentorBookingAPI = {
+  // Create booking
+  create: async (token, mentorId, bookingData) => {
+    return apiCall(`/mentors/${mentorId}/book`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(bookingData),
+    });
+  },
+
+  // Update payment status
+  updatePayment: async (token, bookingId, paymentData) => {
+    return apiCall(`/mentors/bookings/${bookingId}/payment`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(paymentData),
+    });
+  },
+
+  // Get user bookings
+  getMyBookings: async (token, params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/mentors/my-bookings${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+};
+
+export default { authAPI, adminAPI, companyAPI, internshipAPI, applicationAPI, loansAPI, adminLoansAPI, mentorAPI, mentorBookingAPI };
 

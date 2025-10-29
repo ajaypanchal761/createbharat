@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../../assets/logo.png';
+import { mentorAPI } from '../../utils/api';
 
 // Icons
 const MenuIcon = () => (
@@ -34,6 +35,9 @@ const MentorListingPage = () => {
   const [selectedExperience, setSelectedExperience] = useState('');
   const [selectedRating, setSelectedRating] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mentors, setMentors] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const categoryNames = {
     business: 'Business & Entrepreneurship',
@@ -44,7 +48,31 @@ const MentorListingPage = () => {
     personal: 'Personal Development'
   };
 
-  const mentors = [
+  useEffect(() => {
+    const fetchMentors = async () => {
+      setIsLoading(true);
+      try {
+        const params = {
+          category: categoryId,
+          search: searchTerm,
+          experience: selectedExperience,
+          rating: selectedRating
+        };
+        const response = await mentorAPI.getAll(params);
+        if (response.success) {
+          setMentors(response.data || []);
+        }
+      } catch (err) {
+        setError(err.message || 'Failed to fetch mentors');
+        console.error('Error fetching mentors:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMentors();
+  }, [categoryId, searchTerm, selectedExperience, selectedRating]);
+
+  const mockMentors = [
     {
       id: 1,
       name: 'Sarah Johnson',
@@ -131,22 +159,26 @@ const MentorListingPage = () => {
     }
   ];
 
-  const filteredMentors = mentors.filter(mentor => {
-    const matchesSearch = mentor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         mentor.specialties.some(specialty => 
-                           specialty.toLowerCase().includes(searchTerm.toLowerCase())
-                         );
-    const matchesExperience = !selectedExperience || mentor.experience.includes(selectedExperience);
-    const matchesRating = !selectedRating || mentor.rating >= parseFloat(selectedRating);
-    
-    return matchesSearch && matchesExperience && matchesRating;
-  });
+  const filteredMentors = mentors.map(mentor => ({
+    id: mentor._id || mentor.id,
+    name: `${mentor.firstName} ${mentor.lastName}`,
+    title: mentor.title || '',
+    company: mentor.company || '',
+    experience: mentor.experience || '',
+    rating: mentor.rating || 0,
+    reviews: mentor.totalSessions || 0,
+    price: mentor.pricing?.email || mentor.pricing?.videoCall || 100,
+    image: mentor.profileImage || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+    specialties: mentor.skills || [],
+    availability: 'Available',
+    responseTime: mentor.responseTime || '24 hours'
+  }));
 
   // Animation variants
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: { duration: 0.6, ease: "easeOut" }
     }
@@ -164,8 +196,8 @@ const MentorListingPage = () => {
 
   const scaleIn = {
     hidden: { opacity: 0, scale: 0.8 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       scale: 1,
       transition: { duration: 0.5, ease: "easeOut" }
     }
@@ -196,7 +228,7 @@ const MentorListingPage = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <button 
+              <button
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="p-2 rounded-lg hover:bg-white/20 transition-colors"
               >
@@ -295,89 +327,105 @@ const MentorListingPage = () => {
           </div>
         </motion.div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-12">
+            <div className="text-gray-500 text-lg">Loading mentors...</div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !isLoading && (
+          <div className="text-center py-12">
+            <div className="text-red-500 text-lg">{error}</div>
+          </div>
+        )}
+
         {/* Mentors Grid */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={staggerContainer}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto"
-        >
-          {filteredMentors.map((mentor, index) => (
-            <motion.div
-              key={mentor.id}
-              variants={scaleIn}
-            >
-              <Link to={`/mentors/${mentor.id}`} className="group">
-                <motion.div 
-                  whileHover={{ y: -8, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                  className="bg-gray-50 rounded-xl p-6 shadow-lg hover:shadow-xl border-2 border-gray-300 hover:border-gray-400 transition-all duration-300 cursor-pointer h-full"
-                >
-                  {/* Mentor Header */}
-                  <div className="flex items-start space-x-4 mb-4">
-                    <img
-                      src={mentor.image}
-                      alt={mentor.name}
-                      className="w-16 h-16 rounded-full object-cover border-2 border-gray-100"
-                    />
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
-                        {mentor.name}
-                      </h3>
-                      <p className="text-sm text-gray-600">{mentor.title}</p>
-                      <p className="text-xs text-gray-500">{mentor.company}</p>
+        {!isLoading && !error && (
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto"
+          >
+            {filteredMentors.map((mentor, index) => (
+              <motion.div
+                key={mentor.id}
+                variants={scaleIn}
+              >
+                <Link to={`/mentors/${mentor.id}`} className="group">
+                  <motion.div
+                    whileHover={{ y: -8, scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                    className="bg-gray-50 rounded-xl p-6 shadow-lg hover:shadow-xl border-2 border-gray-300 hover:border-gray-400 transition-all duration-300 cursor-pointer h-full"
+                  >
+                    {/* Mentor Header */}
+                    <div className="flex items-start space-x-4 mb-4">
+                      <img
+                        src={mentor.image}
+                        alt={mentor.name}
+                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-100"
+                      />
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
+                          {mentor.name}
+                        </h3>
+                        <p className="text-sm text-gray-600">{mentor.title}</p>
+                        <p className="text-xs text-gray-500">{mentor.company}</p>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Rating and Experience */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-1">
-                      <StarIcon />
-                      <span className="text-sm font-medium text-gray-900">{mentor.rating}</span>
-                      <span className="text-xs text-gray-500">({mentor.reviews} reviews)</span>
+                    {/* Rating and Experience */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-1">
+                        <StarIcon />
+                        <span className="text-sm font-medium text-gray-900">{mentor.rating}</span>
+                        <span className="text-xs text-gray-500">({mentor.reviews} reviews)</span>
+                      </div>
+                      <div className="text-sm text-gray-600">{mentor.experience}</div>
                     </div>
-                    <div className="text-sm text-gray-600">{mentor.experience}</div>
-                  </div>
 
-                  {/* Specialties */}
-                  <div className="mb-4">
-                    <div className="flex flex-wrap gap-2">
-                      {mentor.specialties.slice(0, 2).map((specialty, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 bg-orange-50 text-orange-700 text-xs rounded-full"
-                        >
-                          {specialty}
-                        </span>
-                      ))}
-                      {mentor.specialties.length > 2 && (
-                        <span className="px-2 py-1 bg-gray-50 text-gray-600 text-xs rounded-full">
-                          +{mentor.specialties.length - 2} more
-                        </span>
-                      )}
+                    {/* Specialties */}
+                    <div className="mb-4">
+                      <div className="flex flex-wrap gap-2">
+                        {mentor.specialties.slice(0, 2).map((specialty, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2 py-1 bg-orange-50 text-orange-700 text-xs rounded-full"
+                          >
+                            {specialty}
+                          </span>
+                        ))}
+                        {mentor.specialties.length > 2 && (
+                          <span className="px-2 py-1 bg-gray-50 text-gray-600 text-xs rounded-full">
+                            +{mentor.specialties.length - 2} more
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Availability and Price */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm text-green-600 font-medium">{mentor.availability}</div>
-                      <div className="text-xs text-gray-500">Responds in {mentor.responseTime}</div>
+                    {/* Availability and Price */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm text-green-600 font-medium">{mentor.availability}</div>
+                        <div className="text-xs text-gray-500">Responds in {mentor.responseTime}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-gray-900">₹{mentor.price}</div>
+                        <div className="text-xs text-gray-500">per session</div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-gray-900">₹{mentor.price}</div>
-                      <div className="text-xs text-gray-500">per session</div>
-                    </div>
-                  </div>
-                </motion.div>
-              </Link>
-            </motion.div>
-          ))}
-        </motion.div>
+                  </motion.div>
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
 
         {/* No Results */}
-        {filteredMentors.length === 0 && (
+        {!isLoading && !error && filteredMentors.length === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

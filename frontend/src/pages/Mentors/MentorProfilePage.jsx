@@ -1,85 +1,92 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import BottomNavbar from '../../components/common/BottomNavbar';
+import { mentorAPI } from '../../utils/api';
 
 const MentorProfilePage = () => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
-  
-  // Mentor profile data
-  const [profileData, setProfileData] = useState({
-    name: 'Dr. Sarah Johnson',
-    title: 'Senior Software Engineer',
-    company: 'Tech Solutions Inc.',
-    experience: '8 years',
-    specialization: 'Full Stack Development, React, Node.js',
-    bio: 'Passionate mentor with 8 years of experience in software development. I love helping aspiring developers grow their skills and advance their careers.',
-    profileImage: '👩‍💻',
-    rating: 4.9,
-    totalSessions: 156,
-    responseTime: '2 hours',
-    
-    // Availability
-    availability: {
-      monday: { available: true, startTime: '09:00', endTime: '17:00' },
-      tuesday: { available: true, startTime: '09:00', endTime: '17:00' },
-      wednesday: { available: true, startTime: '09:00', endTime: '17:00' },
-      thursday: { available: true, startTime: '09:00', endTime: '17:00' },
-      friday: { available: true, startTime: '09:00', endTime: '17:00' },
-      saturday: { available: false, startTime: '', endTime: '' },
-      sunday: { available: false, startTime: '', endTime: '' }
-    },
-    
-    // Pricing
-    pricing: {
-      videoCall: 50,
-      phoneCall: 30,
-      chat: 20,
-      email: 15
-    },
-    
-    // Contact methods
-    contactMethods: {
-      videoCall: true,
-      phoneCall: true,
-      chat: true,
-      email: true
-    },
-    
-    // Skills and expertise
-    skills: [
-      'React.js', 'Node.js', 'JavaScript', 'TypeScript', 
-      'MongoDB', 'PostgreSQL', 'AWS', 'Docker'
-    ],
-    
-    // Languages
-    languages: ['English', 'Hindi', 'Spanish'],
-    
-    // Education
-    education: [
-      {
-        degree: 'Master of Computer Science',
-        university: 'Stanford University',
-        year: '2015'
-      },
-      {
-        degree: 'Bachelor of Engineering',
-        university: 'IIT Delhi',
-        year: '2013'
-      }
-    ],
-    
-    // Certifications
-    certifications: [
-      'AWS Certified Solutions Architect',
-      'Google Cloud Professional Developer',
-      'Certified Kubernetes Administrator'
-    ]
-  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState('');
 
-  const [formData, setFormData] = useState(profileData);
+  // Mentor profile data
+  const [profileData, setProfileData] = useState(null);
+  const [formData, setFormData] = useState(null);
+
+  // Fetch mentor profile on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setIsLoading(true);
+      try {
+        const token = localStorage.getItem('mentorToken');
+        if (!token) {
+          navigate('/mentors/login');
+          return;
+        }
+
+        const response = await mentorAPI.getMe(token);
+        if (response.success && response.data.mentor) {
+          const mentor = response.data.mentor;
+
+          // Initialize default values if not present
+          const defaultPricing = {
+            quickConsultation: {
+              duration: '20-25 minutes',
+              price: 150,
+              label: 'Quick consultation'
+            },
+            inDepthSession: {
+              duration: '50-60 minutes',
+              price: 300,
+              label: 'In-depth session'
+            },
+            comprehensiveConsultation: {
+              duration: '90-120 minutes',
+              price: 450,
+              label: 'Comprehensive consultation'
+            }
+          };
+
+          const profile = {
+            firstName: mentor.firstName || '',
+            lastName: mentor.lastName || '',
+            title: mentor.title || '',
+            company: mentor.company || '',
+            experience: mentor.experience || '',
+            specialization: mentor.specialization || '',
+            bio: mentor.bio || '',
+            profileImage: mentor.profileImage || null,
+            rating: mentor.rating || 0,
+            totalSessions: mentor.totalSessions || 0,
+            responseTime: mentor.responseTime || '24 hours',
+            pricing: mentor.pricing || defaultPricing,
+            skills: mentor.skills || [],
+            languages: mentor.languages || [],
+            education: mentor.education || [],
+            certifications: mentor.certifications || [],
+            categories: mentor.categories || [],
+            profileVisibility: mentor.profileVisibility !== false
+          };
+
+          setProfileData(profile);
+          setFormData(profile);
+        }
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+        setError(err.message || 'Failed to load profile');
+        if (err.message && err.message.includes('token')) {
+          navigate('/mentors/login');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [navigate]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -88,81 +95,233 @@ const MentorProfilePage = () => {
     }));
   };
 
-  const handleNestedInputChange = (parent, field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [parent]: {
-        ...prev[parent],
-        [field]: value
-      }
-    }));
-  };
 
-  const handleAvailabilityChange = (day, field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      availability: {
-        ...prev.availability,
-        [day]: {
-          ...prev.availability[day],
-          [field]: value
-        }
-      }
-    }));
-  };
+  const handleSave = async () => {
+    if (!formData) return;
 
-  const handleSave = () => {
-    setProfileData(formData);
-    setIsEditing(false);
-    alert('Profile updated successfully!');
+    setIsSaving(true);
+    setError('');
+
+    try {
+      const token = localStorage.getItem('mentorToken');
+      if (!token) {
+        navigate('/mentors/login');
+        return;
+      }
+
+      // Prepare data for API
+      const updateData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        title: formData.title,
+        company: formData.company,
+        specialization: formData.specialization,
+        experience: formData.experience,
+        bio: formData.bio,
+        profileImage: formData.profileImage,
+        skills: formData.skills,
+        languages: formData.languages,
+        education: formData.education,
+        certifications: formData.certifications,
+        pricing: formData.pricing,
+        categories: formData.categories,
+        responseTime: formData.responseTime,
+        profileVisibility: formData.profileVisibility
+      };
+
+      const response = await mentorAPI.updateProfile(token, updateData);
+
+      if (response.success) {
+        setProfileData(formData);
+        setIsEditing(false);
+        // Update localStorage with new mentor data
+        const updatedMentor = { ...response.data.mentor };
+        localStorage.setItem('mentorData', JSON.stringify(updatedMentor));
+        alert('Profile updated successfully!');
+      }
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      setError(err.message || 'Failed to update profile');
+      alert(err.message || 'Failed to update profile. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
     setFormData(profileData);
     setIsEditing(false);
+    setError('');
   };
 
   const handleLogout = () => {
-    navigate('/mentors');
+    localStorage.removeItem('mentorToken');
+    localStorage.removeItem('isMentorLoggedIn');
+    localStorage.removeItem('userType');
+    localStorage.removeItem('mentorData');
+    navigate('/mentors/login');
   };
+
+  // Add skill
+  const handleAddSkill = () => {
+    const skill = prompt('Enter a skill:');
+    if (skill && skill.trim() && !formData.skills.includes(skill.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        skills: [...prev.skills, skill.trim()]
+      }));
+    }
+  };
+
+  // Remove skill
+  const handleRemoveSkill = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      skills: prev.skills.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Add language
+  const handleAddLanguage = () => {
+    const language = prompt('Enter a language:');
+    if (language && language.trim() && !formData.languages.includes(language.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        languages: [...prev.languages, language.trim()]
+      }));
+    }
+  };
+
+  // Remove language
+  const handleRemoveLanguage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      languages: prev.languages.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Add education
+  const handleAddEducation = () => {
+    const degree = prompt('Enter degree:');
+    const university = prompt('Enter university:');
+    const year = prompt('Enter year:');
+    if (degree && university && year) {
+      setFormData(prev => ({
+        ...prev,
+        education: [...prev.education, { degree: degree.trim(), university: university.trim(), year: year.trim() }]
+      }));
+    }
+  };
+
+  // Remove education
+  const handleRemoveEducation = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      education: prev.education.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Add certification
+  const handleAddCertification = () => {
+    const cert = prompt('Enter certification:');
+    if (cert && cert.trim() && !formData.certifications.includes(cert.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        certifications: [...prev.certifications, cert.trim()]
+      }));
+    }
+  };
+
+  // Remove certification
+  const handleRemoveCertification = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      certifications: prev.certifications.filter((_, i) => i !== index)
+    }));
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profileData || !formData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error || 'Failed to load profile'}</p>
+          <button
+            onClick={() => navigate('/mentors/login')}
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const tabs = [
     { id: 'profile', label: 'Profile' },
-    { id: 'availability', label: 'Availability' },
-    { id: 'pricing', label: 'Pricing' },
-    { id: 'settings', label: 'Settings' }
+    { id: 'pricing', label: 'Pricing' }
   ];
 
   const renderProfileTab = () => (
     <div className="space-y-6">
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
+
       {/* Profile Header */}
       <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-6 text-white">
         <div className="flex items-center space-x-4">
           <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-4xl">
-            {isEditing ? formData.profileImage : profileData.profileImage}
+            {formData.profileImage ? (
+              <img src={formData.profileImage} alt="Profile" className="w-full h-full rounded-full object-cover" />
+            ) : (
+              <span>{formData.firstName?.[0] || 'M'}</span>
+            )}
           </div>
           <div className="flex-1">
             {isEditing ? (
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                className="bg-white/20 text-white placeholder-white/80 rounded-lg px-3 py-2 w-full mb-2"
-                placeholder="Your Name"
-              />
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={formData.firstName}
+                  onChange={(e) => handleInputChange('firstName', e.target.value)}
+                  className="bg-white/20 text-white placeholder-white/80 rounded-lg px-3 py-2 w-full"
+                  placeholder="First Name"
+                />
+                <input
+                  type="text"
+                  value={formData.lastName}
+                  onChange={(e) => handleInputChange('lastName', e.target.value)}
+                  className="bg-white/20 text-white placeholder-white/80 rounded-lg px-3 py-2 w-full"
+                  placeholder="Last Name"
+                />
+              </div>
             ) : (
-              <h2 className="text-2xl font-bold">{profileData.name}</h2>
+              <h2 className="text-2xl font-bold">{`${profileData.firstName} ${profileData.lastName}`}</h2>
             )}
             {isEditing ? (
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
-                className="bg-white/20 text-white placeholder-white/80 rounded-lg px-3 py-2 w-full mb-2"
+                className="bg-white/20 text-white placeholder-white/80 rounded-lg px-3 py-2 w-full mt-2 mb-2"
                 placeholder="Your Title"
               />
             ) : (
-              <p className="text-orange-100">{profileData.title}</p>
+              <p className="text-orange-100">{profileData.title || 'No title set'}</p>
             )}
             {isEditing ? (
               <input
@@ -173,11 +332,11 @@ const MentorProfilePage = () => {
                 placeholder="Your Company"
               />
             ) : (
-              <p className="text-orange-100">{profileData.company}</p>
+              <p className="text-orange-100">{profileData.company || 'No company set'}</p>
             )}
           </div>
         </div>
-        
+
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mt-6">
           <div className="text-center">
@@ -213,123 +372,306 @@ const MentorProfilePage = () => {
 
       {/* Skills */}
       <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">Skills & Expertise</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold text-gray-800">Skills & Expertise</h3>
+          {isEditing && (
+            <button
+              onClick={handleAddSkill}
+              className="text-orange-600 hover:text-orange-700 text-sm font-medium"
+            >
+              + Add Skill
+            </button>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
-          {profileData.skills.map((skill, index) => (
-            <span key={index} className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">
-              {skill}
-            </span>
-          ))}
+          {formData.skills.length > 0 ? (
+            formData.skills.map((skill, index) => (
+              <span key={index} className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
+                {skill}
+                {isEditing && (
+                  <button
+                    onClick={() => handleRemoveSkill(index)}
+                    className="text-orange-800 hover:text-orange-900"
+                  >
+                    ×
+                  </button>
+                )}
+              </span>
+            ))
+          ) : (
+            <p className="text-gray-500 text-sm">No skills added yet</p>
+          )}
         </div>
       </div>
 
       {/* Education */}
       <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">Education</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold text-gray-800">Education</h3>
+          {isEditing && (
+            <button
+              onClick={handleAddEducation}
+              className="text-orange-600 hover:text-orange-700 text-sm font-medium"
+            >
+              + Add Education
+            </button>
+          )}
+        </div>
         <div className="space-y-3">
-          {profileData.education.map((edu, index) => (
-            <div key={index} className="border-l-4 border-orange-500 pl-4">
-              <h4 className="font-semibold text-gray-800">{edu.degree}</h4>
-              <p className="text-gray-600">{edu.university}</p>
-              <p className="text-gray-500 text-sm">{edu.year}</p>
-            </div>
-          ))}
+          {formData.education.length > 0 ? (
+            formData.education.map((edu, index) => (
+              <div key={index} className="border-l-4 border-orange-500 pl-4 relative">
+                {isEditing && (
+                  <button
+                    onClick={() => handleRemoveEducation(index)}
+                    className="absolute top-0 right-0 text-red-600 hover:text-red-700"
+                  >
+                    ×
+                  </button>
+                )}
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={edu.degree}
+                      onChange={(e) => {
+                        const newEducation = [...formData.education];
+                        newEducation[index].degree = e.target.value;
+                        setFormData(prev => ({ ...prev, education: newEducation }));
+                      }}
+                      className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm"
+                      placeholder="Degree"
+                    />
+                    <input
+                      type="text"
+                      value={edu.university}
+                      onChange={(e) => {
+                        const newEducation = [...formData.education];
+                        newEducation[index].university = e.target.value;
+                        setFormData(prev => ({ ...prev, education: newEducation }));
+                      }}
+                      className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm"
+                      placeholder="University"
+                    />
+                    <input
+                      type="text"
+                      value={edu.year}
+                      onChange={(e) => {
+                        const newEducation = [...formData.education];
+                        newEducation[index].year = e.target.value;
+                        setFormData(prev => ({ ...prev, education: newEducation }));
+                      }}
+                      className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm"
+                      placeholder="Year"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <h4 className="font-semibold text-gray-800">{edu.degree}</h4>
+                    <p className="text-gray-600">{edu.university}</p>
+                    <p className="text-gray-500 text-sm">{edu.year}</p>
+                  </>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500 text-sm">No education added yet</p>
+          )}
         </div>
       </div>
 
       {/* Certifications */}
       <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">Certifications</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold text-gray-800">Certifications</h3>
+          {isEditing && (
+            <button
+              onClick={handleAddCertification}
+              className="text-orange-600 hover:text-orange-700 text-sm font-medium"
+            >
+              + Add Certification
+            </button>
+          )}
+        </div>
         <div className="space-y-2">
-          {profileData.certifications.map((cert, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <span className="text-orange-500">🏆</span>
-              <span className="text-gray-700">{cert}</span>
-            </div>
-          ))}
+          {formData.certifications.length > 0 ? (
+            formData.certifications.map((cert, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="text-orange-500">🏆</span>
+                  <span className="text-gray-700">{cert}</span>
+                </div>
+                {isEditing && (
+                  <button
+                    onClick={() => handleRemoveCertification(index)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500 text-sm">No certifications added yet</p>
+          )}
         </div>
       </div>
-    </div>
-  );
 
-  const renderAvailabilityTab = () => (
-    <div className="space-y-6">
+      {/* Languages */}
       <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Weekly Availability</h3>
-        <div className="space-y-4">
-          {Object.entries(formData.availability).map(([day, schedule]) => (
-            <div key={day} className="p-4 border border-gray-200 rounded-lg">
-              <div className="flex items-center space-x-3 mb-3">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold text-gray-800">Languages</h3>
+          {isEditing && (
+            <button
+              onClick={handleAddLanguage}
+              className="text-orange-600 hover:text-orange-700 text-sm font-medium"
+            >
+              + Add Language
+            </button>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {formData.languages.length > 0 ? (
+            formData.languages.map((language, index) => (
+              <span key={index} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
+                {language}
+                {isEditing && (
+                  <button
+                    onClick={() => handleRemoveLanguage(index)}
+                    className="text-purple-800 hover:text-purple-900"
+                  >
+                    ×
+                  </button>
+                )}
+              </span>
+            ))
+          ) : (
+            <p className="text-gray-500 text-sm">No languages added yet</p>
+          )}
+        </div>
+      </div>
+
+      {/* Experience & Specialization */}
+      {isEditing && (
+        <>
+          <div className="bg-white rounded-xl p-6 shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Experience</h3>
+            <input
+              type="text"
+              value={formData.experience}
+              onChange={(e) => handleInputChange('experience', e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              placeholder="e.g., 5+ years, 8 years"
+            />
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Specialization</h3>
+            <input
+              type="text"
+              value={formData.specialization}
+              onChange={(e) => handleInputChange('specialization', e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              placeholder="e.g., Full Stack Development, Business Strategy"
+            />
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Response Time</h3>
+            <input
+              type="text"
+              value={formData.responseTime}
+              onChange={(e) => handleInputChange('responseTime', e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              placeholder="e.g., 2 hours, 24 hours"
+            />
+          </div>
+
+          {/* Profile Visibility Toggle */}
+          <div className="bg-white rounded-xl p-6 shadow-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-1">Profile Visibility</h3>
+                <p className="text-sm text-gray-600">Make your profile visible to users</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={schedule.available}
-                  onChange={(e) => handleAvailabilityChange(day, 'available', e.target.checked)}
-                  className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
+                  checked={formData.profileVisibility}
+                  onChange={(e) => handleInputChange('profileVisibility', e.target.checked)}
+                  className="sr-only peer"
                 />
-                <span className="font-medium text-gray-800 capitalize">{day}</span>
-              </div>
-              {schedule.available && (
-                <div className="mt-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-500 font-medium">From</label>
-                      <input
-                        type="time"
-                        value={schedule.startTime}
-                        onChange={(e) => handleAvailabilityChange(day, 'startTime', e.target.value)}
-                        className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 text-sm"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs text-gray-500 font-medium">To</label>
-                      <input
-                        type="time"
-                        value={schedule.endTime}
-                        onChange={(e) => handleAvailabilityChange(day, 'endTime', e.target.value)}
-                        className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+              </label>
             </div>
-          ))}
-        </div>
-      </div>
-
+          </div>
+        </>
+      )}
     </div>
   );
+
 
   const renderPricingTab = () => (
     <div className="space-y-6">
       <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Session Pricing (USD per hour)</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Session Pricing</h3>
+        {!isEditing && (
+          <p className="text-sm text-gray-600 mb-4">Click "Edit Profile" to update your pricing</p>
+        )}
         <div className="space-y-4">
-          {Object.entries(formData.pricing)
-            .filter(([method]) => method === 'email')
-            .map(([method, price]) => (
-              <div key={method} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">📧</span>
-                  <span className="font-medium text-gray-800">Email Consultation</span>
+          {[
+            {
+              key: 'quickConsultation',
+              duration: formData.pricing?.quickConsultation?.duration || '20-25 minutes',
+              price: formData.pricing?.quickConsultation?.price || 150,
+              label: formData.pricing?.quickConsultation?.label || 'Quick consultation'
+            },
+            {
+              key: 'inDepthSession',
+              duration: formData.pricing?.inDepthSession?.duration || '50-60 minutes',
+              price: formData.pricing?.inDepthSession?.price || 300,
+              label: formData.pricing?.inDepthSession?.label || 'In-depth session'
+            },
+            {
+              key: 'comprehensiveConsultation',
+              duration: formData.pricing?.comprehensiveConsultation?.duration || '90-120 minutes',
+              price: formData.pricing?.comprehensiveConsultation?.price || 450,
+              label: formData.pricing?.comprehensiveConsultation?.label || 'Comprehensive consultation'
+            }
+          ].map(({ key, duration, price, label }) => (
+            <div key={key} className="p-4 border border-gray-200 rounded-lg">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-800 mb-1">{label}</h4>
+                  <p className="text-sm text-gray-600">{duration}</p>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-gray-500">$</span>
-                  <input
-                    type="number"
-                    value={price}
-                    onChange={(e) => handleNestedInputChange('pricing', method, parseInt(e.target.value))}
-                    className="w-20 px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-right"
-                    min="0"
-                  />
-                  <span className="text-gray-500">/hr</span>
-                </div>
+                {isEditing ? (
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-500">₹</span>
+                    <input
+                      type="number"
+                      value={price}
+                      onChange={(e) => {
+                        const newPricing = { ...formData.pricing };
+                        if (!newPricing[key]) newPricing[key] = {};
+                        newPricing[key].price = parseInt(e.target.value) || 0;
+                        newPricing[key].duration = duration;
+                        newPricing[key].label = label;
+                        setFormData(prev => ({ ...prev, pricing: newPricing }));
+                      }}
+                      className="w-24 px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-right"
+                      min="0"
+                    />
+                  </div>
+                ) : (
+                  <div className="text-right">
+                    <span className="text-2xl font-bold text-orange-600">₹{price}</span>
+                  </div>
+                )}
               </div>
-            ))}
+            </div>
+          ))}
         </div>
-        <p className="text-sm text-gray-600 mt-4">
-          Note: Session links will be shared via email within 24 hours after booking confirmation.
-        </p>
       </div>
 
       <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-6">
@@ -344,50 +686,6 @@ const MentorProfilePage = () => {
     </div>
   );
 
-  const renderSettingsTab = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Account Settings</h3>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-            <span className="font-medium text-gray-800">Email Notifications</span>
-            <input type="checkbox" defaultChecked className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500" />
-          </div>
-          <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-            <span className="font-medium text-gray-800">SMS Notifications</span>
-            <input type="checkbox" className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500" />
-          </div>
-          <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-            <span className="font-medium text-gray-800">Profile Visibility</span>
-            <input type="checkbox" defaultChecked className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500" />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Languages</h3>
-        <div className="space-y-2">
-          {formData.languages.map((language, index) => (
-            <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-              <span className="font-medium text-gray-800">{language}</span>
-              <input type="checkbox" defaultChecked className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-red-800 mb-2">⚠️ Danger Zone</h3>
-        <p className="text-red-600 text-sm mb-4">These actions cannot be undone.</p>
-        <button
-          onClick={handleLogout}
-          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-        >
-          Logout
-        </button>
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100">
@@ -396,7 +694,7 @@ const MentorProfilePage = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <button
-              onClick={() => navigate('/mentors')}
+              onClick={() => navigate('/mentors/dashboard')}
               className="p-2 hover:bg-white/20 rounded-lg transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -406,6 +704,12 @@ const MentorProfilePage = () => {
             <h1 className="text-xl font-bold">Mentor Profile</h1>
           </div>
           <div className="flex items-center space-x-2">
+            <Link
+              to="/mentors/dashboard"
+              className="px-3 py-1 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors text-sm"
+            >
+              Dashboard
+            </Link>
             {isEditing ? (
               <>
                 <button
@@ -416,9 +720,10 @@ const MentorProfilePage = () => {
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-3 py-1 bg-white text-orange-600 rounded-lg hover:bg-orange-50 transition-colors font-semibold"
+                  disabled={isSaving}
+                  className="px-3 py-1 bg-white text-orange-600 rounded-lg hover:bg-orange-50 transition-colors font-semibold disabled:opacity-50"
                 >
-                  Save
+                  {isSaving ? 'Saving...' : 'Save'}
                 </button>
               </>
             ) : (
@@ -438,7 +743,7 @@ const MentorProfilePage = () => {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => navigate('/mentors')}
+              onClick={() => navigate('/mentors/dashboard')}
               className="p-2 hover:bg-white/20 rounded-lg transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -448,6 +753,12 @@ const MentorProfilePage = () => {
             <h1 className="text-2xl font-bold">Mentor Profile</h1>
           </div>
           <div className="flex items-center space-x-3">
+            <Link
+              to="/mentors/dashboard"
+              className="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors"
+            >
+              Dashboard
+            </Link>
             {isEditing ? (
               <>
                 <button
@@ -458,9 +769,10 @@ const MentorProfilePage = () => {
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 bg-white text-orange-600 rounded-lg hover:bg-orange-50 transition-colors font-semibold"
+                  disabled={isSaving}
+                  className="px-4 py-2 bg-white text-orange-600 rounded-lg hover:bg-orange-50 transition-colors font-semibold disabled:opacity-50"
                 >
-                  Save Changes
+                  {isSaving ? 'Saving...' : 'Save Changes'}
                 </button>
               </>
             ) : (
@@ -484,11 +796,10 @@ const MentorProfilePage = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-shrink-0 flex items-center justify-center py-2 px-3 rounded-lg transition-all duration-300 text-xs md:text-sm ${
-                  activeTab === tab.id
-                    ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
+                className={`flex-shrink-0 flex items-center justify-center py-2 px-3 rounded-lg transition-all duration-300 text-xs md:text-sm ${activeTab === tab.id
+                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-gray-50'
+                  }`}
               >
                 <span className="font-medium whitespace-nowrap">{tab.label}</span>
               </button>
@@ -504,9 +815,7 @@ const MentorProfilePage = () => {
           transition={{ duration: 0.3 }}
         >
           {activeTab === 'profile' && renderProfileTab()}
-          {activeTab === 'availability' && renderAvailabilityTab()}
           {activeTab === 'pricing' && renderPricingTab()}
-          {activeTab === 'settings' && renderSettingsTab()}
         </motion.div>
       </div>
 
