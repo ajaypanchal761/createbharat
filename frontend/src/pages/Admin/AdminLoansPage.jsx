@@ -8,21 +8,17 @@ const AdminLoansPage = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingScheme, setEditingScheme] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
 
     // Form state for create/edit
     const [formData, setFormData] = useState({
         name: '',
-        shortName: '',
         description: '',
-        provider: '',
-        category: 'MSME',
+        category: 'msme',
         minAmount: '',
         maxAmount: '',
         interestRate: '',
         tenure: '',
-        icon: '💰',
+        processingTime: '',
         imageUrl: '',
         officialLink: '',
         videoUrl: '',
@@ -40,13 +36,10 @@ const AdminLoansPage = () => {
     useEffect(() => {
         const loadSchemes = async () => {
             try {
-                setIsLoading(true);
                 const res = await loansAPI.getSchemes({ limit: 100 });
                 setSchemes(res.data || []);
             } catch (e) {
-                setError(e.message || 'Failed to load schemes');
-            } finally {
-                setIsLoading(false);
+                console.error('Failed to load schemes:', e.message);
             }
         };
         loadSchemes();
@@ -55,8 +48,8 @@ const AdminLoansPage = () => {
     // Filter schemes based on search
     const filteredSchemes = schemes.filter(scheme =>
         (scheme.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (scheme.shortName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (scheme.provider || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (scheme.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (scheme.category || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // Handle create new scheme
@@ -103,15 +96,13 @@ const AdminLoansPage = () => {
         setEditingScheme(scheme);
         setFormData({
             name: scheme.name,
-            shortName: scheme.shortName,
             description: scheme.description,
-            provider: scheme.provider,
             category: scheme.category,
             minAmount: scheme.minAmount.toString(),
             maxAmount: scheme.maxAmount.toString(),
             interestRate: scheme.interestRate || '',
             tenure: scheme.tenure || '',
-            icon: scheme.icon,
+            processingTime: scheme.processingTime || '',
             imageUrl: scheme.imageUrl || scheme.image || '',
             officialLink: scheme.officialLink || '',
             videoUrl: scheme.videoUrl || '',
@@ -189,15 +180,13 @@ const AdminLoansPage = () => {
     const resetForm = () => {
         setFormData({
             name: '',
-            shortName: '',
             description: '',
-            provider: '',
-            category: 'MSME',
+            category: 'msme',
             minAmount: '',
             maxAmount: '',
             interestRate: '',
             tenure: '',
-            icon: '💰',
+            processingTime: '',
             imageUrl: '',
             officialLink: '',
             videoUrl: '',
@@ -288,7 +277,7 @@ const AdminLoansPage = () => {
                         <div className="flex-1">
                             <input
                                 type="text"
-                                placeholder="Search schemes by name, provider, or category..."
+                                placeholder="Search schemes by name, description, or category..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
@@ -326,12 +315,9 @@ const AdminLoansPage = () => {
                         >
                             {/* Scheme Header */}
                             <div className="flex items-start justify-between mb-4">
-                                <div className="flex items-center space-x-3">
-                                    <div className="text-3xl">{scheme.icon}</div>
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-gray-900">{scheme.shortName}</h3>
-                                        <p className="text-sm text-gray-600">{scheme.provider}</p>
-                                    </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900">{scheme.name}</h3>
+                                    <p className="text-sm text-gray-600 capitalize">{scheme.category}</p>
                                 </div>
                                 <div className="flex space-x-2">
                                     <motion.button
@@ -454,36 +440,20 @@ const AdminLoansPage = () => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Short Name *</label>
-                                            <input
-                                                type="text"
-                                                value={formData.shortName}
-                                                onChange={(e) => setFormData({ ...formData, shortName: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                placeholder="Enter short name"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Provider *</label>
-                                            <input
-                                                type="text"
-                                                value={formData.provider}
-                                                onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                placeholder="Enter provider name"
-                                            />
-                                        </div>
-                                        <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
                                             <select
                                                 value={formData.category}
                                                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                             >
-                                                <option value="MSME">MSME</option>
-                                                <option value="Startup">Startup</option>
-                                                <option value="Women & SC/ST">Women & SC/ST</option>
-                                                <option value="Agriculture">Agriculture</option>
+                                                <option value="startup">Startup</option>
+                                                <option value="msme">MSME</option>
+                                                <option value="women">Women</option>
+                                                <option value="women-sc-st">Women & SC/ST</option>
+                                                <option value="sc-st">SC/ST</option>
+                                                <option value="agriculture">Agriculture</option>
+                                                <option value="all">All</option>
+                                                <option value="other">Other</option>
                                             </select>
                                         </div>
                                         <div className="md:col-span-2">
@@ -494,6 +464,16 @@ const AdminLoansPage = () => {
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 rows="3"
                                                 placeholder="Enter detailed description"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Processing Time</label>
+                                            <input
+                                                type="text"
+                                                value={formData.processingTime}
+                                                onChange={(e) => setFormData({ ...formData, processingTime: e.target.value })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                placeholder="e.g., 15-30 days"
                                             />
                                         </div>
                                     </div>
@@ -543,6 +523,16 @@ const AdminLoansPage = () => {
                                                 placeholder="e.g., Up to 5 years"
                                             />
                                         </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Processing Time</label>
+                                            <input
+                                                type="text"
+                                                value={formData.processingTime}
+                                                onChange={(e) => setFormData({ ...formData, processingTime: e.target.value })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                placeholder="e.g., 15-30 days"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -550,16 +540,6 @@ const AdminLoansPage = () => {
                                 <div className="bg-gray-50 rounded-xl p-6">
                                     <h3 className="text-lg font-semibold text-gray-900 mb-4">🖼️ Visual Elements</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
-                                            <input
-                                                type="text"
-                                                value={formData.icon}
-                                                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                placeholder="e.g., 💰"
-                                            />
-                                        </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Scheme Image</label>
                                             <input
@@ -590,6 +570,16 @@ const AdminLoansPage = () => {
                                                 placeholder="Enter scheme heading"
                                             />
                                         </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Processing Time</label>
+                                            <input
+                                                type="text"
+                                                value={formData.processingTime}
+                                                onChange={(e) => setFormData({ ...formData, processingTime: e.target.value })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                placeholder="e.g., 15-30 days"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -618,6 +608,16 @@ const AdminLoansPage = () => {
                                                 placeholder="https://www.youtube.com/embed/..."
                                             />
                                             <p className="text-xs text-gray-500 mt-1">Optional: YouTube embed URL for loan information video</p>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Processing Time</label>
+                                            <input
+                                                type="text"
+                                                value={formData.processingTime}
+                                                onChange={(e) => setFormData({ ...formData, processingTime: e.target.value })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                placeholder="e.g., 15-30 days"
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -756,7 +756,7 @@ const AdminLoansPage = () => {
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-bold text-gray-900">Edit Loan Scheme - {editingScheme?.shortName}</h2>
+                                <h2 className="text-2xl font-bold text-gray-900">Edit Loan Scheme - {editingScheme?.name}</h2>
                                 <button
                                     onClick={() => setShowEditModal(false)}
                                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -784,36 +784,20 @@ const AdminLoansPage = () => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Short Name *</label>
-                                            <input
-                                                type="text"
-                                                value={formData.shortName}
-                                                onChange={(e) => setFormData({ ...formData, shortName: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                placeholder="Enter short name"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Provider *</label>
-                                            <input
-                                                type="text"
-                                                value={formData.provider}
-                                                onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                placeholder="Enter provider name"
-                                            />
-                                        </div>
-                                        <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
                                             <select
                                                 value={formData.category}
                                                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                             >
-                                                <option value="MSME">MSME</option>
-                                                <option value="Startup">Startup</option>
-                                                <option value="Women & SC/ST">Women & SC/ST</option>
-                                                <option value="Agriculture">Agriculture</option>
+                                                <option value="startup">Startup</option>
+                                                <option value="msme">MSME</option>
+                                                <option value="women">Women</option>
+                                                <option value="women-sc-st">Women & SC/ST</option>
+                                                <option value="sc-st">SC/ST</option>
+                                                <option value="agriculture">Agriculture</option>
+                                                <option value="all">All</option>
+                                                <option value="other">Other</option>
                                             </select>
                                         </div>
                                         <div className="md:col-span-2">
@@ -824,6 +808,16 @@ const AdminLoansPage = () => {
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 rows="3"
                                                 placeholder="Enter detailed description"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Processing Time</label>
+                                            <input
+                                                type="text"
+                                                value={formData.processingTime}
+                                                onChange={(e) => setFormData({ ...formData, processingTime: e.target.value })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                placeholder="e.g., 15-30 days"
                                             />
                                         </div>
                                     </div>
@@ -873,6 +867,16 @@ const AdminLoansPage = () => {
                                                 placeholder="e.g., Up to 5 years"
                                             />
                                         </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Processing Time</label>
+                                            <input
+                                                type="text"
+                                                value={formData.processingTime}
+                                                onChange={(e) => setFormData({ ...formData, processingTime: e.target.value })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                placeholder="e.g., 15-30 days"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -880,16 +884,6 @@ const AdminLoansPage = () => {
                                 <div className="bg-gray-50 rounded-xl p-6">
                                     <h3 className="text-lg font-semibold text-gray-900 mb-4">🖼️ Visual Elements</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
-                                            <input
-                                                type="text"
-                                                value={formData.icon}
-                                                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                placeholder="e.g., 💰"
-                                            />
-                                        </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Scheme Image</label>
                                             <input
@@ -920,6 +914,16 @@ const AdminLoansPage = () => {
                                                 placeholder="Enter scheme heading"
                                             />
                                         </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Processing Time</label>
+                                            <input
+                                                type="text"
+                                                value={formData.processingTime}
+                                                onChange={(e) => setFormData({ ...formData, processingTime: e.target.value })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                placeholder="e.g., 15-30 days"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -948,6 +952,16 @@ const AdminLoansPage = () => {
                                                 placeholder="https://www.youtube.com/embed/..."
                                             />
                                             <p className="text-xs text-gray-500 mt-1">Optional: YouTube embed URL for loan information video</p>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Processing Time</label>
+                                            <input
+                                                type="text"
+                                                value={formData.processingTime}
+                                                onChange={(e) => setFormData({ ...formData, processingTime: e.target.value })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                placeholder="e.g., 15-30 days"
+                                            />
                                         </div>
                                     </div>
                                 </div>

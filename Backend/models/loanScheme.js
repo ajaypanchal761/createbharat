@@ -8,21 +8,11 @@ const loanSchemeSchema = new mongoose.Schema({
     trim: true,
     maxlength: [200, 'Name cannot exceed 200 characters']
   },
-  shortName: {
-    type: String,
-    trim: true,
-    maxlength: [50, 'Short name cannot exceed 50 characters']
-  },
   description: {
     type: String,
     required: [true, 'Description is required'],
     trim: true,
     maxlength: [1000, 'Description cannot exceed 1000 characters']
-  },
-  provider: {
-    type: String,
-    trim: true,
-    maxlength: [100, 'Provider name cannot exceed 100 characters']
   },
   category: {
     type: String,
@@ -51,12 +41,12 @@ const loanSchemeSchema = new mongoose.Schema({
     trim: true,
     maxlength: [100, 'Tenure description cannot exceed 100 characters']
   },
-
-  // Display & Visibility
-  icon: {
+  processingTime: {
     type: String,
-    trim: true
+    trim: true,
+    maxlength: [100, 'Processing time cannot exceed 100 characters']
   },
+
   color: {
     type: String,
     trim: true

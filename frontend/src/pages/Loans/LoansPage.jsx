@@ -1,14 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { loanCategories } from '../../data/loanSchemes';
 import { loansAPI } from '../../utils/api';
 import BottomNavbar from '../../components/common/BottomNavbar';
-import logo from '../../assets/logo.png';
 import govLoanImg from '../../assets/Government-personal-loan-scheme.webp';
-import techImage from '../../assets/techImage.webp';
-import mentorImage from '../../assets/mentor.png';
-import legalImage from '../../assets/legal.png';
 
 // Bottom Nav Icons (copied from HomePage for consistency)
 const HomeIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>);
@@ -31,8 +26,8 @@ const LoansPage = () => {
         const res = await loansAPI.getSchemes({ limit: 20 });
         const items = (res.data || []).map((s) => ({
           id: s._id,
-          title: s.shortName || s.name,
-          image: govLoanImg,
+          title: s.name,
+          image: s.imageUrl || govLoanImg,
           description: s.description?.slice(0, 100) || '',
           color: s.color || 'from-blue-500 to-indigo-600',
           bgColor: 'from-blue-50 to-indigo-50',
@@ -159,8 +154,10 @@ const LoansPage = () => {
           {(isLoading ? Array.from({ length: 8 }).map((_, index) => ({ skeleton: true, id: index })) : governmentLoans).map((loan, index) => (
             <motion.div
               key={loan.id}
-              variants={scaleIn}
-              whileHover={{ scale: 1.05, y: -8, rotateY: 5 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              whileHover={{ scale: 1.05, y: -8 }}
               whileTap={{ scale: 0.95 }}
               className="group relative"
             >
