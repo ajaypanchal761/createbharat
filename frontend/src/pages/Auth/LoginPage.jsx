@@ -10,6 +10,7 @@ const LoginPage = () => {
     const [otp, setOtp] = useState(['', '', '', '', '', '']); // 6-digit OTP
     const [step, setStep] = useState('phone'); // 'phone' or 'otp'
     const [isLoading, setIsLoading] = useState(false);
+    const [resendCountdown, setResendCountdown] = useState(0);
     const [error, setError] = useState('');
     const [loginType, setLoginType] = useState('user'); // 'user' or 'admin'
     const navigate = useNavigate();
@@ -22,13 +23,31 @@ const LoginPage = () => {
 
         try {
             // For passwordless login, send OTP to user's phone
-            const response = await authAPI.sendLoginOTP(phone);
+            // Ensure phone is exactly 10 digits starting with 6-9
+            const sanitizedPhone = (phone || '').replace(/\D/g, '');
+            
+            // Validate phone format before sending
+            if (sanitizedPhone.length !== 10 || !/^[6-9]/.test(sanitizedPhone)) {
+                setError('Please enter a valid 10-digit phone number starting with 6-9');
+                setIsLoading(false);
+                return;
+            }
+
+            console.log('📱 Sending OTP to phone:', {
+                original: phone,
+                sanitized: sanitizedPhone,
+                length: sanitizedPhone.length,
+                startsWith6to9: /^[6-9]/.test(sanitizedPhone),
+                isValid: sanitizedPhone.length === 10 && /^[6-9]/.test(sanitizedPhone)
+            });
+            const response = await authAPI.sendLoginOTP(sanitizedPhone);
 
             if (response.success) {
                 console.log('OTP sent for login:', response);
                 setStep('otp');
                 // Store phone for OTP verification
-                localStorage.setItem('loginPhone', phone);
+                localStorage.setItem('loginPhone', sanitizedPhone);
+                setResendCountdown(60);
             } else {
                 setError(response.message || 'Failed to send OTP');
             }
@@ -47,9 +66,23 @@ const LoginPage = () => {
 
         try {
             const otpCode = otp.join('');
-            const loginPhone = localStorage.getItem('loginPhone') || phone;
+            if (otpCode.length !== 6) {
+                setIsLoading(false);
+                setError('Please enter the 6-digit code.');
+                return;
+            }
+            const loginPhone = localStorage.getItem('loginPhone') || (phone || '').replace(/\D/g, '');
 
             // Call the real backend API for OTP verification with login purpose
+            console.log('🔐 Verifying OTP with:', { 
+                phone: loginPhone, 
+                otp: otpCode, 
+                purpose: 'login',
+                phoneLength: loginPhone.length,
+                otpLength: otpCode.length,
+                phoneStartsWith6to9: /^[6-9]/.test(loginPhone),
+                otpIsNumeric: /^\d+$/.test(otpCode)
+            });
             const response = await authAPI.verifyOTP({
                 phone: loginPhone,
                 otp: otpCode,
@@ -95,10 +128,24 @@ const LoginPage = () => {
                     };
 
                     // login() function already sets isLoggedIn and userData
+                    console.log('🔐 Calling login function with user data:', fullUserData);
                     login(fullUserData);
                     localStorage.setItem('userType', 'user');
                     localStorage.setItem('userData', JSON.stringify(fullUserData));
+                    // Mark first-visit handled so mobile modal doesn't reopen
+                    localStorage.setItem('hasVisited', 'true');
+                    console.log('🏠 Navigating to home page...');
+                    // Go to Home hero section (top). Navigate, then smooth scroll.
                     navigate('/');
+                    setTimeout(() => {
+                        console.log('🎯 Scrolling to hero section...');
+                        const heroEl = document.getElementById('hero');
+                        if (heroEl && heroEl.scrollIntoView) {
+                            heroEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        } else {
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    }, 100);
                 }
             } else {
                 setError(response.message || 'OTP verification failed');
@@ -106,6 +153,36 @@ const LoginPage = () => {
         } catch (error) {
             console.error('OTP verification error:', error);
             setError(error.message || 'Failed to verify OTP. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Countdown effect for resend
+    React.useEffect(() => {
+        if (resendCountdown <= 0) return;
+        const id = setInterval(() => setResendCountdown((s) => s - 1), 1000);
+        return () => clearInterval(id);
+    }, [resendCountdown]);
+
+    const handleResend = async () => {
+        setError('');
+        try {
+            const loginPhone = localStorage.getItem('loginPhone') || (phone || '').replace(/\D/g, '');
+            if (!loginPhone || loginPhone.length !== 10) {
+                setError('Enter a valid phone number first.');
+                setStep('phone');
+                return;
+            }
+            setIsLoading(true);
+            const response = await authAPI.resendOTP(loginPhone, 'login');
+            if (response.success) {
+                setResendCountdown(60);
+            } else {
+                setError(response.message || 'Could not resend OTP.');
+            }
+        } catch (err) {
+            setError(err.message || 'Could not resend OTP.');
         } finally {
             setIsLoading(false);
         }
@@ -251,6 +328,16 @@ const LoginPage = () => {
                             >
                                 {isLoading ? 'Verifying...' : 'Confirm'}
                             </motion.button>
+
+                            <div className="text-center text-sm text-gray-600">
+                                {resendCountdown > 0 ? (
+                                    <span>Resend code in 0:{String(resendCountdown).padStart(2, '0')}</span>
+                                ) : (
+                                    <button type="button" onClick={handleResend} className="text-orange-600 hover:text-orange-700 font-medium">
+                                        Resend OTP
+                                    </button>
+                                )}
+                            </div>
 
                             <motion.button
                                 type="button"

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { UserProvider } from './contexts/UserContext';
 import Navbar from './components/common/Navbar';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import TestOTP from './pages/TestOTP';
 import HomePage from './pages/Home/HomePage';
 import LoansPage from './pages/Loans/LoansPage';
 import LoanApplicationPage from './pages/Loans/LoanApplicationPage';
@@ -70,6 +71,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/test-otp" element={<TestOTP />} />
             <Route path="/admin/login" element={<AdminLoginPage />} />
             <Route path="/ca/login" element={<CALoginPage />} />
             <Route path="/ca/signup" element={<CASignupPage />} />

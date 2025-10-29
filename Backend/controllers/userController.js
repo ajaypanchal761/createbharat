@@ -5,7 +5,7 @@ const { sendOTP, sendWelcomeSMS } = require('../utils/notifications');
 
 // Helper: bypass OTP sending for specific test numbers
 const isBypassOtpNumber = (phone) => {
-  const bypassList = new Set(['9685974247']);
+  const bypassList = new Set(['9685974247', '9876543210', '9999999999', '7610416911']);
   return bypassList.has(phone);
 };
 
@@ -116,7 +116,12 @@ const registerUser = async (req, res) => {
     // Generate OTP for phone verification
     let otp;
     if (isBypassOtpNumber(phone)) {
-      otp = '123456';
+      // Use custom OTP for specific phone numbers
+      if (phone === '7610416911') {
+        otp = '110211';
+      } else {
+        otp = '123456';
+      }
       user.phoneVerificationOTP = otp;
       user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
     } else {
@@ -127,7 +132,7 @@ const registerUser = async (req, res) => {
     // Send OTP via SMS
     try {
       if (isBypassOtpNumber(phone)) {
-        console.log(`📵 Bypass SMS for ${phone}. Using fixed OTP 123456.`);
+        console.log(`📵 Bypass SMS for ${phone}. Using fixed OTP ${otp}.`);
       } else {
         await sendOTP(phone, otp);
         console.log(`📱 OTP sent successfully to ${phone}`);
@@ -313,10 +318,42 @@ const verifyOTP = async (req, res) => {
       });
     }
 
-    // Verify OTP
-    const isOTPValid = user.verifyOTP(otp);
+    // Debug logging
+    console.log('🔍 OTP Verification Debug:', {
+      phone,
+      providedOTP: otp,
+      storedOTP: user.phoneVerificationOTP,
+      otpExpiresAt: user.otpExpiresAt,
+      currentTime: new Date(),
+      isExpired: user.otpExpiresAt ? user.otpExpiresAt < new Date() : 'No expiry set'
+    });
+
+    // Verify OTP (allow bypass numbers without requiring a prior send step)
+    let isOTPValid = false;
+
+    // Bypass acceptance: if number is in bypass list, accept the configured code
+    if (isBypassOtpNumber(phone)) {
+      const expectedBypassOtp = phone === '7610416911' ? '110211' : '123456';
+      isOTPValid = otp === expectedBypassOtp;
+      if (isOTPValid) {
+        // Mark OTP as valid regardless of stored values
+        user.phoneVerificationOTP = null;
+        user.otpExpiresAt = null;
+      }
+    }
+
+    // Fallback to stored OTP validation when not already accepted via bypass
+    if (!isOTPValid) {
+      isOTPValid = user.verifyOTP(otp);
+    }
 
     if (!isOTPValid) {
+      console.log('❌ OTP verification failed:', {
+        providedOTP: otp,
+        storedOTP: user.phoneVerificationOTP,
+        otpExpiresAt: user.otpExpiresAt,
+        currentTime: new Date()
+      });
       return res.status(400).json({
         success: false,
         message: 'Invalid or expired OTP'
@@ -418,7 +455,12 @@ const resendOTP = async (req, res) => {
     // Generate new OTP
     let otp;
     if (isBypassOtpNumber(phone)) {
-      otp = '123456';
+      // Use custom OTP for specific phone numbers
+      if (phone === '7610416911') {
+        otp = '110211';
+      } else {
+        otp = '123456';
+      }
       user.phoneVerificationOTP = otp;
       user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
     } else {
@@ -429,7 +471,7 @@ const resendOTP = async (req, res) => {
     // Send OTP via SMS
     try {
       if (isBypassOtpNumber(phone)) {
-        console.log(`📵 Bypass SMS for ${phone}. Using fixed OTP 123456.`);
+        console.log(`📵 Bypass SMS for ${phone}. Using fixed OTP ${otp}.`);
       } else {
         await sendOTP(phone, otp);
         console.log(`📱 OTP resent successfully to ${phone}`);
@@ -512,18 +554,25 @@ const sendLoginOTP = async (req, res) => {
     // Generate new OTP
     let otp;
     if (isBypassOtpNumber(phone)) {
-      otp = '123456';
+      // Use custom OTP for specific phone numbers
+      if (phone === '7610416911') {
+        otp = '110211';
+      } else {
+        otp = '123456';
+      }
       user.phoneVerificationOTP = otp;
       user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+      console.log(`🔧 Bypass OTP generated for ${phone}: ${otp}, expires at: ${user.otpExpiresAt}`);
     } else {
       otp = user.generateOTP();
+      console.log(`🔧 Regular OTP generated for ${phone}: ${otp}, expires at: ${user.otpExpiresAt}`);
     }
     await user.save();
 
     // Send OTP via SMS
     try {
       if (isBypassOtpNumber(phone)) {
-        console.log(`📵 Bypass SMS for ${phone}. Using fixed OTP 123456.`);
+        console.log(`📵 Bypass SMS for ${phone}. Using fixed OTP ${otp}.`);
       } else {
         await sendOTP(phone, otp);
         console.log(`📱 Login OTP sent successfully to ${phone}`);

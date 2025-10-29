@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+                                                                import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavbar from '../../components/common/BottomNavbar';
 import { useUser } from '../../contexts/UserContext';
+import LoginPage from '../Auth/LoginPage';
 import logo from '../../assets/logo.png';
 import techImage from '../../assets/techImage.webp';
 import mentorImage from '../../assets/mentor.png';
@@ -331,13 +332,13 @@ const HomePage = () => {
     return (
         <>
             {/* Mobile View - New Design */}
-            <div className="md:hidden min-h-screen bg-white pb-20">
+            <div id="hero" className="md:hidden min-h-screen bg-gradient-to-b from-orange-50 via-white to-indigo-50 pb-20">
                 {/* Header */}
                         <motion.header 
                             initial={{ opacity: 0, y: -20 }}
                             animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
-                    className="bg-gradient-to-r from-orange-400 to-orange-500 shadow-lg sticky top-0 z-50"
+                    className="bg-gradient-to-r from-orange-500 to-orange-600 shadow-md sticky top-0 z-50"
                 >
                     <div className="px-4 py-4">
                         <div className="flex items-center justify-between">
@@ -542,29 +543,6 @@ const HomePage = () => {
                             );
                         })()}
                         
-                        {/* Left Arrow */}
-                        <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={goToPrevBanner}
-                            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg"
-                        >
-                            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </motion.button>
-                        
-                        {/* Right Arrow */}
-                        <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={goToNextBanner}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg"
-                        >
-                            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </motion.button>
                         
                         {/* Banner Indicators */}
                         <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
@@ -675,7 +653,7 @@ const HomePage = () => {
                         variants={slideInLeft}
                         initial="hidden"
                         animate="visible"
-                        className="bg-gradient-to-r from-orange-100 to-orange-200 rounded-2xl p-6 relative overflow-hidden"
+                        className="bg-gradient-to-r from-orange-200 to-orange-300 rounded-2xl p-6 relative overflow-hidden shadow-lg ring-1 ring-orange-200"
                     >
                         {/* Animated Background Text */}
                                                             <motion.div
@@ -708,7 +686,7 @@ const HomePage = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.4 }}
-                                className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-4 mb-4 shadow-lg"
+                                className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-4 mb-4 shadow-lg ring-1 ring-white/10"
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -737,7 +715,7 @@ const HomePage = () => {
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={(e) => handleServiceClick(e, '/training')}
-                                className="w-full py-3 bg-gradient-to-r from-orange-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                                className="w-full py-3 bg-gradient-to-r from-orange-600 to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ring-1 ring-white/10"
                             >
                                 Get Started
                             </motion.button>
@@ -790,27 +768,27 @@ const HomePage = () => {
                                     transition: { duration: 0.1 }
                                 }}
                                 onClick={(e) => handleServiceClick(e, service.path)}
-                                className="relative rounded-xl bg-white p-1  shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]  hover:shadow-[0_35px_70px_-12px_rgba(0,0,0,0.4)] hover:border-orange-400 hover:border-4 transition-all duration-300 cursor-pointer group"
+                                className="relative rounded-2xl bg-white p-3 shadow-lg ring-1 ring-black/5 hover:shadow-xl hover:ring-orange-300 hover:ring-2 transition-all duration-300 cursor-pointer group"
                             >
                                 <motion.div 
-                                    className="w-full h-16 mb-2 rounded-lg overflow-hidden"
-                                    whileHover={{ scale: 1.1 }}
+                                    className="w-full h-20 mb-3 rounded-xl overflow-hidden"
+                                    whileHover={{ scale: 1.05 }}
                                     transition={{ duration: 0.3 }}
                                     >
                                         <motion.img 
                                             src={service.image} 
                                             alt={service.name} 
                                         className="w-full h-full object-cover"
-                                        whileHover={{ scale: 1.2 }}
+                                        whileHover={{ scale: 1.1 }}
                                         transition={{ duration: 0.4 }}
                                     />
                                 </motion.div>
                                 
                                 <motion.h3 
-                                    className="text-xs font-medium text-gray-800 text-center leading-tight break-words hyphens-auto"
+                                    className="text-sm font-semibold text-gray-800 text-center leading-tight break-words hyphens-auto"
                                     whileHover={{ 
                                         color: "#F97316",
-                                        scale: 1.05,
+                                        scale: 1.02,
                                         y: -1
                                     }}
                                     transition={{ duration: 0.2 }}
@@ -826,7 +804,7 @@ const HomePage = () => {
                         variants={slideInLeft}
                             initial="hidden"
                         animate="visible"
-                        className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-2xl p-6 relative overflow-hidden"
+                        className="bg-gradient-to-r from-orange-100 to-orange-200 rounded-2xl p-6 relative overflow-hidden shadow-lg ring-1 ring-orange-200"
                     >
                         {/* Animated Background Text */}
                                     <motion.div 
@@ -895,10 +873,10 @@ const HomePage = () => {
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={(e) => handleServiceClick(e, item.path)}
-                                    className="bg-white rounded-lg p-3 shadow-md cursor-pointer"
+                                    className="bg-white rounded-xl p-4 shadow-lg ring-1 ring-black/5 cursor-pointer hover:shadow-xl hover:ring-orange-300 transition-all duration-300"
                                 >
                                     <div className="flex flex-col space-y-1">
-                                        <h3 className="text-xs font-semibold text-gray-900 leading-tight">{item.title}</h3>
+                                        <h3 className="text-sm font-semibold text-gray-900 leading-tight">{item.title}</h3>
                                         <div className="flex items-center justify-between">
                                             <p className="text-xs text-gray-500">{item.category}</p>
                                             <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${item.color}`}>
@@ -955,7 +933,7 @@ const HomePage = () => {
                         variants={staggerContainer}
                         initial="hidden"
                         animate="visible"
-                        className="bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 rounded-2xl p-6 mb-6"
+                        className="bg-gradient-to-br from-orange-50 via-white to-indigo-50 rounded-2xl p-6 mb-6 shadow-lg ring-1 ring-black/5"
                     >
                         <motion.h2 
                             variants={fadeInUp}
@@ -976,7 +954,7 @@ const HomePage = () => {
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={(e) => handleServiceClick(e, action.path)}
-                                    className="bg-white rounded-xl p-4 shadow-md text-center cursor-pointer"
+                                    className="bg-white rounded-xl p-4 shadow-lg ring-1 ring-black/5 text-center cursor-pointer"
                                 >
                                     <div className={`w-12 h-12 bg-gradient-to-r ${action.color} rounded-full flex items-center justify-center mx-auto mb-2 text-2xl`}>
                                         {action.icon}
@@ -1053,7 +1031,7 @@ const HomePage = () => {
                 </header>
 
                 {/* Desktop Hero Section */}
-                <section className="py-16 lg:py-24 bg-gradient-to-br from-orange-50 via-indigo-50 to-purple-50 relative overflow-hidden">
+                <section id="hero" className="py-16 lg:py-24 bg-gradient-to-br from-orange-50 via-indigo-50 to-purple-50 relative overflow-hidden">
                     <div className="max-w-7xl mx-auto px-8">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <motion.div 

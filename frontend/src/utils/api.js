@@ -54,11 +54,12 @@ const apiCall = async (endpoint, options = {}) => {
     }
   });
 
-  console.log('API Call:', {
+  console.log('🔗 API Call:', {
     url,
     method: config.method || 'GET',
     headers: config.headers,
-    body: config.body
+    body: config.body,
+    timestamp: new Date().toISOString()
   });
 
   try {
@@ -85,7 +86,13 @@ const apiCall = async (endpoint, options = {}) => {
 
     return data;
   } catch (error) {
-    console.error('❌ API call failed:', error);
+    console.error('❌ API call failed:', {
+      error: error.message,
+      url,
+      method: config.method || 'GET',
+      body: config.body,
+      timestamp: new Date().toISOString()
+    });
     if (error instanceof TypeError && error.message.includes('fetch')) {
       throw new Error('Unable to connect to backend server. Please make sure the server is running at http://localhost:5000');
     }
