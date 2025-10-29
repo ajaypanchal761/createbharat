@@ -12,6 +12,9 @@ dotenv.config();
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const companyRoutes = require('./routes/companyRoutes');
+const internshipRoutes = require('./routes/internshipRoutes');
+const applicationRoutes = require('./routes/applicationRoutes');
 const testRoutes = require('./routes/testRoutes');
 const loanSchemeRoutes = require('./routes/loanSchemeRoutes');
 const adminLoanSchemeRoutes = require('./routes/loanSchemeRoutes').adminLoanSchemeRoutes;
@@ -34,7 +37,34 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Body parsing middleware
+// Body parsing middleware with support for text/plain (fallback)
+// Custom middleware to handle text/plain content-type before express.json()
+app.use((req, res, next) => {
+  const contentType = req.headers['content-type'] || '';
+
+  // If content-type is text/plain, manually parse body
+  if (contentType.includes('text/plain') && ['POST', 'PUT', 'PATCH'].includes(req.method)) {
+    let rawBody = '';
+    req.on('data', chunk => {
+      rawBody += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        if (rawBody.trim()) {
+          req.body = JSON.parse(rawBody);
+          console.log('Parsed text/plain body:', req.body);
+        }
+      } catch (e) {
+        console.error('Failed to parse text/plain body as JSON:', e.message);
+      }
+      next();
+    });
+  } else {
+    next();
+  }
+});
+
+// Parse JSON with application/json content type
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -54,6 +84,9 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/company', companyRoutes);
+app.use('/api/internships', internshipRoutes);
+app.use('/api/applications', applicationRoutes);
 app.use('/api/loans', loanSchemeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin', adminLoanSchemeRoutes);
@@ -68,6 +101,7 @@ app.get('/', (req, res) => {
       health: '/health',
       auth: '/api/auth',
       users: '/api/users',
+      company: '/api/company',
       loans: '/api/loans',
       admin: '/api/admin'
     }

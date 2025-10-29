@@ -29,43 +29,59 @@ const CompanyLoginPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Invalid email format';
     }
-    
+
     if (!formData.password.trim()) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      // For demo purposes, accept any email/password
-      localStorage.setItem('companyEmail', formData.email);
-      localStorage.setItem('companyName', formData.email.split('@')[0]);
-      localStorage.setItem('userType', 'company');
-      localStorage.setItem('isLoggedIn', 'true');
-      
+
+    try {
+      const { companyAPI } = await import('../../utils/api');
+      const response = await companyAPI.login({
+        email: formData.email,
+        password: formData.password
+      });
+
+      if (response.success && response.data) {
+        // Save company data and token
+        localStorage.setItem('companyToken', response.data.token);
+        localStorage.setItem('companyData', JSON.stringify(response.data.company));
+        localStorage.setItem('companyEmail', response.data.company.email);
+        localStorage.setItem('companyName', response.data.company.companyName);
+        localStorage.setItem('userType', 'company');
+        localStorage.setItem('isLoggedIn', 'true');
+
+        setIsLoading(false);
+        navigate('/company/internships');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
       setIsLoading(false);
-      navigate('/company/internships');
-    }, 1500);
+      setErrors({
+        email: error.message.includes('email') ? error.message : '',
+        password: error.message.includes('password') || error.message.includes('credentials') ? error.message : error.message
+      });
+    }
   };
 
   return (
@@ -90,7 +106,7 @@ const CompanyLoginPage = () => {
                 <img src={logo} alt="CreateBharat" className="w-16 h-16 md:w-20 md:h-20" />
               </motion.div>
             </div>
-            
+
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -99,7 +115,7 @@ const CompanyLoginPage = () => {
             >
               Company Login
             </motion.h1>
-            
+
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -136,11 +152,10 @@ const CompanyLoginPage = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${
-                      errors.email 
-                        ? 'border-red-500 focus:border-red-500' 
+                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${errors.email
+                        ? 'border-red-500 focus:border-red-500'
                         : 'border-gray-300 focus:border-orange-500'
-                    } focus:ring-2 focus:ring-orange-200 outline-none`}
+                      } focus:ring-2 focus:ring-orange-200 outline-none`}
                     placeholder="Enter your company email"
                   />
                 </motion.div>
@@ -178,11 +193,10 @@ const CompanyLoginPage = () => {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${
-                      errors.password 
-                        ? 'border-red-500 focus:border-red-500' 
+                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${errors.password
+                        ? 'border-red-500 focus:border-red-500'
                         : 'border-gray-300 focus:border-orange-500'
-                    } focus:ring-2 focus:ring-orange-200 outline-none`}
+                      } focus:ring-2 focus:ring-orange-200 outline-none`}
                     placeholder="Enter your password"
                   />
                 </motion.div>
@@ -221,11 +235,10 @@ const CompanyLoginPage = () => {
                 whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={isLoading}
-                className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg ${
-                  isLoading
+                className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg ${isLoading
                     ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
                     : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 hover:shadow-xl'
-                }`}
+                  }`}
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -267,17 +280,6 @@ const CompanyLoginPage = () => {
               </Link>
             </motion.div>
 
-            {/* Demo Login Hint */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.1 }}
-              className="mt-4 p-4 bg-orange-50 rounded-xl border border-orange-200"
-            >
-              <p className="text-sm text-orange-700 text-center">
-                <strong>Demo:</strong> Use any email and password to login
-              </p>
-            </motion.div>
 
             {/* Back to Home Link */}
             <motion.div
