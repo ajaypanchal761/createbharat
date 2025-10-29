@@ -134,12 +134,6 @@ const LoansPage = () => {
               <button className="px-4 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors font-medium">
                 All Schemes
               </button>
-              <button className="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium">
-                Micro Loans
-              </button>
-              <button className="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium">
-                Startup Loans
-              </button>
             </div>
           </div>
         </div>
@@ -198,24 +192,6 @@ const LoansPage = () => {
                       whileHover={{ opacity: 0.4 }}
                       className={`absolute inset-0 bg-gradient-to-t ${loan.color} opacity-30 rounded-lg transition-opacity duration-300`}
                     ></motion.div>
-
-                    {/* Floating Icon */}
-                    <motion.div
-                      animate={{
-                        y: [0, -3, 0],
-                        rotate: [0, 3, -3, 0]
-                      }}
-                      transition={{
-                        duration: 2.5,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                      className={`absolute top-1 right-1 w-6 h-6 md:w-7 md:h-7 bg-gradient-to-r ${loan.color} rounded-full flex items-center justify-center shadow-md`}
-                    >
-                      <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                      </svg>
-                    </motion.div>
                   </div>
 
                   {/* Title */}

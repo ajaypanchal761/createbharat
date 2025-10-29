@@ -224,53 +224,6 @@ const LoanDetailPage = () => {
                       </motion.div>
                     )}
 
-                    {/* Eligibility Section */}
-                    {loan.eligibility && loan.eligibility.length > 0 && (
-                      <motion.div
-                        className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm"
-                      >
-                        <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                          <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          Eligibility Criteria
-                        </h4>
-                        <ul className="space-y-2">
-                          {loan.eligibility.map((criteria, index) => (
-                            <li key={index} className="flex items-start">
-                              <svg className="w-4 h-4 text-green-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                              <span className="text-gray-700 text-sm">{criteria}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </motion.div>
-                    )}
-
-                    {/* Required Documents Section */}
-                    {loan.documents && loan.documents.length > 0 && (
-                      <motion.div
-                        className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm"
-                      >
-                        <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                          <svg className="w-5 h-5 text-purple-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          Required Documents
-                        </h4>
-                        <ul className="space-y-2">
-                          {loan.documents.map((document, index) => (
-                            <li key={index} className="flex items-start">
-                              <svg className="w-4 h-4 text-blue-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                              </svg>
-                              <span className="text-gray-700 text-sm">{document}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </motion.div>
-                    )}
                   </motion.div>
                 </motion.div>
               </motion.div>
@@ -282,38 +235,58 @@ const LoanDetailPage = () => {
                 variants={staggerContainer}
                 className="space-y-3 mb-8"
               >
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Required Documents</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-6">Required Documents</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {loan.documents && loan.documents.length > 0 ? (
                     loan.documents.map((document, index) => (
                       <motion.div
                         key={index}
                         variants={scaleIn}
-                        whileHover={{ scale: 1.02, y: -2 }}
+                        whileHover={{ scale: 1.03, y: -4 }}
                         whileTap={{ scale: 0.98 }}
-                        className="group"
+                        className="group relative"
                       >
-                        <div className="bg-white rounded-xl p-5 shadow-md border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3 flex-1">
-                              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        {/* Animated Border Glow */}
+                        <motion.div
+                          className="absolute -inset-0.5 bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-500 rounded-2xl blur opacity-60 group-hover:opacity-100 transition duration-300"
+                          animate={{
+                            background: [
+                              "linear-gradient(45deg, #60a5fa, #a78bfa, #818cf8)",
+                              "linear-gradient(45deg, #a78bfa, #818cf8, #60a5fa)",
+                              "linear-gradient(45deg, #818cf8, #60a5fa, #a78bfa)"
+                            ]
+                          }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                        />
+                        
+                        <div className="relative bg-gradient-to-br from-white to-blue-50 rounded-2xl p-6 shadow-lg border border-blue-100 hover:shadow-xl transition-all duration-300 h-full flex flex-col">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center gap-4 flex-1">
+                              <motion.div
+                                whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
+                                transition={{ duration: 0.5 }}
+                                className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
+                              >
+                                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
-                              </div>
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-gray-900 mb-1">{document}</h3>
-                                <p className="text-sm text-gray-600">Required document for loan application</p>
+                              </motion.div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-gray-900 mb-2 text-lg leading-tight">{document}</h3>
+                                <p className="text-sm text-gray-600 leading-relaxed">Required document for loan application</p>
                               </div>
                             </div>
+                          </div>
+                          <div className="mt-auto pt-4 border-t border-gray-200">
                             <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors shadow-md"
+                              whileHover={{ scale: 1.1, x: 5 }}
+                              whileTap={{ scale: 0.95 }}
+                              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                             >
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                               </svg>
+                              <span>View Details</span>
                             </motion.button>
                           </div>
                         </div>
@@ -547,199 +520,211 @@ const LoanDetailPage = () => {
             {loan.name}
           </motion.h2>
 
-          {/* Description */}
+          {/* About Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-8 w-full"
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="mb-6"
           >
             <motion.div
-              whileHover={{ scale: 1.02, y: -2 }}
-              className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-white/20 w-full"
+              whileHover={{ scale: 1.01 }}
+              className="bg-white/90 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-white/30 w-full"
             >
-              <p className="text-gray-700 leading-relaxed mb-4 text-sm w-full">
-                {loan.description || `The ${loan.name} is a government-backed financial assistance program designed to support entrepreneurs and businesses in India. This scheme provides access to affordable credit facilities with competitive interest rates and flexible repayment terms.`}
+              <h3 className="text-xl font-bold text-gray-900 mb-4">About {loan.name}</h3>
+              <p className="text-gray-700 leading-relaxed mb-6 text-sm">
+                {loan.description || `The ${loan.name} is a comprehensive government-backed financial assistance program designed to support entrepreneurs, startups, and established businesses across India. This flagship scheme provides access to affordable credit facilities with competitive interest rates, flexible repayment terms, and minimal documentation requirements.`}
               </p>
 
+              {/* Key Features */}
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4">
+                  <h4 className="font-semibold text-gray-900 mb-2 text-sm flex items-center gap-1">
+                    <span className="text-lg">💰</span>
+                    Loan Amount
+                  </h4>
+                  <p className="text-xs text-gray-700 font-medium">₹{loan.minAmount?.toLocaleString()} - ₹{loan.maxAmount?.toLocaleString()}</p>
+                </div>
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100 rounded-xl p-4">
+                  <h4 className="font-semibold text-gray-900 mb-2 text-sm flex items-center gap-1">
+                    <span className="text-lg">📈</span>
+                    Interest Rate
+                  </h4>
+                  <p className="text-xs text-gray-700 font-medium">{loan.interestRate || 'Contact for details'}</p>
+                </div>
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100 rounded-xl p-4">
+                  <h4 className="font-semibold text-gray-900 mb-2 text-sm flex items-center gap-1">
+                    <span className="text-lg">⏰</span>
+                    Repayment
+                  </h4>
+                  <p className="text-xs text-gray-700 font-medium">{loan.tenure || 'Flexible terms available'}</p>
+                </div>
+                <div className="bg-gradient-to-br from-orange-50 to-red-50 border border-orange-100 rounded-xl p-4">
+                  <h4 className="font-semibold text-gray-900 mb-2 text-sm flex items-center gap-1">
+                    <span className="text-lg">📋</span>
+                    Processing
+                  </h4>
+                  <p className="text-xs text-gray-700 font-medium">{loan.processingTime || 'Quick approval process'}</p>
+                </div>
+              </div>
+
               {/* Know More Button */}
-              <motion.button
-                whileHover={{ scale: 1.05, x: 5, boxShadow: "0 10px 25px rgba(59, 130, 246, 0.3)" }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowMoreInfo(!showMoreInfo)}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-full font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-300 flex items-center gap-2 shadow-lg"
-              >
-                {showMoreInfo ? 'Show Less' : 'Know More'}
-                <motion.svg
-                  animate={{ rotate: showMoreInfo ? 180 : 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div className="flex justify-center mb-4">
+                <motion.button
+                  whileHover={{ scale: 1.05, boxShadow: "0 10px 25px rgba(59, 130, 246, 0.3)" }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowMoreInfo(!showMoreInfo)}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-full font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-300 flex items-center gap-2 shadow-lg w-full sm:w-auto"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </motion.svg>
-              </motion.button>
-            </motion.div>
+                  {showMoreInfo ? 'Show Less' : 'Know More'}
+                  <motion.svg
+                    animate={{ rotate: showMoreInfo ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </motion.svg>
+                </motion.button>
+              </div>
 
-            {/* Additional Information */}
-            <motion.div
-              initial={false}
-              animate={{
-                height: showMoreInfo ? "auto" : 0,
-                opacity: showMoreInfo ? 1 : 0
-              }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="overflow-hidden"
-            >
+              {/* Additional Information */}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: showMoreInfo ? 1 : 0, y: showMoreInfo ? 0 : 20 }}
-                transition={{ duration: 0.3, delay: 0.1 }}
-                className="pt-4 space-y-4"
+                initial={false}
+                animate={{
+                  height: showMoreInfo ? "auto" : 0,
+                  opacity: showMoreInfo ? 1 : 0
+                }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="overflow-hidden"
               >
-                {/* Benefits Section */}
-                {loan.benefits && loan.benefits.length > 0 && (
-                  <motion.div
-                    whileHover={{ x: 5 }}
-                    className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border-l-4 border-green-500 w-full"
-                  >
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                      <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Benefits
-                    </h4>
-                    <ul className="space-y-2">
-                      {loan.benefits.map((benefit, index) => (
-                        <li key={index} className="flex items-start">
-                          <svg className="w-4 h-4 text-green-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          <span className="text-gray-700 text-sm">{benefit}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </motion.div>
-                )}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: showMoreInfo ? 1 : 0, y: showMoreInfo ? 0 : 20 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                  className="pt-4 space-y-4 border-t border-gray-200 mt-4"
+                >
+                  {/* Benefits Section */}
+                  {loan.benefits && loan.benefits.length > 0 && (
+                    <motion.div
+                      whileHover={{ x: 5 }}
+                      className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border-l-4 border-green-500"
+                    >
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                        <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Benefits
+                      </h4>
+                      <ul className="space-y-2">
+                        {loan.benefits.map((benefit, index) => (
+                          <li key={index} className="flex items-start">
+                            <svg className="w-4 h-4 text-green-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span className="text-gray-700 text-sm">{benefit}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  )}
 
-                {/* Eligibility Section */}
-                {loan.eligibility && loan.eligibility.length > 0 && (
-                  <motion.div
-                    whileHover={{ x: 5 }}
-                    className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border-l-4 border-blue-500 w-full"
-                  >
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                      <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      Eligibility Criteria
-                    </h4>
-                    <ul className="space-y-2">
-                      {loan.eligibility.map((criteria, index) => (
-                        <li key={index} className="flex items-start">
-                          <svg className="w-4 h-4 text-green-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          <span className="text-gray-700 text-sm">{criteria}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </motion.div>
-                )}
+                  {/* Eligibility Section */}
+                  {loan.eligibility && loan.eligibility.length > 0 && (
+                    <motion.div
+                      whileHover={{ x: 5 }}
+                      className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border-l-4 border-blue-500"
+                    >
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                        <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Eligibility Criteria
+                      </h4>
+                      <ul className="space-y-2">
+                        {loan.eligibility.map((criteria, index) => (
+                          <li key={index} className="flex items-start">
+                            <svg className="w-4 h-4 text-green-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span className="text-gray-700 text-sm">{criteria}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  )}
 
-                {/* Required Documents Section */}
-                {loan.documents && loan.documents.length > 0 && (
-                  <motion.div
-                    whileHover={{ x: 5 }}
-                    className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border-l-4 border-purple-500 w-full"
-                  >
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                      <svg className="w-5 h-5 text-purple-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      Required Documents
-                    </h4>
-                    <ul className="space-y-2">
-                      {loan.documents.map((document, index) => (
-                        <li key={index} className="flex items-start">
-                          <svg className="w-4 h-4 text-blue-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          <span className="text-gray-700 text-sm">{document}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </motion.div>
-                )}
+                  {/* Required Documents Section */}
+                  {loan.documents && loan.documents.length > 0 && (
+                    <motion.div
+                      whileHover={{ x: 5 }}
+                      className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border-l-4 border-purple-500"
+                    >
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                        <svg className="w-5 h-5 text-purple-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Required Documents
+                      </h4>
+                      <ul className="space-y-2">
+                        {loan.documents.map((document, index) => (
+                          <li key={index} className="flex items-start">
+                            <svg className="w-4 h-4 text-blue-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span className="text-gray-700 text-sm">{document}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  )}
+
+                </motion.div>
               </motion.div>
             </motion.div>
           </motion.div>
 
-          {/* Downloadable Checklists */}
+          {/* Quick Info Section */}
           <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={staggerContainer}
-            className="space-y-3 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mb-6"
           >
-            {loan.documents && loan.documents.length > 0 ? (
-              loan.documents.map((document, index) => (
-                <motion.div
-                  key={index}
-                  variants={scaleIn}
-                  whileHover={{ scale: 1.03, y: -5, rotateY: 5 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="relative group"
-                >
-                  {/* Animated Border */}
-                  <motion.div
-                    className="absolute -inset-1 bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 rounded-2xl blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"
-                    animate={{
-                      background: [
-                        "linear-gradient(45deg, #f97316, #ef4444, #ec4899)",
-                        "linear-gradient(45deg, #ec4899, #f97316, #ef4444)",
-                        "linear-gradient(45deg, #ef4444, #ec4899, #f97316)"
-                      ]
-                    }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                  />
-
-                  <div className="relative bg-white/90 backdrop-blur-lg rounded-xl p-4 shadow-lg border border-white/20">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <motion.div
-                          whileHover={{ rotate: 360, scale: 1.1 }}
-                          transition={{ duration: 0.6 }}
-                          className="w-8 h-8 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md"
-                        >
-                          <span className="text-white text-xs font-bold">PDF</span>
-                        </motion.div>
-                        <div>
-                          <h3 className="font-bold text-gray-900 text-xs mb-1">{document}</h3>
-                          <p className="text-xs text-gray-600">Required document for loan application</p>
-                        </div>
-                      </div>
-                      <motion.div
-                        whileHover={{ scale: 1.2, rotate: 10 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center cursor-pointer shadow-md"
-                      >
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      </motion.div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No documents specified</p>
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              className="bg-gradient-to-br from-white to-blue-50 rounded-2xl p-6 shadow-xl border border-blue-100 w-full"
+            >
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Quick Info
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                  <span className="text-gray-600 text-sm font-medium">Interest Rate</span>
+                  <span className="font-semibold text-green-600 text-sm">{loan.interestRate || 'Contact for details'}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                  <span className="text-gray-600 text-sm font-medium">Loan Amount</span>
+                  <span className="font-semibold text-blue-600 text-sm">₹{loan.minAmount?.toLocaleString()} - ₹{loan.maxAmount?.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                  <span className="text-gray-600 text-sm font-medium">Processing Time</span>
+                  <span className="font-semibold text-purple-600 text-sm">{loan.processingTime || 'Quick approval process'}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-600 text-sm font-medium">Repayment</span>
+                  <span className="font-semibold text-orange-600 text-sm">{loan.tenure || 'Flexible terms available'}</span>
+                </div>
               </div>
-            )}
+            </motion.div>
           </motion.div>
+
+
 
           {/* How To Apply Section */}
           <motion.div
