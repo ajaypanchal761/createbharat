@@ -160,11 +160,6 @@ const companySchema = new mongoose.Schema({
     gstCertificate: {
       url: String,
       verified: { type: Boolean, default: false }
-    },
-    panCard: {
-      number: String,
-      url: String,
-      verified: { type: Boolean, default: false }
     }
   }
 }, {

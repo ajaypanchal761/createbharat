@@ -16,7 +16,12 @@ const protect = async (req, res, next) => {
       token = req.cookies.token;
     }
 
-    if (!token) {
+    // Clean token if exists
+    if (token) {
+      token = token.trim().replace(/^["']|["']$/g, '');
+    }
+
+    if (!token || token === 'null' || token === 'undefined') {
       return res.status(401).json({
         success: false,
         message: 'Access denied. No token provided.'
@@ -25,11 +30,20 @@ const protect = async (req, res, next) => {
 
     try {
       // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-      
-      // Get user from token
-      const user = await User.findById(decoded.userId);
-      
+      const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
+      const decoded = jwt.verify(token, jwtSecret);
+
+      // Get user from token - support both userId and id
+      const userId = decoded.userId || decoded.id;
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid token: missing user ID'
+        });
+      }
+
+      const user = await User.findById(userId);
+
       if (!user) {
         return res.status(401).json({
           success: false,
@@ -44,12 +58,15 @@ const protect = async (req, res, next) => {
         });
       }
 
+      // Set user and ensure id is available
       req.user = user;
+      req.user.id = user._id.toString();
       next();
     } catch (error) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid token'
+        message: 'Invalid token',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
   } catch (error) {
@@ -91,7 +108,7 @@ const optionalAuth = async (req, res, next) => {
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
         const user = await User.findById(decoded.userId);
-        
+
         if (user && user.isActive) {
           req.user = user;
         }

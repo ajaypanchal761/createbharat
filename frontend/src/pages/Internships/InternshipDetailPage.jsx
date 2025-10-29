@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { internships } from '../../data/internships';
+import { internshipAPI } from '../../utils/api';
 import logo from '../../assets/logo.png';
 
 // Bottom Nav Icons
@@ -24,24 +24,49 @@ const InternshipDetailPage = () => {
   const { internshipId } = useParams();
   const navigate = useNavigate();
   const [internship, setInternship] = useState(null);
+  const [similarInternships, setSimilarInternships] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadInternship = async () => {
       try {
+        setIsLoading(true);
         const response = await internshipAPI.getById(internshipId);
-        if (response.success) {
-          setInternship(response.data.internship);
+        if (response.success && response.data.internship) {
+          const internshipData = response.data.internship;
+          setInternship(internshipData);
+
+          // Load similar internships based on category
+          if (internshipData.category) {
+            try {
+              const similarResponse = await internshipAPI.getAll({
+                category: internshipData.category,
+                limit: 10
+              });
+              if (similarResponse.success && similarResponse.data.internships) {
+                // Filter out current internship and normalize data
+                const similar = similarResponse.data.internships
+                  .filter(i => i._id !== internshipId)
+                  .slice(0, 3)
+                  .map(i => ({
+                    ...i,
+                    id: i._id || i.id,
+                    company: i.companyName || i.company?.companyName || 'Company',
+                    stipend: i.stipend || 'Not specified'
+                  }));
+                setSimilarInternships(similar);
+              }
+            } catch (error) {
+              console.error('Error loading similar internships:', error);
+              setSimilarInternships([]);
+            }
+          }
         } else {
-          // Fallback to mock data if API fails
-          const mockInternship = internships.find(i => i.id === internshipId);
-          setInternship(mockInternship);
+          setInternship(null);
         }
       } catch (error) {
         console.error('Error loading internship:', error);
-        // Fallback to mock data
-        const mockInternship = internships.find(i => i.id === internshipId);
-        setInternship(mockInternship);
+        setInternship(null);
       } finally {
         setIsLoading(false);
       }
@@ -133,7 +158,7 @@ const InternshipDetailPage = () => {
                   <div className="flex-1">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">{internship.title}</h1>
                     <div className="flex items-center gap-3 mb-4">
-                      <span className="text-xl font-semibold text-gray-700">{internship.company}</span>
+                      <span className="text-xl font-semibold text-gray-700">{internshipData.company}</span>
                       <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
                         Actively hiring
                       </span>
@@ -208,7 +233,7 @@ const InternshipDetailPage = () => {
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">Role Overview:</h3>
                   <ul className="space-y-3">
-                    {internship.responsibilities.slice(0, 3).map((responsibility, index) => (
+                    {internshipData.responsibilities && internshipData.responsibilities.length > 0 && internshipData.responsibilities.slice(0, 3).map((responsibility, index) => (
                       <li key={index} className="flex items-start gap-3">
                         <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
                         <span className="text-gray-700">{responsibility}</span>
@@ -303,10 +328,6 @@ const InternshipDetailPage = () => {
                   Apply Now
                 </button>
 
-                <button className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-200 transition-colors mb-4">
-                  Save for Later
-                </button>
-
                 <div className="text-center text-sm text-gray-500">
                   <p>Quick application • Resume upload • Instant confirmation</p>
                 </div>
@@ -314,11 +335,11 @@ const InternshipDetailPage = () => {
 
               {/* Company Info Card */}
               <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">About {internship.company}</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">About {internshipData.company}</h3>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <span className="text-lg">🏢</span>
-                    <span className="text-gray-700">{internship.company}</span>
+                    <span className="text-gray-700">{internshipData.company}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-lg">📍</span>
@@ -332,23 +353,29 @@ const InternshipDetailPage = () => {
               </div>
 
               {/* Similar Internships */}
-              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Similar Internships</h3>
-                <div className="space-y-4">
-                  {internships.filter(i => i.category === internship.category && i.id !== internship.id).slice(0, 3).map((similarInternship) => (
-                    <div key={similarInternship.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
-                      <h4 className="font-semibold text-gray-900 mb-1">{similarInternship.title}</h4>
-                      <p className="text-sm text-gray-600 mb-2">{similarInternship.company}</p>
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <span>📍</span>
-                        <span>{similarInternship.location}</span>
-                        <span>•</span>
-                        <span>{similarInternship.stipend}</span>
-                      </div>
-                    </div>
-                  ))}
+              {similarInternships.length > 0 && (
+                <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Similar Internships</h3>
+                  <div className="space-y-4">
+                    {similarInternships.map((similarInternship) => (
+                      <Link
+                        key={similarInternship.id}
+                        to={`/internships/${similarInternship.id}`}
+                        className="block border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                      >
+                        <h4 className="font-semibold text-gray-900 mb-1">{similarInternship.title}</h4>
+                        <p className="text-sm text-gray-600 mb-2">{similarInternship.company}</p>
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <span>📍</span>
+                          <span>{similarInternship.location}</span>
+                          <span>•</span>
+                          <span>{similarInternship.stipend}</span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -370,7 +397,7 @@ const InternshipDetailPage = () => {
             </motion.h1>
 
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-gray-700 font-medium">{internship.company}</span>
+              <span className="text-gray-700 font-medium">{internshipData.company}</span>
               <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
                 Actively hiring
               </span>
@@ -455,7 +482,7 @@ const InternshipDetailPage = () => {
             <div className="mb-4">
               <h3 className="text-sm font-medium text-gray-800 mb-2">Role Overview:</h3>
               <ul className="space-y-2">
-                {internship.responsibilities.slice(0, 2).map((responsibility, index) => (
+                {internshipData.responsibilities && internshipData.responsibilities.length > 0 && internshipData.responsibilities.slice(0, 2).map((responsibility, index) => (
                   <li key={index} className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span>
                     <span className="text-sm text-gray-700">{responsibility}</span>

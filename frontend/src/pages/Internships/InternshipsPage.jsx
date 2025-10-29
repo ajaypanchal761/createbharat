@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { internships, internshipCategories } from '../../data/internships';
 import BottomNavbar from '../../components/common/BottomNavbar';
 import logo from '../../assets/logo.png';
 import { internshipAPI } from '../../utils/api';
@@ -18,20 +17,30 @@ const ClipboardIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="
 const UserIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>);
 
 const InternshipsPage = () => {
-  const navigate = useNavigate();
-
   const [apiInternships, setApiInternships] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadInternships = async () => {
       try {
-        const response = await internshipAPI.getAll({ featured: 'true', limit: 20 });
+        setIsLoading(true);
+        // Load all internships (no filters initially)
+        const response = await internshipAPI.getAll({ limit: 100 });
         if (response.success && response.data.internships) {
-          setApiInternships(response.data.internships);
+          const normalized = response.data.internships.map(i => ({
+            ...i,
+            id: i._id || i.id,
+            company: i.companyName || i.company?.companyName || 'Company',
+            stipendPerMonth: i.stipendPerMonth || '/month',
+            postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
+            icon: i.icon || '💼',
+            color: i.color || 'from-blue-500 to-cyan-500'
+          }));
+          setApiInternships(normalized);
         }
       } catch (error) {
         console.error('Error loading internships:', error);
+        setApiInternships([]); // Set empty array on error
       } finally {
         setIsLoading(false);
       }
@@ -40,21 +49,32 @@ const InternshipsPage = () => {
     loadInternships();
   }, []);
 
-  // Use API internships if available, else fallback to mock data
-  const allInternships = apiInternships.length > 0
-    ? apiInternships.map(i => ({
-      ...i,
-      id: i._id,
-      company: i.companyName || i.company?.companyName || 'Company',
-      stipendPerMonth: i.stipendPerMonth || '/month',
-      postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
-      icon: i.icon || '💼',
-      color: i.color || 'from-blue-500 to-cyan-500'
-    }))
-    : internships;
+  // Normalize internships data
+  const allInternships = apiInternships.map(i => ({
+    ...i,
+    id: i._id || i.id,
+    company: i.companyName || i.company?.companyName || 'Company',
+    stipendPerMonth: i.stipendPerMonth || '/month',
+    postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
+    icon: i.icon || '💼',
+    color: i.color || 'from-blue-500 to-cyan-500'
+  }));
 
   const trendingInternships = allInternships.filter(internship => internship.featured || internship.popular).slice(0, 6);
-  const recommendedInternships = allInternships.slice(0, 8);
+  // Recommended internships - only those marked as recommended, popular, or featured
+  const recommendedInternships = allInternships.filter(internship =>
+    internship.featured || internship.popular || internship.recommended
+  ).slice(0, 8);
+  // All internships for "All Internships" section
+  const allInternshipsList = allInternships;
+
+  // Update filteredInternships when recommendedInternships changes
+  useEffect(() => {
+    if (recommendedInternships.length > 0) {
+      setFilteredInternships(recommendedInternships);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiInternships.length]);
   const scrollContainerRef = useRef(null);
   const recommendedScrollRef = useRef(null);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
@@ -78,55 +98,108 @@ const InternshipsPage = () => {
     workType: '',
     duration: ''
   });
-  const [filteredInternships, setFilteredInternships] = useState(recommendedInternships);
+  const [filteredInternships, setFilteredInternships] = useState([]);
 
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({ ...prev, [filterType]: value }));
   };
 
-  const applyFilters = () => {
-    let filtered = [...internships];
-    if (filters.location && filters.location !== 'All') {
-      filtered = filtered.filter(i => i.location && i.location.toLowerCase().includes(filters.location.toLowerCase()));
-    }
-    if (filters.domain && filters.domain !== 'All') {
-      filtered = filtered.filter(i => i.category === filters.domain);
-    }
-    if (filters.workType && filters.workType !== 'All') {
-      filtered = filtered.filter(i => i.type === filters.workType);
-    }
-    if (filters.stipendRange && filters.stipendRange !== 'All') {
-      filtered = filtered.filter(i => {
-        const stipend = parseInt((i.stipend || '').replace(/[^\d]/g, '')) || 0;
-        switch (filters.stipendRange) {
-          case '0-10k': return stipend <= 10000;
-          case '10k-20k': return stipend > 10000 && stipend <= 20000;
-          case '20k-30k': return stipend > 20000 && stipend <= 30000;
-          case '30k-50k': return stipend > 30000 && stipend <= 50000;
-          case '50k+': return stipend > 50000;
-          default: return true;
+  const applyFilters = async () => {
+    try {
+      setIsLoading(true);
+      // Build backend filter params
+      const params = { limit: 50 };
+
+      if (filters.domain && filters.domain !== 'All') {
+        params.category = filters.domain;
+      }
+
+      if (filters.location && filters.location !== 'All') {
+        // Extract location name if it's in format "Type (Location)"
+        let locationName = filters.location;
+        if (locationName.includes('(')) {
+          locationName = locationName.split('(')[1].replace(')', '').trim();
         }
-      });
+
+        // Check if remote
+        if (filters.location.toLowerCase().includes('remote')) {
+          params.remote = 'true';
+        } else {
+          params.location = locationName;
+        }
+      }
+
+      if (filters.workType && filters.workType !== 'All') {
+        params.type = filters.workType;
+      }
+
+      // Fetch filtered internships from backend
+      const response = await internshipAPI.getAll(params);
+      if (response.success && response.data.internships) {
+        const normalized = response.data.internships.map(i => ({
+          ...i,
+          id: i._id || i.id,
+          company: i.companyName || i.company?.companyName || 'Company',
+          stipendPerMonth: i.stipendPerMonth || '/month',
+          postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
+          icon: i.icon || '💼',
+          color: i.color || 'from-blue-500 to-cyan-500'
+        }));
+
+        // Apply client-side stipend range filter if needed
+        let filtered = normalized;
+        if (filters.stipendRange && filters.stipendRange !== 'All') {
+          filtered = normalized.filter(i => {
+            const stipend = parseInt((i.stipend || '').replace(/[^\d]/g, '')) || 0;
+            switch (filters.stipendRange) {
+              case '0-10k': return stipend <= 10000;
+              case '10k-20k': return stipend > 10000 && stipend <= 20000;
+              case '20k-30k': return stipend > 20000 && stipend <= 30000;
+              case '30k-50k': return stipend > 30000 && stipend <= 50000;
+              case '50k+': return stipend > 50000;
+              default: return true;
+            }
+          });
+        }
+
+        setFilteredInternships(filtered);
+        setApiInternships(filtered); // Update main list
+      }
+    } catch (error) {
+      console.error('Error applying filters:', error);
+    } finally {
+      setIsLoading(false);
+      setIsFilterOpen(false);
     }
-    setFilteredInternships(filtered.slice(0, 8));
-    setIsFilterOpen(false);
   };
 
-  const clearFilters = () => {
+  const clearFilters = async () => {
     setFilters({ location: '', domain: '', datePosted: '', stipendRange: '', workType: '', duration: '' });
-    setFilteredInternships(recommendedInternships);
+    try {
+      setIsLoading(true);
+      // Reload all internships
+      const response = await internshipAPI.getAll({ limit: 100 });
+      if (response.success && response.data.internships) {
+        const normalized = response.data.internships.map(i => ({
+          ...i,
+          id: i._id || i.id,
+          company: i.companyName || i.company?.companyName || 'Company',
+          stipendPerMonth: i.stipendPerMonth || '/month',
+          postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
+          icon: i.icon || '💼',
+          color: i.color || 'from-blue-500 to-cyan-500'
+        }));
+        setApiInternships(normalized);
+        setFilteredInternships(normalized.slice(0, 8));
+      }
+    } catch (error) {
+      console.error('Error clearing filters:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getActiveFiltersCount = () => Object.values(filters).filter(v => v && v !== 'All').length;
-
-  const scaleIn = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: { duration: 0.5, ease: "easeOut" }
-    }
-  };
 
   // Premium professional background colors for trending cards
   const cardBackgrounds = [
@@ -184,6 +257,15 @@ const InternshipsPage = () => {
 
   return (
     <div className="min-h-screen pb-20 relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 md:bg-gradient-to-br md:from-gray-50 md:via-blue-50 md:to-indigo-50">
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading internships...</p>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Header */}
       <motion.header
@@ -309,426 +391,323 @@ const InternshipsPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="relative px-4 pt-6 pb-4 z-10 md:px-8 md:py-8">
-        {/* Desktop Layout */}
-        <div className="hidden md:block max-w-7xl mx-auto">
-          <div className="space-y-12">
-            {/* Desktop Trending Internships Section */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl font-bold text-gray-900">✨ Trending Internships</h2>
-                <button className="text-orange-600 hover:text-orange-700 font-semibold">View All</button>
-              </div>
+      {!isLoading && (
+        <div className="relative px-4 pt-6 pb-4 z-10 md:px-8 md:py-8">
+          {/* Desktop Layout */}
+          <div className="hidden md:block max-w-7xl mx-auto">
+            <div className="space-y-12">
+              {/* Desktop Trending Internships Section - Only show if data exists */}
+              {trendingInternships.length > 0 && (
+                <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
+                  <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-3xl font-bold text-gray-900">✨ Trending Internships</h2>
+                    <button className="text-orange-600 hover:text-orange-700 font-semibold">View All</button>
+                  </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {trendingInternships.slice(0, 6).map((internship, index) => (
-                  <motion.div
-                    key={internship.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    whileHover={{ scale: 1.02, y: -4 }}
-                    className={`bg-gradient-to-br ${cardBackgrounds[index % cardBackgrounds.length]} rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer`}
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="font-bold text-lg mb-1">{internship.company}</h3>
-                        <span className="px-2 py-1 bg-white/20 text-white text-xs font-medium rounded-full">
-                          Actively hiring
-                        </span>
-                      </div>
-                      <div className={`w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center text-xl`}>
-                        {internship.icon}
-                      </div>
-                    </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {trendingInternships.slice(0, 6).map((internship, index) => (
+                      <motion.div
+                        key={internship.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                        whileHover={{ scale: 1.02, y: -4 }}
+                        className={`bg-gradient-to-br ${cardBackgrounds[index % cardBackgrounds.length]} rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer`}
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-lg mb-1">{internship.company}</h3>
+                            <span className="px-2 py-1 bg-white/20 text-white text-xs font-medium rounded-full">
+                              Actively hiring
+                            </span>
+                          </div>
+                          <div className={`w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center text-xl`}>
+                            {internship.icon}
+                          </div>
+                        </div>
 
-                    <h4 className="font-semibold text-lg mb-4">{internship.title}</h4>
+                        <h4 className="font-semibold text-lg mb-4">{internship.title}</h4>
 
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-white/90">
-                        <span>📍</span>
-                        <span>{internship.location}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-white/90">
-                        <span>💼</span>
-                        <span>{internship.duration} experience</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-white/90">
-                        <span>💰</span>
-                        <span>{internship.stipend}/month</span>
-                      </div>
-                    </div>
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center gap-2 text-sm text-white/90">
+                            <span>📍</span>
+                            <span>{internship.location}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-white/90">
+                            <span>💼</span>
+                            <span>{internship.duration} experience</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-white/90">
+                            <span>💰</span>
+                            <span>{internship.stipend}/month</span>
+                          </div>
+                        </div>
 
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="px-2 py-1 bg-white/20 text-white text-xs rounded-md">
-                        {internship.postedDate}
-                      </span>
-                      <span className="px-2 py-1 bg-white/20 text-white text-xs font-medium rounded-full">
-                        Internship
-                      </span>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Link to={`/internships/${internship.id}`}>
-                        <button className="bg-white text-gray-900 text-center py-2 px-4 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors flex-1">
-                          Apply Now
-                        </button>
-                      </Link>
-                      <Link to={`/internships/${internship.id}`}>
-                        <button className="bg-white/20 border border-white/30 text-white text-center py-2 px-4 rounded-lg font-semibold text-sm hover:bg-white/30 transition-colors">
-                          Know More
-                        </button>
-                      </Link>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Desktop Recommended Internships Section */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl font-bold text-gray-900">Recommended For You</h2>
-                <button className="text-orange-600 hover:text-orange-700 font-semibold">View All</button>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
-                {filteredInternships.slice(0, 8).map((internship, index) => (
-                  <motion.div
-                    key={internship.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    whileHover={{ scale: 1.02, y: -4 }}
-                    className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg border border-gray-200 transition-all duration-300 relative flex flex-col h-full"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="font-bold text-gray-900 text-lg mb-1">{internship.company}</h3>
-                        <span className="px-2 py-1 bg-orange-50 text-orange-600 text-xs font-medium rounded-full">
-                          Actively hiring
-                        </span>
-                      </div>
-                      <div className={`w-12 h-12 bg-gradient-to-br ${internship.color} rounded-lg flex items-center justify-center text-xl shadow-sm`}>
-                        {internship.icon}
-                      </div>
-                    </div>
-
-                    <h4 className="font-semibold text-gray-800 text-base mb-4 line-clamp-2">{internship.title}</h4>
-
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span>📍</span>
-                        <span>{internship.location}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span>💼</span>
-                        <span>{internship.duration} experience</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span>💰</span>
-                        <span>{internship.stipend}/month</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">
-                        {internship.postedDate}
-                      </span>
-                      <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
-                        Internship
-                      </span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 mb-4 min-h-[24px]">
-                      {internship.popular && (
-                        <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
-                          Popular
-                        </span>
-                      )}
-                      {internship.remote && (
-                        <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
-                          Remote
-                        </span>
-                      )}
-                      {internship.urgent && (
-                        <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                          Urgent
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="mt-auto">
-                      <Link to={`/internships/${internship.id}`}>
-                        <button className="w-full bg-orange-600 text-white text-center py-2.5 rounded-lg font-semibold text-sm hover:bg-orange-700 transition-colors">
-                          View Details
-                        </button>
-                      </Link>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Placement courses removed for internships page */}
-          </div>
-        </div>
-
-        {/* Mobile Layout */}
-        <div className="md:hidden">
-          {/* Mobile Trending Internships Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="mb-8"
-          >
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-              className="text-2xl font-bold text-gray-900 mb-6 relative"
-            >
-              <span className="relative z-10">✨ Trending Internship</span>
-              <motion.div
-                aria-hidden="true"
-                animate={{ opacity: [0.15, 0.3, 0.15] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="pointer-events-none absolute -inset-2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl blur-sm z-0"
-              />
-            </motion.h2>
-
-            {/* Horizontal Scrollable Banners */}
-            <div className="overflow-hidden">
-              <div
-                ref={scrollContainerRef}
-                className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory px-4"
-              >
-                {trendingInternships.map((internship, index) => (
-                  <motion.div
-                    key={internship.id}
-                    initial={{ opacity: 0, x: 50, rotateY: -20 }}
-                    animate={{ opacity: 1, x: 0, rotateY: 0 }}
-                    viewport={{ amount: 0.3 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    whileHover={{ scale: 1.05, y: -8 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`flex-shrink-0 w-80 md:w-64 h-80 md:h-64 bg-gradient-to-br ${cardBackgrounds[index % cardBackgrounds.length]} rounded-2xl p-4 border-2 border-white/20 shadow-2xl hover:shadow-3xl hover:border-white/40 transition-all duration-500 snap-start cursor-pointer backdrop-blur-sm relative overflow-hidden group`}
-                  >
-                    {/* Floating Elements */}
-                    <motion.div
-                      animate={{
-                        y: [-10, 10, -10],
-                        rotate: [0, 180, 360],
-                        opacity: [0.3, 0.7, 0.3]
-                      }}
-                      transition={{
-                        duration: 4,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                      className="absolute top-4 right-4 w-8 h-8 bg-white/20 rounded-full blur-sm"
-                    />
-                    <motion.div
-                      animate={{
-                        x: [-5, 5, -5],
-                        scale: [1, 1.2, 1],
-                        opacity: [0.4, 0.8, 0.4]
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: 1
-                      }}
-                      className="absolute bottom-4 left-4 w-6 h-6 bg-white/30 rounded-lg blur-sm"
-                    />
-
-                    {/* Company Header */}
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-bold text-white text-lg mb-1">
-                          {internship.company}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-1 bg-white/20 text-white text-xs font-medium rounded-full border border-white/30 backdrop-blur-sm">
-                            Actively hiring
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="px-2 py-1 bg-white/20 text-white text-xs rounded-md">
+                            {internship.postedDate}
+                          </span>
+                          <span className="px-2 py-1 bg-white/20 text-white text-xs font-medium rounded-full">
+                            Internship
                           </span>
                         </div>
-                      </div>
-                      <motion.div
-                        whileHover={{ rotate: 360, scale: 1.1 }}
-                        transition={{ duration: 0.6 }}
-                        className={`w-10 h-10 bg-gradient-to-br ${internship.color} rounded-lg flex items-center justify-center text-lg shadow-sm flex-shrink-0`}
-                      >
-                        {internship.icon}
+
+                        <div className="flex gap-2">
+                          <Link to={`/internships/${internship.id}`}>
+                            <button className="bg-white text-gray-900 text-center py-2 px-4 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors flex-1">
+                              Apply Now
+                            </button>
+                          </Link>
+                          <Link to={`/internships/${internship.id}`}>
+                            <button className="bg-white/20 border border-white/30 text-white text-center py-2 px-4 rounded-lg font-semibold text-sm hover:bg-white/30 transition-colors">
+                              Know More
+                            </button>
+                          </Link>
+                        </div>
                       </motion.div>
-                    </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-                    {/* Job Title */}
-                    <h4 className="font-semibold text-white text-base mb-3">
-                      {internship.title}
-                    </h4>
+              {/* Desktop All Internships Section */}
+              {allInternshipsList.length > 0 && (
+                <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
+                  <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-3xl font-bold text-gray-900">All Internships</h2>
+                    <button className="text-orange-600 hover:text-orange-700 font-semibold">View All</button>
+                  </div>
 
-                    {/* Details with Icons */}
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-white/90">
-                        <span className="text-lg">📍</span>
-                        <span>{internship.location}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-sm text-white/90">
-                        <span className="text-lg">💼</span>
-                        <span>{internship.duration} experience</span>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-sm text-white/90">
-                        <span className="text-lg">💰</span>
-                        <span>{internship.stipend}/month</span>
-                      </div>
-                    </div>
-
-                    {/* Bottom Section */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <span className="px-1.5 py-0.5 bg-white/20 text-white/90 text-xs rounded-md backdrop-blur-sm">
-                          {internship.postedDate}
-                        </span>
-                      </div>
-                      <span className="px-2 py-1 bg-white/20 text-white text-xs font-medium rounded-full backdrop-blur-sm">
-                        Internship
-                      </span>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2">
-                      <Link to={`/internships/${internship.id}`}>
-                        <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className="bg-indigo-600 text-white text-center py-1.5 px-3 rounded-lg font-semibold text-xs hover:bg-indigo-700 transition-colors shadow-md"
-                        >
-                          Apply Now
-                        </motion.div>
-                      </Link>
-                      <Link to={`/internships/${internship.id}`}>
-                        <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className="bg-white border-2 border-indigo-600 text-indigo-600 text-center py-1.5 px-3 rounded-lg font-semibold text-xs hover:bg-indigo-50 transition-colors"
-                        >
-                          Know More
-                        </motion.div>
-                      </Link>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Dots Indicator */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              viewport={{ amount: 0.1 }}
-              transition={{ delay: 0.5 }}
-              className="flex justify-center gap-2 mt-3"
-            >
-              {trendingInternships.map((_, index) => (
-                <motion.button
-                  key={index}
-                  whileHover={{ scale: 1.3 }}
-                  whileTap={{ scale: 0.8 }}
-                  onClick={() => {
-                    if (scrollContainerRef.current) {
-                      const cardWidth = 336; // w-80 = 320px + 16px gap
-                      scrollContainerRef.current.scrollTo({
-                        left: cardWidth * index,
-                        behavior: 'smooth'
-                      });
-                    }
-                  }}
-                  className={`h-2 rounded-full transition-all duration-300 ${activeCardIndex === index
-                      ? 'w-8 bg-indigo-600'
-                      : 'w-2 bg-gray-300 hover:bg-gray-400'
-                    }`}
-                />
-              ))}
-            </motion.div>
-          </motion.div>
-
-          {/* Recommended For You Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
-            className="bg-white border border-gray-200 rounded-3xl -mx-4 px-4 py-6 mb-8 shadow-sm relative overflow-hidden"
-          >
-
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
-              className="text-2xl font-bold text-gray-900 mb-6 relative"
-            >
-              <span className="relative z-10">Recommended For You</span>
-              <motion.div
-                aria-hidden="true"
-                animate={{ opacity: [0.15, 0.3, 0.15] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="pointer-events-none absolute -inset-2 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 rounded-xl blur-sm z-0"
-              />
-            </motion.h2>
-
-            {/* Cards Grid */}
-            <div className="overflow-hidden">
-              <motion.div
-                ref={recommendedScrollRef}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, ease: "easeOut", delay: 0.4 }}
-                className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory px-4"
-              >
-                {filteredInternships.map((internship, idx) => (
-                  <motion.div
-                    key={internship.id}
-                    initial={{
-                      opacity: 0,
-                      y: 50,
-                      scale: 0.8,
-                      rotateX: -15
-                    }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                      scale: 1,
-                      rotateX: 0
-                    }}
-                    viewport={{
-                      once: false,
-                      amount: 0.3,
-                      margin: "-50px"
-                    }}
-                    transition={{
-                      duration: 0.6,
-                      ease: "easeOut",
-                      delay: idx * 0.1
-                    }}
-                  >
-                    <Link to={`/internships/${internship.id}`}>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+                    {allInternshipsList.slice(0, 12).map((internship) => (
                       <motion.div
+                        key={internship.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        whileHover={{ scale: 1.02, y: -4 }}
+                        className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg border border-gray-200 transition-all duration-300 relative flex flex-col h-full"
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-gray-900 text-lg mb-1">{internship.company}</h3>
+                            <span className="px-2 py-1 bg-orange-50 text-orange-600 text-xs font-medium rounded-full">
+                              Actively hiring
+                            </span>
+                          </div>
+                          <div className={`w-12 h-12 bg-gradient-to-br ${internship.color} rounded-lg flex items-center justify-center text-xl shadow-sm`}>
+                            {internship.icon}
+                          </div>
+                        </div>
+
+                        <h4 className="font-semibold text-gray-800 text-base mb-4 line-clamp-2">{internship.title}</h4>
+
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <span>📍</span>
+                            <span>{internship.location}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <span>💼</span>
+                            <span>{internship.duration} experience</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <span>💰</span>
+                            <span>{internship.stipend}/month</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">
+                            {internship.postedDate}
+                          </span>
+                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                            Internship
+                          </span>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 mb-4 min-h-[24px]">
+                          {internship.popular && (
+                            <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
+                              Popular
+                            </span>
+                          )}
+                          {internship.remote && (
+                            <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                              Remote
+                            </span>
+                          )}
+                          {internship.urgent && (
+                            <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+                              Urgent
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="mt-auto">
+                          <Link to={`/internships/${internship.id}`}>
+                            <button className="w-full bg-orange-600 text-white text-center py-2.5 rounded-lg font-semibold text-sm hover:bg-orange-700 transition-colors">
+                              View Details
+                            </button>
+                          </Link>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Desktop Recommended Internships Section - Only show if recommended data exists */}
+              {recommendedInternships.length > 0 && (
+                <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
+                  <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-3xl font-bold text-gray-900">Recommended For You</h2>
+                    <button className="text-orange-600 hover:text-orange-700 font-semibold">View All</button>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+                    {recommendedInternships.slice(0, 8).map((internship, index) => (
+                      <motion.div
+                        key={internship.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                        whileHover={{ scale: 1.02, y: -4 }}
+                        className="bg-white border border-gray-200 rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer"
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-lg mb-1 text-gray-900">{internship.company}</h3>
+                            <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded-full">
+                              Actively hiring
+                            </span>
+                          </div>
+                          <div className={`w-12 h-12 bg-gradient-to-br ${internship.color || 'from-blue-500 to-cyan-500'} rounded-lg flex items-center justify-center text-xl text-white`}>
+                            {internship.icon}
+                          </div>
+                        </div>
+
+                        <h4 className="font-semibold text-lg mb-4 text-gray-900">{internship.title}</h4>
+
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <span>📍</span>
+                            <span>{internship.location}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <span>💼</span>
+                            <span>{internship.duration}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <span>💰</span>
+                            <span>{internship.stipend}{internship.stipendPerMonth || '/month'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md">
+                            {internship.postedDate}
+                          </span>
+                          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                            {internship.category || 'Internship'}
+                          </span>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Link to={`/internships/${internship.id}`}>
+                            <button className="w-full bg-orange-600 text-white text-center py-2.5 rounded-lg font-semibold text-sm hover:bg-orange-700 transition-colors">
+                              View Details
+                            </button>
+                          </Link>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Placement courses removed for internships page */}
+            </div>
+          </div>
+
+          {/* Mobile Layout */}
+          <div className="md:hidden">
+            {/* Mobile Trending Internships Section - Only show if data exists */}
+            {trendingInternships.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="mb-8"
+              >
+                <motion.h2
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+                  className="text-2xl font-bold text-gray-900 mb-6 relative"
+                >
+                  <span className="relative z-10">✨ Trending Internship</span>
+                  <motion.div
+                    aria-hidden="true"
+                    animate={{ opacity: [0.15, 0.3, 0.15] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    className="pointer-events-none absolute -inset-2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl blur-sm z-0"
+                  />
+                </motion.h2>
+
+                {/* Horizontal Scrollable Banners */}
+                <div className="overflow-hidden">
+                  <div
+                    ref={scrollContainerRef}
+                    className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory px-4"
+                  >
+                    {trendingInternships.map((internship, index) => (
+                      <motion.div
+                        key={internship.id}
+                        initial={{ opacity: 0, x: 50, rotateY: -20 }}
+                        animate={{ opacity: 1, x: 0, rotateY: 0 }}
+                        viewport={{ amount: 0.3 }}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
                         whileHover={{ scale: 1.05, y: -8 }}
                         whileTap={{ scale: 0.98 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                        className="flex-shrink-0 w-80 md:w-64 bg-gray-50 rounded-xl p-4 border-2 border-gray-300 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer snap-start"
+                        className={`flex-shrink-0 w-80 md:w-64 h-80 md:h-64 bg-gradient-to-br ${cardBackgrounds[index % cardBackgrounds.length]} rounded-2xl p-4 border-2 border-white/20 shadow-2xl hover:shadow-3xl hover:border-white/40 transition-all duration-500 snap-start cursor-pointer backdrop-blur-sm relative overflow-hidden group`}
                       >
+                        {/* Floating Elements */}
+                        <motion.div
+                          animate={{
+                            y: [-10, 10, -10],
+                            rotate: [0, 180, 360],
+                            opacity: [0.3, 0.7, 0.3]
+                          }}
+                          transition={{
+                            duration: 4,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                          className="absolute top-4 right-4 w-8 h-8 bg-white/20 rounded-full blur-sm"
+                        />
+                        <motion.div
+                          animate={{
+                            x: [-5, 5, -5],
+                            scale: [1, 1.2, 1],
+                            opacity: [0.4, 0.8, 0.4]
+                          }}
+                          transition={{
+                            duration: 3,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: 1
+                          }}
+                          className="absolute bottom-4 left-4 w-6 h-6 bg-white/30 rounded-lg blur-sm"
+                        />
+
                         {/* Company Header */}
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
-                            <h3 className="font-bold text-gray-900 text-lg mb-1">
+                            <h3 className="font-bold text-white text-lg mb-1">
                               {internship.company}
                             </h3>
                             <div className="flex items-center gap-2">
-                              <span className="px-2 py-1 bg-orange-50 text-orange-600 text-xs font-medium rounded-full border border-orange-200">
+                              <span className="px-2 py-1 bg-white/20 text-white text-xs font-medium rounded-full border border-white/30 backdrop-blur-sm">
                                 Actively hiring
                               </span>
                             </div>
@@ -743,23 +722,23 @@ const InternshipsPage = () => {
                         </div>
 
                         {/* Job Title */}
-                        <h4 className="font-semibold text-gray-800 text-base mb-3">
+                        <h4 className="font-semibold text-white text-base mb-3">
                           {internship.title}
                         </h4>
 
                         {/* Details with Icons */}
                         <div className="space-y-2 mb-4">
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <div className="flex items-center gap-2 text-sm text-white/90">
                             <span className="text-lg">📍</span>
                             <span>{internship.location}</span>
                           </div>
 
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <div className="flex items-center gap-2 text-sm text-white/90">
                             <span className="text-lg">💼</span>
                             <span>{internship.duration} experience</span>
                           </div>
 
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <div className="flex items-center gap-2 text-sm text-white/90">
                             <span className="text-lg">💰</span>
                             <span>{internship.stipend}/month</span>
                           </div>
@@ -768,77 +747,252 @@ const InternshipsPage = () => {
                         {/* Bottom Section */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1">
-                            <span className="px-1.5 py-0.5 bg-gray-100 text-gray-500 text-xs rounded-md">
+                            <span className="px-1.5 py-0.5 bg-white/20 text-white/90 text-xs rounded-md backdrop-blur-sm">
                               {internship.postedDate}
                             </span>
                           </div>
-                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                          <span className="px-2 py-1 bg-white/20 text-white text-xs font-medium rounded-full backdrop-blur-sm">
                             Internship
                           </span>
                         </div>
 
-                        {/* Tags */}
-                        <div className="flex flex-wrap gap-2">
-                          {internship.popular && (
-                            <motion.span
-                              animate={{ scale: [1, 1.05, 1] }}
-                              transition={{ repeat: Infinity, duration: 2 }}
-                              className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full"
+                        {/* Action Buttons */}
+                        <div className="flex gap-2">
+                          <Link to={`/internships/${internship.id}`}>
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              className="bg-indigo-600 text-white text-center py-1.5 px-3 rounded-lg font-semibold text-xs hover:bg-indigo-700 transition-colors shadow-md"
                             >
-                              Popular
-                            </motion.span>
-                          )}
-                          {internship.remote && (
-                            <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
-                              Remote
-                            </span>
-                          )}
-                          {internship.urgent && (
-                            <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                              Urgent
-                            </span>
-                          )}
+                              Apply Now
+                            </motion.div>
+                          </Link>
+                          <Link to={`/internships/${internship.id}`}>
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              className="bg-white border-2 border-indigo-600 text-indigo-600 text-center py-1.5 px-3 rounded-lg font-semibold text-xs hover:bg-indigo-50 transition-colors"
+                            >
+                              Know More
+                            </motion.div>
+                          </Link>
                         </div>
                       </motion.div>
-                    </Link>
-                  </motion.div>
-                ))}
+                    ))}
+                  </div>
+                </div>
+
+                {/* Dots Indicator */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  viewport={{ amount: 0.1 }}
+                  transition={{ delay: 0.5 }}
+                  className="flex justify-center gap-2 mt-3"
+                >
+                  {trendingInternships.map((_, index) => (
+                    <motion.button
+                      key={index}
+                      whileHover={{ scale: 1.3 }}
+                      whileTap={{ scale: 0.8 }}
+                      onClick={() => {
+                        if (scrollContainerRef.current) {
+                          const cardWidth = 336; // w-80 = 320px + 16px gap
+                          scrollContainerRef.current.scrollTo({
+                            left: cardWidth * index,
+                            behavior: 'smooth'
+                          });
+                        }
+                      }}
+                      className={`h-2 rounded-full transition-all duration-300 ${activeCardIndex === index
+                        ? 'w-8 bg-indigo-600'
+                        : 'w-2 bg-gray-300 hover:bg-gray-400'
+                        }`}
+                    />
+                  ))}
+                </motion.div>
               </motion.div>
-            </div>
+            )}
 
-            {/* Dots Indicator */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, ease: "easeOut", delay: 0.6 }}
-              className="flex justify-center gap-2 mt-4"
-            >
-              {filteredInternships.map((_, index) => (
-                <motion.button
-                  key={index}
-                  whileHover={{ scale: 1.2 }}
-                  whileTap={{ scale: 0.9 }}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${activeRecommendedIndex === index
-                      ? 'bg-indigo-600 w-6'
-                      : 'bg-gray-300'
-                    }`}
-                  onClick={() => {
-                    if (recommendedScrollRef.current) {
-                      const cardWidth = 336;
-                      recommendedScrollRef.current.scrollTo({
-                        left: index * cardWidth,
-                        behavior: 'smooth'
-                      });
-                    }
-                  }}
-                />
-              ))}
-            </motion.div>
-          </motion.div>
+            {/* All Internships Section - Mobile */}
+            {allInternshipsList.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+                className="bg-white border border-gray-200 rounded-3xl -mx-4 px-4 py-6 mb-8 shadow-sm relative overflow-hidden"
+              >
+                <motion.h2
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
+                  className="text-2xl font-bold text-gray-900 mb-6 relative"
+                >
+                  <span className="relative z-10">All Internships</span>
+                </motion.h2>
 
-          {/* Placement courses removed for internships page (mobile) */}
+                {/* Cards Grid */}
+                <div className="overflow-hidden">
+                  <motion.div
+                    ref={recommendedScrollRef}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.6, ease: "easeOut", delay: 0.4 }}
+                    className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory px-4"
+                  >
+                    {allInternshipsList.slice(0, 12).map((internship, idx) => (
+                      <motion.div
+                        key={internship.id}
+                        initial={{
+                          opacity: 0,
+                          y: 50,
+                          scale: 0.8,
+                          rotateX: -15
+                        }}
+                        animate={{
+                          opacity: 1,
+                          y: 0,
+                          scale: 1,
+                          rotateX: 0
+                        }}
+                        viewport={{
+                          once: false,
+                          amount: 0.3,
+                          margin: "-50px"
+                        }}
+                        transition={{
+                          duration: 0.6,
+                          ease: "easeOut",
+                          delay: idx * 0.1
+                        }}
+                      >
+                        <Link to={`/internships/${internship.id}`}>
+                          <motion.div
+                            whileHover={{ scale: 1.05, y: -8 }}
+                            whileTap={{ scale: 0.98 }}
+                            transition={{ type: "spring", stiffness: 300 }}
+                            className="flex-shrink-0 w-80 md:w-64 bg-gray-50 rounded-xl p-4 border-2 border-gray-300 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer snap-start"
+                          >
+                            {/* Company Header */}
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <h3 className="font-bold text-gray-900 text-lg mb-1">
+                                  {internship.company}
+                                </h3>
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2 py-1 bg-orange-50 text-orange-600 text-xs font-medium rounded-full border border-orange-200">
+                                    Actively hiring
+                                  </span>
+                                </div>
+                              </div>
+                              <motion.div
+                                whileHover={{ rotate: 360, scale: 1.1 }}
+                                transition={{ duration: 0.6 }}
+                                className={`w-10 h-10 bg-gradient-to-br ${internship.color} rounded-lg flex items-center justify-center text-lg shadow-sm flex-shrink-0`}
+                              >
+                                {internship.icon}
+                              </motion.div>
+                            </div>
+
+                            {/* Job Title */}
+                            <h4 className="font-semibold text-gray-800 text-base mb-3">
+                              {internship.title}
+                            </h4>
+
+                            {/* Details with Icons */}
+                            <div className="space-y-2 mb-4">
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <span className="text-lg">📍</span>
+                                <span>{internship.location}</span>
+                              </div>
+
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <span className="text-lg">💼</span>
+                                <span>{internship.duration} experience</span>
+                              </div>
+
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <span className="text-lg">💰</span>
+                                <span>{internship.stipend}/month</span>
+                              </div>
+                            </div>
+
+                            {/* Bottom Section */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1">
+                                <span className="px-1.5 py-0.5 bg-gray-100 text-gray-500 text-xs rounded-md">
+                                  {internship.postedDate}
+                                </span>
+                              </div>
+                              <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                                Internship
+                              </span>
+                            </div>
+
+                            {/* Tags */}
+                            <div className="flex flex-wrap gap-2">
+                              {internship.popular && (
+                                <motion.span
+                                  animate={{ scale: [1, 1.05, 1] }}
+                                  transition={{ repeat: Infinity, duration: 2 }}
+                                  className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full"
+                                >
+                                  Popular
+                                </motion.span>
+                              )}
+                              {internship.remote && (
+                                <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                                  Remote
+                                </span>
+                              )}
+                              {internship.urgent && (
+                                <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+                                  Urgent
+                                </span>
+                              )}
+                            </div>
+                          </motion.div>
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </div>
+
+                {/* Dots Indicator */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6, ease: "easeOut", delay: 0.6 }}
+                  className="flex justify-center gap-2 mt-4"
+                >
+                  {filteredInternships.map((_, index) => (
+                    <motion.button
+                      key={index}
+                      whileHover={{ scale: 1.2 }}
+                      whileTap={{ scale: 0.9 }}
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${activeRecommendedIndex === index
+                        ? 'bg-indigo-600 w-6'
+                        : 'bg-gray-300'
+                        }`}
+                      onClick={() => {
+                        if (recommendedScrollRef.current) {
+                          const cardWidth = 336;
+                          recommendedScrollRef.current.scrollTo({
+                            left: index * cardWidth,
+                            behavior: 'smooth'
+                          });
+                        }
+                      }}
+                    />
+                  ))}
+                </motion.div>
+              </motion.div>
+            )}
+
+            {/* Placement courses removed for internships page (mobile) */}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Filter Panel */}
       {isFilterOpen && (
@@ -902,8 +1056,8 @@ const InternshipsPage = () => {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleFilterChange('location', location)}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${filters.location === location
-                        ? 'bg-indigo-500 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                   >
                     {location}
@@ -944,8 +1098,8 @@ const InternshipsPage = () => {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleFilterChange('domain', domain)}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${filters.domain === domain
-                        ? 'bg-indigo-500 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                   >
                     {domain}
@@ -974,8 +1128,8 @@ const InternshipsPage = () => {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleFilterChange('workType', type)}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${filters.workType === type
-                        ? 'bg-indigo-500 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                   >
                     {type}
@@ -1016,8 +1170,8 @@ const InternshipsPage = () => {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleFilterChange('stipendRange', range)}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${filters.stipendRange === range
-                        ? 'bg-indigo-500 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                   >
                     {range}
@@ -1046,8 +1200,8 @@ const InternshipsPage = () => {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleFilterChange('duration', duration)}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${filters.duration === duration
-                        ? 'bg-indigo-500 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                   >
                     {duration}
@@ -1146,14 +1300,16 @@ const InternshipsPage = () => {
       )}
 
       {/* Bottom Navigation - Internships Specific */}
-      <BottomNavbar
-        tabs={[
-          { name: 'Home', path: '/', icon: <HomeIcon /> },
-          { name: 'Search', path: '/internships', icon: <SearchIcon /> },
-          { name: 'Applied', path: '/internships/applied', icon: <ClipboardIcon /> },
-          { name: 'Profile', path: '/profile', icon: <UserIcon /> }
-        ]}
-      />
+      {!isLoading && (
+        <BottomNavbar
+          tabs={[
+            { name: 'Home', path: '/', icon: <HomeIcon /> },
+            { name: 'Search', path: '/internships', icon: <SearchIcon /> },
+            { name: 'Applied', path: '/internships/applied', icon: <ClipboardIcon /> },
+            { name: 'Profile', path: '/profile', icon: <UserIcon /> }
+          ]}
+        />
+      )}
 
     </div>
   );

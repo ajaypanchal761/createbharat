@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { internships } from '../../data/internships';
 import logo from '../../assets/logo.png';
 import { applicationAPI, internshipAPI } from '../../utils/api';
 
@@ -18,7 +17,6 @@ const UserIconForm = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h
 const EmailIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>);
 const PhoneIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>);
 const LocationIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>);
-const BriefcaseIconForm = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>);
 const UploadIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>);
 
 const InternshipApplicationPage = () => {
@@ -29,8 +27,6 @@ const InternshipApplicationPage = () => {
     email: '',
     phone: '',
     address: '',
-    position: '',
-    experience: '',
     resume: null
   });
   const [errors, setErrors] = useState({});
@@ -42,19 +38,16 @@ const InternshipApplicationPage = () => {
   useEffect(() => {
     const loadInternship = async () => {
       try {
+        setIsLoading(true);
         const response = await internshipAPI.getById(internshipId);
-        if (response.success) {
+        if (response.success && response.data.internship) {
           setInternship(response.data.internship);
         } else {
-          // Fallback to mock data if API fails
-          const mockInternship = internships.find(i => i.id === internshipId);
-          setInternship(mockInternship);
+          setInternship(null);
         }
       } catch (error) {
         console.error('Error loading internship:', error);
-        // Fallback to mock data
-        const mockInternship = internships.find(i => i.id === internshipId);
-        setInternship(mockInternship);
+        setInternship(null);
       } finally {
         setIsLoading(false);
       }
@@ -77,6 +70,19 @@ const InternshipApplicationPage = () => {
   if (!internship) {
     return <div className="text-center py-10">Internship not found.</div>;
   }
+
+  // Normalize data structure for display
+  const internshipData = internship._id ? {
+    ...internship,
+    id: internship._id,
+    company: internship.companyName || internship.company?.companyName || 'Company',
+    stipendPerMonth: internship.stipendPerMonth || '/month',
+    postedDate: internship.postedDateFormatted || (internship.createdAt ? new Date(internship.createdAt).toLocaleDateString() : 'Recently'),
+    responsibilities: internship.responsibilities || [],
+    skills: internship.skills || [],
+    perks: internship.perks || [],
+    requirements: Array.isArray(internship.requirements) ? internship.requirements : (internship.requirements ? [internship.requirements] : [])
+  } : internship;
 
   // Animation variants
   const fadeInUp = {
@@ -161,14 +167,6 @@ const InternshipApplicationPage = () => {
       newErrors.address = 'Address is required';
     }
 
-    if (!formData.position.trim()) {
-      newErrors.position = 'Position is required';
-    }
-
-    if (!formData.experience.trim()) {
-      newErrors.experience = 'Experience is required';
-    }
-
     if (!formData.resume) {
       newErrors.resume = 'Resume is required';
     }
@@ -187,12 +185,30 @@ const InternshipApplicationPage = () => {
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem('token');
+      // Try multiple token keys to support different login flows
+      let token = localStorage.getItem('token') || localStorage.getItem('authToken');
+
+      // Also check userData for token
       if (!token) {
+        const userDataStr = localStorage.getItem('userData');
+        if (userDataStr) {
+          try {
+            const userData = JSON.parse(userDataStr);
+            token = userData.token || token;
+          } catch (e) {
+            console.error('Error parsing userData:', e);
+          }
+        }
+      }
+
+      if (!token || token === 'null' || token === 'undefined') {
         alert('Please login to apply');
         navigate('/login');
         return;
       }
+
+      // Clean token (remove any quotes or whitespace)
+      token = token.trim().replace(/^["']|["']$/g, '');
 
       // Prepare application data
       const applicationData = {
@@ -201,15 +217,14 @@ const InternshipApplicationPage = () => {
         email: formData.email,
         phone: formData.phone,
         address: formData.address,
-        position: formData.position || internship.title,
-        experience: formData.experience
+        position: internshipData.title || internship.title
       };
 
-      // TODO: Handle file upload for resume
-      // For now, we'll just send the file name
+      // Handle resume - send file name (file upload will be handled separately if needed)
       if (formData.resume) {
         applicationData.resume = {
-          fileName: formData.resume.name
+          fileName: formData.resume.name,
+          uploadedAt: new Date().toISOString()
         };
       }
 
@@ -256,7 +271,7 @@ const InternshipApplicationPage = () => {
           </motion.div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Submitted!</h2>
           <p className="text-gray-600 mb-4">
-            Your application for <strong>{internship.title}</strong> has been successfully submitted.
+            Your application for <strong>{internshipData.title}</strong> has been successfully submitted.
           </p>
           <motion.div
             animate={{ opacity: [0.5, 1, 0.5] }}
@@ -288,7 +303,7 @@ const InternshipApplicationPage = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-sm font-medium text-gray-800">Apply for {internship.title}</h1>
+          <h1 className="text-sm font-medium text-gray-800">Apply for {internshipData.title}</h1>
         </div>
         <Link to="/">
           <img src={logo} alt="CreateBharat Logo" className="w-8 h-8 object-contain" />
@@ -314,8 +329,8 @@ const InternshipApplicationPage = () => {
                   {internship.icon}
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{internship.title}</h2>
-                  <p className="text-lg text-gray-600">{internship.company}</p>
+                  <h2 className="text-2xl font-bold text-gray-900">{internshipData.title}</h2>
+                  <p className="text-lg text-gray-600">{internshipData.company}</p>
                 </div>
               </motion.div>
 
@@ -427,48 +442,6 @@ const InternshipApplicationPage = () => {
                 </div>
               </motion.div>
 
-              {/* Professional Information */}
-              <motion.div variants={fadeInUp} className="bg-white rounded-xl p-8 shadow-lg border border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <BriefcaseIconForm />
-                  </div>
-                  Professional Information
-                </h3>
-
-                <div className="space-y-6">
-                  {/* Position */}
-                  <motion.div variants={scaleIn}>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Position Applied For *</label>
-                    <input
-                      type="text"
-                      name="position"
-                      value={formData.position}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${errors.position ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                        }`}
-                      placeholder="e.g., Web Development Intern"
-                    />
-                    {errors.position && <p className="text-red-500 text-xs mt-1">{errors.position}</p>}
-                  </motion.div>
-
-                  {/* Experience */}
-                  <motion.div variants={scaleIn}>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Relevant Experience *</label>
-                    <textarea
-                      name="experience"
-                      value={formData.experience}
-                      onChange={handleInputChange}
-                      rows={5}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none ${errors.experience ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                        }`}
-                      placeholder="Describe your relevant experience, skills, and why you're interested in this position..."
-                    />
-                    {errors.experience && <p className="text-red-500 text-xs mt-1">{errors.experience}</p>}
-                  </motion.div>
-                </div>
-              </motion.div>
-
               {/* Resume Upload */}
               <motion.div variants={fadeInUp} className="bg-white rounded-xl p-8 shadow-lg border border-gray-200">
                 <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
@@ -525,7 +498,7 @@ const InternshipApplicationPage = () => {
                     <span className="text-lg">🏢</span>
                     <div>
                       <p className="text-sm text-gray-500">Company</p>
-                      <p className="font-semibold text-gray-900">{internship.company}</p>
+                      <p className="font-semibold text-gray-900">{internshipData.company}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -638,8 +611,8 @@ const InternshipApplicationPage = () => {
               {internship.icon}
             </div>
             <div>
-              <h2 className="font-semibold text-gray-900">{internship.title}</h2>
-              <p className="text-sm text-gray-600">{internship.company}</p>
+              <h2 className="font-semibold text-gray-900">{internshipData.title}</h2>
+              <p className="text-sm text-gray-600">{internshipData.company}</p>
             </div>
           </motion.div>
 
@@ -745,46 +718,6 @@ const InternshipApplicationPage = () => {
                   />
                 </div>
                 {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
-              </motion.div>
-            </div>
-          </motion.div>
-
-          {/* Professional Information */}
-          <motion.div variants={fadeInUp} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <BriefcaseIconForm />
-              Professional Information
-            </h3>
-
-            <div className="space-y-4">
-              {/* Position */}
-              <motion.div variants={scaleIn}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Position Applied For *</label>
-                <input
-                  type="text"
-                  name="position"
-                  value={formData.position}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${errors.position ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                    }`}
-                  placeholder="e.g., Web Development Intern"
-                />
-                {errors.position && <p className="text-red-500 text-xs mt-1">{errors.position}</p>}
-              </motion.div>
-
-              {/* Experience */}
-              <motion.div variants={scaleIn}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Relevant Experience *</label>
-                <textarea
-                  name="experience"
-                  value={formData.experience}
-                  onChange={handleInputChange}
-                  rows={4}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none ${errors.experience ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                    }`}
-                  placeholder="Describe your relevant experience, skills, and why you're interested in this position..."
-                />
-                {errors.experience && <p className="text-red-500 text-xs mt-1">{errors.experience}</p>}
               </motion.div>
             </div>
           </motion.div>

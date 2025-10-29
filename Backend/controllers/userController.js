@@ -302,7 +302,7 @@ const verifyOTP = async (req, res) => {
       });
     }
 
-    const { phone, otp } = req.body;
+    const { phone, otp, purpose } = req.body;
 
     const user = await User.findOne({ phone });
 
@@ -323,31 +323,61 @@ const verifyOTP = async (req, res) => {
       });
     }
 
-    // Mark phone as verified
-    user.isPhoneVerified = true;
-    user.phoneVerificationOTP = null;
-    user.otpExpiresAt = null;
-    await user.save();
+    // If this is login verification (purpose === 'login' or token exists), generate login token
+    const isLoginVerification = purpose === 'login' || req.headers.authorization;
 
-    // Send welcome SMS
-    try {
-      await sendWelcomeSMS(user.phone, user.firstName);
-      console.log(`📱 Welcome SMS sent to ${user.phone}`);
-    } catch (smsError) {
-      console.error('Welcome SMS failed:', smsError.message);
-      // Don't fail verification if welcome SMS fails
+    // Mark phone as verified
+    if (!user.isPhoneVerified) {
+      user.isPhoneVerified = true;
+      user.phoneVerificationOTP = null;
+      user.otpExpiresAt = null;
+      await user.save();
+
+      // Send welcome SMS only if phone wasn't verified before
+      try {
+        await sendWelcomeSMS(user.phone, user.firstName);
+        console.log(`📱 Welcome SMS sent to ${user.phone}`);
+      } catch (smsError) {
+        console.error('Welcome SMS failed:', smsError.message);
+        // Don't fail verification if welcome SMS fails
+      }
+    } else {
+      // Clear OTP even if already verified
+      user.phoneVerificationOTP = null;
+      user.otpExpiresAt = null;
+      await user.save();
+    }
+
+    // Prepare response data
+    const responseData = {
+      user: {
+        id: user._id,
+        phone: user.phone,
+        isPhoneVerified: user.isPhoneVerified
+      }
+    };
+
+    // If login verification, include token
+    if (isLoginVerification) {
+      const token = generateToken(user._id);
+      responseData.token = token;
+      responseData.user = {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        isPhoneVerified: user.isPhoneVerified,
+        referralCode: user.platformData?.referralCode
+      };
     }
 
     res.status(200).json({
       success: true,
-      message: 'Phone number verified successfully',
-      data: {
-        user: {
-          id: user._id,
-          phone: user.phone,
-          isPhoneVerified: user.isPhoneVerified
-        }
-      }
+      message: isLoginVerification ? 'Login successful' : 'Phone number verified successfully',
+      data: responseData
     });
 
   } catch (error) {

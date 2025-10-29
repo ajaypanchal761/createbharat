@@ -19,11 +19,11 @@ const LoginPage = () => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
-        
+
         try {
             // For passwordless login, send OTP to user's phone
             const response = await authAPI.sendLoginOTP(phone);
-            
+
             if (response.success) {
                 console.log('OTP sent for login:', response);
                 setStep('otp');
@@ -44,52 +44,61 @@ const LoginPage = () => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
-        
+
         try {
             const otpCode = otp.join('');
             const loginPhone = localStorage.getItem('loginPhone') || phone;
-            
-            // Call the real backend API for OTP verification
+
+            // Call the real backend API for OTP verification with login purpose
             const response = await authAPI.verifyOTP({
                 phone: loginPhone,
-                otp: otpCode
+                otp: otpCode,
+                purpose: 'login'
             });
-            
+
             if (response.success) {
                 console.log('OTP verification successful:', response);
-                
-                // Get user profile
-                const token = localStorage.getItem('authToken');
-                const userResponse = await authAPI.getMe(token);
-                
-                if (userResponse.success) {
-                    const userData = {
-                        id: userResponse.data.user.id,
-                        name: `${userResponse.data.user.firstName} ${userResponse.data.user.lastName}`,
-                        firstName: userResponse.data.user.firstName,
-                        lastName: userResponse.data.user.lastName,
-                        username: userResponse.data.user.username,
-                        email: userResponse.data.user.email,
-                        phone: userResponse.data.user.phone,
-                        role: userResponse.data.user.role,
-                        isPhoneVerified: userResponse.data.user.isPhoneVerified,
-                        referralCode: userResponse.data.user.referralCode
-                    };
-                    
-                    if (loginType === 'admin') {
-                        localStorage.setItem('userType', 'admin');
-                        localStorage.setItem('isAdmin', 'true');
-                        localStorage.setItem('isLoggedIn', 'true');
-                        localStorage.setItem('adminEmail', userResponse.data.user.email);
-                        navigate('/admin/dashboard');
-                    } else {
-                        // login() function already sets isLoggedIn and userData
-                        login(userData);
-                        localStorage.setItem('userType', 'user');
-                        navigate('/');
-                    }
+
+                // Get token from response (now returned by backend)
+                const token = response.data.token;
+                const userData = response.data.user;
+
+                if (!token) {
+                    setError('Login token not received. Please try again.');
+                    return;
+                }
+
+                // Store token
+                localStorage.setItem('token', token);
+                localStorage.setItem('authToken', token);
+
+                if (loginType === 'admin') {
+                    localStorage.setItem('userType', 'admin');
+                    localStorage.setItem('isAdmin', 'true');
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('adminEmail', userData.email);
+                    navigate('/admin/dashboard');
                 } else {
-                    setError('Failed to get user profile');
+                    // Prepare user data for context
+                    const fullUserData = {
+                        id: userData.id,
+                        name: `${userData.firstName} ${userData.lastName}`,
+                        firstName: userData.firstName,
+                        lastName: userData.lastName,
+                        username: userData.username,
+                        email: userData.email,
+                        phone: userData.phone,
+                        role: userData.role,
+                        isPhoneVerified: userData.isPhoneVerified,
+                        referralCode: userData.referralCode,
+                        token: token
+                    };
+
+                    // login() function already sets isLoggedIn and userData
+                    login(fullUserData);
+                    localStorage.setItem('userType', 'user');
+                    localStorage.setItem('userData', JSON.stringify(fullUserData));
+                    navigate('/');
                 }
             } else {
                 setError(response.message || 'OTP verification failed');
@@ -107,7 +116,7 @@ const LoginPage = () => {
             const newOtp = [...otp];
             newOtp[index] = value;
             setOtp(newOtp);
-            
+
             if (value && index < 5) {
                 document.getElementById(`otp-${index + 1}`)?.focus();
             }
@@ -158,7 +167,7 @@ const LoginPage = () => {
                                     {error}
                                 </div>
                             )}
-                            
+
                             <div>
                                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                                     Phone Number
@@ -175,26 +184,26 @@ const LoginPage = () => {
                                 />
                             </div>
 
-                        <motion.button
-                            type="submit"
-                            disabled={isLoading || phone.length !== 10}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="w-full bg-orange-500 text-white py-4 rounded-lg font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isLoading ? 'Sending OTP...' : 'Send OTP'}
-                        </motion.button>
-                    </form>
+                            <motion.button
+                                type="submit"
+                                disabled={isLoading || phone.length !== 10}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="w-full bg-orange-500 text-white py-4 rounded-lg font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isLoading ? 'Sending OTP...' : 'Send OTP'}
+                            </motion.button>
+                        </form>
 
                         {/* Sign up Link */}
-                    <div className="mt-6 text-center">
+                        <div className="mt-6 text-center">
                             <p className="text-gray-600 text-sm">
-                            Don't have an account?{' '}
+                                Don't have an account?{' '}
                                 <Link to="/signup" className="text-orange-500 hover:text-orange-600 font-medium">
-                                Sign up
-                            </Link>
-                        </p>
-                    </div>
+                                    Sign up
+                                </Link>
+                            </p>
+                        </div>
                     </motion.div>
                 ) : (
                     /* OTP Verification Form */
@@ -216,7 +225,7 @@ const LoginPage = () => {
                                     {error}
                                 </div>
                             )}
-                            
+
                             <div className="flex justify-center gap-3">
                                 {otp.map((digit, index) => (
                                     <input

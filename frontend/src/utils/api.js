@@ -412,12 +412,20 @@ export const internshipAPI = {
 export const applicationAPI = {
   // Apply to internship
   apply: async (token, applicationData) => {
+    // Ensure token is valid and clean
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+
+    // Clean token (remove any quotes or whitespace)
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+
     return apiCall('/applications', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${cleanToken}`,
       },
-      body: JSON.stringify(applicationData),
+      body: applicationData, // Let apiCall handle stringification
     });
   },
 
@@ -444,11 +452,19 @@ export const applicationAPI = {
 
   // User: Get my applications
   getMyApplications: async (token, params = {}) => {
+    // Ensure token is valid and clean
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+
+    // Clean token (remove any quotes or whitespace)
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+
     const queryString = new URLSearchParams(params).toString();
     return apiCall(`/applications/user/my-applications${queryString ? `?${queryString}` : ''}`, {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${cleanToken}`,
       },
     });
   },

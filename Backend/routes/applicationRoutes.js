@@ -23,11 +23,12 @@ const applyValidation = [
 
 // Protected routes - Users
 router.post('/', protectUser, applyValidation, applyToInternship);
+// Specific routes must come before parameterized routes
 router.get('/user/my-applications', protectUser, getUserApplications);
+router.get('/company/my-applications', protectCompany, getCompanyApplications);
 router.get('/:id', protectUser, getApplication);
 
 // Protected routes - Companies
-router.get('/company/my-applications', protectCompany, getCompanyApplications);
 router.put('/:id/status', protectCompany, updateApplicationStatus);
 router.put('/:id/view', protectCompany, viewApplication);
 

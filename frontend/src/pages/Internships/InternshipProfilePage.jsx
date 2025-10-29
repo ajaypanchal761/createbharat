@@ -1,19 +1,85 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavbar from '../../components/common/BottomNavbar';
+import { authAPI, applicationAPI } from '../../utils/api';
 
 // Bottom Nav Icons
-const HomeIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg> );
-const BriefcaseIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> );
-const SearchIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg> );
-const HeartIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg> );
-const ClipboardIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg> );
-const UserIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> );
+const HomeIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>);
+const BriefcaseIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>);
+const SearchIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>);
+const HeartIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>);
+const ClipboardIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>);
+const UserIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>);
 
 const InternshipProfilePage = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('personal');
     const [isEditing, setIsEditing] = useState(false);
+    const [personalInfo, setPersonalInfo] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        education: '',
+        skills: [],
+        experience: '',
+        preferredLocation: '',
+        preferredDomain: ''
+    });
+    const [applications, setApplications] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const loadUserData = async () => {
+            try {
+                setIsLoading(true);
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    navigate('/login');
+                    return;
+                }
+
+                // Load user profile
+                const userResponse = await authAPI.getMe(token);
+                if (userResponse.success && userResponse.data.user) {
+                    const user = userResponse.data.user;
+                    setPersonalInfo({
+                        name: user.name || '',
+                        email: user.email || '',
+                        phone: user.phone || '',
+                        address: user.address || '',
+                        education: user.education || '',
+                        skills: user.skills || [],
+                        experience: user.experience || '',
+                        preferredLocation: user.preferredLocation || '',
+                        preferredDomain: user.preferredDomain || ''
+                    });
+                }
+
+                // Load applications
+                const appsResponse = await applicationAPI.getMyApplications(token, { limit: 10 });
+                if (appsResponse.success && appsResponse.data.applications) {
+                    const mappedApps = appsResponse.data.applications.map(app => ({
+                        id: app._id,
+                        company: app.internship?.companyName || app.internship?.company?.companyName || 'Company',
+                        position: app.internship?.title || 'Position',
+                        status: app.status === 'shortlisted' ? 'Under Review' :
+                            app.status === 'hired' ? 'Accepted' :
+                                app.status.charAt(0).toUpperCase() + app.status.slice(1),
+                        date: app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : new Date().toLocaleDateString()
+                    }));
+                    setApplications(mappedApps);
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadUserData();
+    }, [navigate]);
 
     // Internship-specific bottom navbar
     const getBottomNavbarTabs = () => {
@@ -30,24 +96,6 @@ const InternshipProfilePage = () => {
         { id: 'personal', name: 'Personal', icon: <UserIcon /> },
         { id: 'applications', name: 'Applications', icon: <ClipboardIcon /> },
         { id: 'preferences', name: 'Preferences', icon: <HeartIcon /> }
-    ];
-
-    const personalInfo = {
-        name: 'Priya Sharma',
-        email: 'priya.sharma@example.com',
-        phone: '+91 98765 43210',
-        address: '456 Tech Street, Bangalore, Karnataka, India - 560001',
-        education: 'B.Tech Computer Science',
-        skills: ['React', 'JavaScript', 'Python', 'Node.js'],
-        experience: '1 year',
-        preferredLocation: 'Bangalore, Remote',
-        preferredDomain: 'Technology'
-    };
-
-    const applications = [
-        { id: 1, company: 'TCS', position: 'Frontend Developer Intern', status: 'Applied', date: '2024-01-15' },
-        { id: 2, company: 'Infosys', position: 'Full Stack Developer Intern', status: 'Under Review', date: '2024-01-10' },
-        { id: 3, company: 'HCL', position: 'React Developer Intern', status: 'Interview Scheduled', date: '2024-01-05' }
     ];
 
     const renderPersonalInfo = () => (
@@ -190,12 +238,11 @@ const InternshipProfilePage = () => {
                                     <p className="text-gray-600">{app.company}</p>
                                     <p className="text-sm text-gray-500">Applied on: {app.date}</p>
                                 </div>
-                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                    app.status === 'Applied' ? 'bg-orange-100 text-orange-800' :
-                                    app.status === 'Under Review' ? 'bg-yellow-100 text-yellow-800' :
-                                    app.status === 'Interview Scheduled' ? 'bg-green-100 text-green-800' :
-                                    'bg-gray-100 text-gray-800'
-                                }`}>
+                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${app.status === 'Applied' ? 'bg-orange-100 text-orange-800' :
+                                        app.status === 'Under Review' ? 'bg-yellow-100 text-yellow-800' :
+                                            app.status === 'Interview Scheduled' ? 'bg-green-100 text-green-800' :
+                                                'bg-gray-100 text-gray-800'
+                                    }`}>
                                     {app.status}
                                 </span>
                             </div>
@@ -272,11 +319,10 @@ const InternshipProfilePage = () => {
                             <motion.button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex-1 py-3 px-4 text-sm font-medium rounded-t-lg transition-all duration-200 ${
-                                    activeTab === tab.id
+                                className={`flex-1 py-3 px-4 text-sm font-medium rounded-t-lg transition-all duration-200 ${activeTab === tab.id
                                         ? 'text-orange-600 bg-orange-50 border-b-2 border-orange-600'
                                         : 'text-gray-600 hover:text-gray-800'
-                                }`}
+                                    }`}
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                             >

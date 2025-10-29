@@ -163,8 +163,16 @@ const getUserApplications = async (req, res) => {
     }
 
     const applications = await Application.find(filter)
-      .populate('internship', 'title companyName location duration type category')
+      .populate({
+        path: 'internship',
+        select: 'title companyName location duration type category stipend stipendPerMonth description isActive applicationDeadline',
+        populate: {
+          path: 'company',
+          select: 'companyName'
+        }
+      })
       .populate('company', 'companyName industry')
+      .populate('user', 'firstName lastName email phone')
       .sort({ createdAt: -1 });
 
     res.status(200).json({
