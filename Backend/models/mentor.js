@@ -89,19 +89,19 @@ const mentorSchema = new mongoose.Schema({
     trim: true
   }],
 
-  // Pricing (Session-based in INR)
+  // Pricing (Time-based sessions in INR)
   pricing: {
-    quickConsultation: {
+    quick: {
       duration: { type: String, default: '20-25 minutes' },
       price: { type: Number, default: 150 },
       label: { type: String, default: 'Quick consultation' }
     },
-    inDepthSession: {
+    inDepth: {
       duration: { type: String, default: '50-60 minutes' },
       price: { type: Number, default: 300 },
       label: { type: String, default: 'In-depth session' }
     },
-    comprehensiveConsultation: {
+    comprehensive: {
       duration: { type: String, default: '90-120 minutes' },
       price: { type: Number, default: 450 },
       label: { type: String, default: 'Comprehensive consultation' }

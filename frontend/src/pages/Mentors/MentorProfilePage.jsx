@@ -33,17 +33,17 @@ const MentorProfilePage = () => {
 
           // Initialize default values if not present
           const defaultPricing = {
-            quickConsultation: {
+            quick: {
               duration: '20-25 minutes',
               price: 150,
               label: 'Quick consultation'
             },
-            inDepthSession: {
+            inDepth: {
               duration: '50-60 minutes',
               price: 300,
               label: 'In-depth session'
             },
-            comprehensiveConsultation: {
+            comprehensive: {
               duration: '90-120 minutes',
               price: 450,
               label: 'Comprehensive consultation'
@@ -95,6 +95,15 @@ const MentorProfilePage = () => {
     }));
   };
 
+  const handleNestedInputChange = (parent, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [parent]: {
+        ...prev[parent],
+        [field]: value
+      }
+    }));
+  };
 
   const handleSave = async () => {
     if (!formData) return;
@@ -551,6 +560,30 @@ const MentorProfilePage = () => {
         </div>
       </div>
 
+      {/* Profile Visibility */}
+      {isEditing && (
+        <div className="bg-white rounded-xl p-6 shadow-lg">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Profile Visibility</h3>
+          <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+            <div>
+              <span className="font-medium text-gray-800">Make Profile Visible to Users</span>
+              <p className="text-sm text-gray-600 mt-1">
+                When enabled, your profile will be visible to users searching for mentors
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.profileVisibility !== false}
+                onChange={(e) => handleInputChange('profileVisibility', e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+            </label>
+          </div>
+        </div>
+      )}
+
       {/* Experience & Specialization */}
       {isEditing && (
         <>
@@ -586,105 +619,126 @@ const MentorProfilePage = () => {
               placeholder="e.g., 2 hours, 24 hours"
             />
           </div>
-
-          {/* Profile Visibility Toggle */}
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-1">Profile Visibility</h3>
-                <p className="text-sm text-gray-600">Make your profile visible to users</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.profileVisibility}
-                  onChange={(e) => handleInputChange('profileVisibility', e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
-              </label>
-            </div>
-          </div>
         </>
       )}
     </div>
   );
 
+  const renderPricingTab = () => {
+    const pricingSessions = [
+      {
+        key: 'quick',
+        duration: formData.pricing.quick?.duration || '20-25 minutes',
+        price: formData.pricing.quick?.price || 150,
+        label: formData.pricing.quick?.label || 'Quick consultation',
+        icon: '⚡'
+      },
+      {
+        key: 'inDepth',
+        duration: formData.pricing.inDepth?.duration || '50-60 minutes',
+        price: formData.pricing.inDepth?.price || 300,
+        label: formData.pricing.inDepth?.label || 'In-depth session',
+        icon: '💡'
+      },
+      {
+        key: 'comprehensive',
+        duration: formData.pricing.comprehensive?.duration || '90-120 minutes',
+        price: formData.pricing.comprehensive?.price || 450,
+        label: formData.pricing.comprehensive?.label || 'Comprehensive consultation',
+        icon: '🎯'
+      }
+    ];
 
-  const renderPricingTab = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Session Pricing</h3>
-        {!isEditing && (
-          <p className="text-sm text-gray-600 mb-4">Click "Edit Profile" to update your pricing</p>
-        )}
-        <div className="space-y-4">
-          {[
-            {
-              key: 'quickConsultation',
-              duration: formData.pricing?.quickConsultation?.duration || '20-25 minutes',
-              price: formData.pricing?.quickConsultation?.price || 150,
-              label: formData.pricing?.quickConsultation?.label || 'Quick consultation'
-            },
-            {
-              key: 'inDepthSession',
-              duration: formData.pricing?.inDepthSession?.duration || '50-60 minutes',
-              price: formData.pricing?.inDepthSession?.price || 300,
-              label: formData.pricing?.inDepthSession?.label || 'In-depth session'
-            },
-            {
-              key: 'comprehensiveConsultation',
-              duration: formData.pricing?.comprehensiveConsultation?.duration || '90-120 minutes',
-              price: formData.pricing?.comprehensiveConsultation?.price || 450,
-              label: formData.pricing?.comprehensiveConsultation?.label || 'Comprehensive consultation'
-            }
-          ].map(({ key, duration, price, label }) => (
-            <div key={key} className="p-4 border border-gray-200 rounded-lg">
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-800 mb-1">{label}</h4>
-                  <p className="text-sm text-gray-600">{duration}</p>
-                </div>
-                {isEditing ? (
-                  <div className="flex items-center space-x-2">
-                    <span className="text-gray-500">₹</span>
-                    <input
-                      type="number"
-                      value={price}
-                      onChange={(e) => {
-                        const newPricing = { ...formData.pricing };
-                        if (!newPricing[key]) newPricing[key] = {};
-                        newPricing[key].price = parseInt(e.target.value) || 0;
-                        newPricing[key].duration = duration;
-                        newPricing[key].label = label;
-                        setFormData(prev => ({ ...prev, pricing: newPricing }));
-                      }}
-                      className="w-24 px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-right"
-                      min="0"
-                    />
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-xl p-6 shadow-lg">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Session Pricing</h3>
+          {!isEditing && (
+            <p className="text-sm text-gray-600 mb-4">Click "Edit Profile" to update pricing</p>
+          )}
+          <div className="space-y-4">
+            {pricingSessions.map((session) => (
+              <div key={session.key} className="p-4 border border-gray-200 rounded-lg">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-2xl">{session.icon}</span>
+                    <div>
+                      <span className="font-semibold text-gray-800">{session.label}</span>
+                      <p className="text-sm text-gray-600">{session.duration}</p>
+                    </div>
                   </div>
-                ) : (
-                  <div className="text-right">
-                    <span className="text-2xl font-bold text-orange-600">₹{price}</span>
+                  {!isEditing && (
+                    <div className="text-right">
+                      <span className="text-2xl font-bold text-orange-600">₹{session.price}</span>
+                    </div>
+                  )}
+                </div>
+                {isEditing && (
+                  <div className="space-y-3 mt-3 pt-3 border-t border-gray-200">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
+                      <input
+                        type="text"
+                        value={session.duration}
+                        onChange={(e) => {
+                          const newPricing = { ...formData.pricing };
+                          newPricing[session.key].duration = e.target.value;
+                          setFormData(prev => ({ ...prev, pricing: newPricing }));
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                        placeholder="e.g., 20-25 minutes"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
+                      <input
+                        type="text"
+                        value={session.label}
+                        onChange={(e) => {
+                          const newPricing = { ...formData.pricing };
+                          newPricing[session.key].label = e.target.value;
+                          setFormData(prev => ({ ...prev, pricing: newPricing }));
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                        placeholder="e.g., Quick consultation"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-gray-500">₹</span>
+                        <input
+                          type="number"
+                          value={session.price}
+                          onChange={(e) => {
+                            const newPricing = { ...formData.pricing };
+                            newPricing[session.key].price = parseInt(e.target.value) || 0;
+                            setFormData(prev => ({ ...prev, pricing: newPricing }));
+                          }}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          min="0"
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">💡 Pricing Tips</h3>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>• Consider your experience level when setting prices</li>
+            <li>• Research market rates for your specialization</li>
+            <li>• Start competitive and adjust based on demand</li>
+            <li>• Session links will be shared via email after payment</li>
+          </ul>
         </div>
       </div>
-
-      <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">💡 Pricing Tips</h3>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• Consider your experience level when setting prices</li>
-          <li>• Research market rates for your specialization</li>
-          <li>• Start competitive and adjust based on demand</li>
-          <li>• Session links will be shared via email after payment</li>
-        </ul>
-      </div>
-    </div>
-  );
+    );
+  };
 
 
   return (

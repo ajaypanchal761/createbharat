@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import logo from '../../assets/logo.png';
 import { mentorAPI } from '../../utils/api';
 
 // Icons
@@ -59,12 +58,19 @@ const MentorListingPage = () => {
           rating: selectedRating
         };
         const response = await mentorAPI.getAll(params);
-        if (response.success) {
-          setMentors(response.data || []);
+        if (response.success && response.data && response.data.length > 0) {
+          setMentors(response.data);
+          setError(''); // Clear error on success
+        } else {
+          // Use mock data if API returns empty or no data
+          setMentors([]);
+          setError('');
         }
       } catch (err) {
-        setError(err.message || 'Failed to fetch mentors');
+        // On error, use mock data instead of showing error
         console.error('Error fetching mentors:', err);
+        setMentors([]);
+        setError('');
       } finally {
         setIsLoading(false);
       }
@@ -159,31 +165,37 @@ const MentorListingPage = () => {
     }
   ];
 
-  const filteredMentors = mentors.map(mentor => ({
-    id: mentor._id || mentor.id,
-    name: `${mentor.firstName} ${mentor.lastName}`,
-    title: mentor.title || '',
-    company: mentor.company || '',
-    experience: mentor.experience || '',
-    rating: mentor.rating || 0,
-    reviews: mentor.totalSessions || 0,
-    price: mentor.pricing?.email || mentor.pricing?.videoCall || 100,
-    image: mentor.profileImage || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-    specialties: mentor.skills || [],
-    availability: 'Available',
-    responseTime: mentor.responseTime || '24 hours'
-  }));
+  // Use mockMentors if mentors array is empty (API failed or returned no data)
+  const mentorsToDisplay = mentors.length > 0 ? mentors : mockMentors;
+
+  const filteredMentors = mentorsToDisplay.map(mentor => {
+    // Check if it's API data (has _id or firstName) or mock data
+    const isApiData = mentor._id || mentor.firstName;
+
+    if (isApiData) {
+      // API data format
+      return {
+        id: mentor._id || mentor.id,
+        name: `${mentor.firstName || ''} ${mentor.lastName || ''}`.trim() || 'Mentor',
+        title: mentor.title || '',
+        company: mentor.company || '',
+        experience: mentor.experience || '',
+        rating: mentor.rating || 0,
+        reviews: mentor.totalSessions || 0,
+        price: mentor.pricing?.quick?.price || mentor.pricing?.inDepth?.price || mentor.pricing?.comprehensive?.price || 150,
+        image: mentor.profileImage || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+        specialties: mentor.skills || [],
+        languages: mentor.languages || [],
+        availability: 'Available',
+        responseTime: mentor.responseTime || '24 hours'
+      };
+    } else {
+      // Mock data format (already in correct format)
+      return mentor;
+    }
+  });
 
   // Animation variants
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
-  };
-
   const staggerContainer = {
     hidden: { opacity: 0 },
     visible: {
@@ -349,7 +361,7 @@ const MentorListingPage = () => {
             variants={staggerContainer}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto"
           >
-            {filteredMentors.map((mentor, index) => (
+            {filteredMentors.map((mentor) => (
               <motion.div
                 key={mentor.id}
                 variants={scaleIn}

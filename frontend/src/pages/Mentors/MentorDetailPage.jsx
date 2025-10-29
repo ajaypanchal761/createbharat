@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../../assets/logo.png';
+import { mentorAPI } from '../../utils/api';
 
 // Icons
 const MenuIcon = () => (
@@ -42,9 +43,11 @@ const MentorDetailPage = () => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [mentorData, setMentorData] = useState(null);
 
-  // Mock mentor data
-  const mentor = {
+  // Mock mentor data (fallback)
+  const mockMentor = {
     id: parseInt(mentorId),
     name: 'Sarah Johnson',
     title: 'Senior Business Consultant',
@@ -52,7 +55,11 @@ const MentorDetailPage = () => {
     experience: '10+ years',
     rating: 4.9,
     reviews: 127,
-    price: 150,
+    pricing: {
+      quick: { duration: '20-25 minutes', price: 150, label: 'Quick consultation' },
+      inDepth: { duration: '50-60 minutes', price: 300, label: 'In-depth session' },
+      comprehensive: { duration: '90-120 minutes', price: 450, label: 'Comprehensive consultation' }
+    },
     image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=300&fit=crop&crop=face',
     specialties: ['Startup Strategy', 'Business Planning', 'Leadership', 'Team Management'],
     availability: 'Available',
@@ -68,10 +75,56 @@ const MentorDetailPage = () => {
     languages: ['English', 'Spanish', 'French']
   };
 
+  // Fetch mentor data
+  useEffect(() => {
+    const fetchMentor = async () => {
+      setIsLoading(true);
+      try {
+        const response = await mentorAPI.getById(mentorId);
+        if (response.success && response.data.mentor) {
+          const apiMentor = response.data.mentor;
+          setMentorData({
+            id: apiMentor._id || apiMentor.id,
+            name: `${apiMentor.firstName || ''} ${apiMentor.lastName || ''}`.trim() || 'Mentor',
+            title: apiMentor.title || '',
+            company: apiMentor.company || '',
+            experience: apiMentor.experience || '',
+            rating: apiMentor.rating || 0,
+            reviews: apiMentor.totalSessions || 0,
+            pricing: apiMentor.pricing || mockMentor.pricing,
+            image: apiMentor.profileImage || mockMentor.image,
+            specialties: apiMentor.skills || [],
+            availability: 'Available',
+            responseTime: apiMentor.responseTime || '24 hours',
+            description: apiMentor.bio || 'Experienced mentor ready to help you achieve your goals.',
+            achievements: apiMentor.certifications || [],
+            education: apiMentor.education?.map(edu => `${edu.degree} - ${edu.university}`).join(', ') || '',
+            languages: apiMentor.languages || []
+          });
+        } else {
+          // Use mock data if API fails
+          setMentorData(mockMentor);
+        }
+      } catch (err) {
+        console.error('Error fetching mentor:', err);
+        // Use mock data on error
+        setMentorData(mockMentor);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMentor();
+  }, [mentorId]);
+
+  // Use mentorData or mockMentor
+  const mentor = mentorData || mockMentor;
+
+  // Time slots based on pricing
   const timeSlots = [
-    { id: '20min', duration: '20-25 minutes', price: mentor.price, description: 'Quick consultation' },
-    { id: '50min', duration: '50-60 minutes', price: mentor.price * 2, description: 'In-depth session' },
-    { id: '90min', duration: '90-120 minutes', price: mentor.price * 3, description: 'Comprehensive consultation' }
+    { id: 'quick', duration: mentor.pricing?.quick?.duration || '20-25 minutes', price: mentor.pricing?.quick?.price || 150, description: mentor.pricing?.quick?.label || 'Quick consultation' },
+    { id: 'inDepth', duration: mentor.pricing?.inDepth?.duration || '50-60 minutes', price: mentor.pricing?.inDepth?.price || 300, description: mentor.pricing?.inDepth?.label || 'In-depth session' },
+    { id: 'comprehensive', duration: mentor.pricing?.comprehensive?.duration || '90-120 minutes', price: mentor.pricing?.comprehensive?.price || 450, description: mentor.pricing?.comprehensive?.label || 'Comprehensive consultation' }
   ];
 
   // Available dates (next 7 days)
@@ -119,8 +172,8 @@ const MentorDetailPage = () => {
   // Animation variants
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: { duration: 0.6, ease: "easeOut" }
     }
@@ -138,12 +191,23 @@ const MentorDetailPage = () => {
 
   const scaleIn = {
     hidden: { opacity: 0, scale: 0.8 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       scale: 1,
       transition: { duration: 0.5, ease: "easeOut" }
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/30 to-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading mentor profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/30 to-slate-50">
@@ -202,13 +266,12 @@ const MentorDetailPage = () => {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedDate(date.date)}
                     disabled={!date.available}
-                    className={`p-3 rounded-lg border-2 transition-all ${
-                      selectedDate === date.date
+                    className={`p-3 rounded-lg border-2 transition-all ${selectedDate === date.date
                         ? 'border-orange-500 bg-orange-50 text-orange-700'
                         : date.available
-                        ? 'border-gray-200 hover:border-orange-300 text-gray-700'
-                        : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
-                    }`}
+                          ? 'border-gray-200 hover:border-orange-300 text-gray-700'
+                          : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
+                      }`}
                   >
                     <div className="text-center">
                       <div className="text-sm font-medium">{date.day}</div>
@@ -230,13 +293,12 @@ const MentorDetailPage = () => {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedTime(timeSlot.time)}
                     disabled={!timeSlot.available}
-                    className={`p-3 rounded-lg border-2 transition-all ${
-                      selectedTime === timeSlot.time
+                    className={`p-3 rounded-lg border-2 transition-all ${selectedTime === timeSlot.time
                         ? 'border-orange-500 bg-orange-50 text-orange-700'
                         : timeSlot.available
-                        ? 'border-gray-200 hover:border-orange-300 text-gray-700'
-                        : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
-                    }`}
+                          ? 'border-gray-200 hover:border-orange-300 text-gray-700'
+                          : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
+                      }`}
                   >
                     {timeSlot.time}
                   </motion.button>
@@ -257,11 +319,10 @@ const MentorDetailPage = () => {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleConfirmBooking}
                 disabled={!selectedDate || !selectedTime}
-                className={`flex-1 py-3 px-4 font-medium rounded-lg transition-all ${
-                  selectedDate && selectedTime
+                className={`flex-1 py-3 px-4 font-medium rounded-lg transition-all ${selectedDate && selectedTime
                     ? 'bg-orange-600 text-white hover:bg-orange-700'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
+                  }`}
               >
                 Confirm Booking
               </motion.button>
@@ -316,7 +377,7 @@ const MentorDetailPage = () => {
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">{mentor.name}</h1>
                 <p className="text-lg text-gray-600 mb-1">{mentor.title}</p>
                 <p className="text-sm text-gray-500 mb-4">{mentor.company}</p>
-                
+
                 <div className="flex items-center space-x-4 mb-4">
                   <div className="flex items-center space-x-1">
                     <StarIcon />
@@ -405,7 +466,7 @@ const MentorDetailPage = () => {
                 className="bg-white rounded-xl p-6 shadow-lg border-2 border-gray-100 sticky top-24"
               >
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Book a Session</h3>
-                
+
                 {/* Time Slots */}
                 <div className="space-y-3 mb-6">
                   {timeSlots.map((slot) => (
@@ -413,11 +474,10 @@ const MentorDetailPage = () => {
                       key={slot.id}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                        selectedSlot === slot.id
+                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedSlot === slot.id
                           ? 'border-orange-500 bg-orange-50'
                           : 'border-gray-200 hover:border-orange-300'
-                      }`}
+                        }`}
                       onClick={() => setSelectedSlot(slot.id)}
                     >
                       <div className="flex items-center justify-between mb-2">
@@ -438,11 +498,10 @@ const MentorDetailPage = () => {
                   whileTap={{ scale: 0.98 }}
                   onClick={handleBooking}
                   disabled={!selectedSlot || isBooking}
-                  className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${
-                    selectedSlot && !isBooking
+                  className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${selectedSlot && !isBooking
                       ? 'bg-orange-600 text-white hover:bg-orange-700'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
+                    }`}
                 >
                   {isBooking ? 'Processing...' : 'Book Consultant'}
                 </motion.button>

@@ -241,8 +241,8 @@ const updateProfile = async (req, res) => {
     const allowedFields = [
       'firstName', 'lastName', 'title', 'company', 'specialization',
       'experience', 'bio', 'skills', 'languages', 'education',
-      'certifications', 'pricing', 'categories', 'profileImage',
-      'responseTime', 'profileVisibility'
+      'certifications', 'pricing', 'categories', 'profileVisibility',
+      'profileImage', 'responseTime'
     ];
 
     allowedFields.forEach(field => {
@@ -287,7 +287,11 @@ const getAllMentors = async (req, res) => {
       limit = 10
     } = req.query;
 
-    const query = { isActive: true, isBlocked: false, profileVisibility: true };
+    const query = { 
+      isActive: true, 
+      isBlocked: false,
+      profileVisibility: true  // Only show mentors with visible profiles
+    };
 
     // Filter by category
     if (category) {
@@ -358,24 +362,11 @@ const getMentorById = async (req, res) => {
       });
     }
 
-    // Check if profile is visible (for public access)
-    // If this is not the mentor's own request, check visibility
-    if (!req.mentor || req.mentor.id !== mentor._id.toString()) {
-      // This is a public request or different user
-      if (!mentor.profileVisibility || !mentor.isActive || mentor.isBlocked) {
-        return res.status(404).json({
-          success: false,
-          message: 'Mentor profile not found or not available'
-        });
-      }
-    } else {
-      // Mentor's own request - check basic status
-      if (!mentor.isActive || mentor.isBlocked) {
-        return res.status(404).json({
-          success: false,
-          message: 'Mentor not found'
-        });
-      }
+    if (!mentor.isActive || mentor.isBlocked || !mentor.profileVisibility) {
+      return res.status(404).json({
+        success: false,
+        message: 'Mentor not found'
+      });
     }
 
     res.status(200).json({
