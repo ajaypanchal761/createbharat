@@ -210,25 +210,23 @@ const InternshipApplicationPage = () => {
       // Clean token (remove any quotes or whitespace)
       token = token.trim().replace(/^["']|["']$/g, '');
 
-      // Prepare application data
-      const applicationData = {
-        internshipId: internship._id || internshipId,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-        position: internshipData.title || internship.title
-      };
+      // Prepare FormData for file upload
+      const formDataToSend = new FormData();
 
-      // Handle resume - send file name (file upload will be handled separately if needed)
+      // Add text fields
+      formDataToSend.append('internshipId', internship._id || internshipId);
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('phone', formData.phone);
+      formDataToSend.append('address', formData.address);
+      formDataToSend.append('position', internshipData.title || internship.title);
+
+      // Add resume file if exists
       if (formData.resume) {
-        applicationData.resume = {
-          fileName: formData.resume.name,
-          uploadedAt: new Date().toISOString()
-        };
+        formDataToSend.append('resume', formData.resume);
       }
 
-      const response = await applicationAPI.apply(token, applicationData);
+      const response = await applicationAPI.apply(token, formDataToSend);
 
       if (response.success) {
         setIsSubmitting(false);

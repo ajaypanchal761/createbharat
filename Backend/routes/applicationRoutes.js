@@ -6,10 +6,12 @@ const {
   getCompanyApplications,
   getUserApplications,
   updateApplicationStatus,
-  viewApplication
+  viewApplication,
+  downloadResume
 } = require('../controllers/applicationController');
 const { protect: protectUser } = require('../middleware/auth');
 const { protect: protectCompany } = require('../middleware/companyAuth');
+const { uploadResume } = require('../utils/multer');
 
 const router = express.Router();
 
@@ -22,15 +24,19 @@ const applyValidation = [
 ];
 
 // Protected routes - Users
-router.post('/', protectUser, applyValidation, applyToInternship);
+router.post('/', protectUser, uploadResume.single('resume'), applyValidation, applyToInternship);
 // Specific routes must come before parameterized routes
 router.get('/user/my-applications', protectUser, getUserApplications);
 router.get('/company/my-applications', protectCompany, getCompanyApplications);
-router.get('/:id', protectUser, getApplication);
 
 // Protected routes - Companies
+// Download resume route - must be before /:id route
+router.get('/:id/resume', protectCompany, downloadResume);
 router.put('/:id/status', protectCompany, updateApplicationStatus);
 router.put('/:id/view', protectCompany, viewApplication);
+
+// Get application (User)
+router.get('/:id', protectUser, getApplication);
 
 module.exports = router;
 

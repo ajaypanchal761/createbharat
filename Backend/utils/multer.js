@@ -22,8 +22,8 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter
-const fileFilter = (req, file, cb) => {
+// File filter for images
+const imageFilter = (req, file, cb) => {
   // Accept only images
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
@@ -32,13 +32,38 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Configure multer
+// File filter for resumes/documents
+const resumeFilter = (req, file, cb) => {
+  // Accept PDF and DOC/DOCX files
+  const allowedMimes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ];
+
+  if (allowedMimes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only PDF and Word documents are allowed for resumes'), false);
+  }
+};
+
+// Configure multer for images
 const upload = multer({
   storage: storage,
   limits: {
     fileSize: 5 * 1024 * 1024 // 5MB limit
   },
-  fileFilter: fileFilter
+  fileFilter: imageFilter
+});
+
+// Configure multer for resumes
+const uploadResume = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit for resumes
+  },
+  fileFilter: resumeFilter
 });
 
 // Middleware to parse FormData fields after multer
@@ -55,5 +80,6 @@ const parseFormDataFields = (req, res, next) => {
 
 // Export both upload middleware and parser
 module.exports = upload;
+module.exports.uploadResume = uploadResume;
 module.exports.parseFormData = parseFormDataFields;
 

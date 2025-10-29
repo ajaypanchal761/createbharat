@@ -420,12 +420,17 @@ export const applicationAPI = {
     // Clean token (remove any quotes or whitespace)
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
 
+    // If applicationData is FormData, don't set Content-Type (browser will set it with boundary)
+    const isFormData = applicationData instanceof FormData;
+
     return apiCall('/applications', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${cleanToken}`,
+        // Don't set Content-Type for FormData - browser will set it with boundary
       },
-      body: applicationData, // Let apiCall handle stringification
+      body: applicationData,
+      skipJsonHeaders: isFormData, // Skip JSON headers for FormData
     });
   },
 
@@ -488,6 +493,55 @@ export const applicationAPI = {
         Authorization: `Bearer ${token}`,
       },
     });
+  },
+
+  // Download resume (Company only)
+  downloadResume: async (applicationId, token) => {
+    try {
+      const baseURL = API_BASE_URL;
+      // Get the download URL
+      const response = await fetch(`${baseURL}/applications/${applicationId}/resume`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download resume: ${response.status}`);
+      }
+
+      // Get the blob
+      const blob = await response.blob();
+
+      // Create blob URL and trigger download
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+
+      // Get filename from Content-Disposition header or use default
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let fileName = 'resume.pdf';
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (fileNameMatch) {
+          fileName = fileNameMatch[1];
+        }
+      }
+
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Clean up
+      window.URL.revokeObjectURL(blobUrl);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Download resume error:', error);
+      throw error;
+    }
   },
 };
 
