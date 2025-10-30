@@ -50,6 +50,8 @@ const CompanyInternshipsPage = () => {
                     companySize: company.companySize || '',
                     website: company.website || '',
                     description: company.description || '',
+                    location: company.location || '',
+                    gstNumber: company.gstNumber || '',
                     email: company.email || '',
                     address: company.address || {}
                 });
@@ -310,7 +312,7 @@ const CompanyInternshipsPage = () => {
 
         setCompanyProfile({
             ...companyProfile,
-            [e.target.name]: e.target.value
+            [e.target.name]: e.target.name === 'gstNumber' ? e.target.value.toUpperCase() : e.target.value
         });
     };
 
@@ -337,7 +339,9 @@ const CompanyInternshipsPage = () => {
                 industry: companyProfile.industry?.trim() || '',
                 companySize: companyProfile.companySize || '',
                 website: companyProfile.website?.trim() || '',
-                description: companyProfile.description?.trim() || ''
+                description: companyProfile.description?.trim() || '',
+                location: companyProfile.location?.trim() || '',
+                gstNumber: companyProfile.gstNumber?.trim() || ''
             };
 
             // Include address if exists
@@ -1388,6 +1392,29 @@ const CompanyInternshipsPage = () => {
                                 <option value="201-500 employees">201-500 employees</option>
                                 <option value="500+ employees">500+ employees</option>
                             </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                            <input
+                                type="text"
+                                name="location"
+                                value={companyProfile.location || ''}
+                                onChange={handleProfileChange}
+                                placeholder="City, State"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">GST Number</label>
+                            <input
+                                type="text"
+                                name="gstNumber"
+                                value={companyProfile.gstNumber || ''}
+                                onChange={handleProfileChange}
+                                placeholder="15 characters"
+                                maxLength={15}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
+                            />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Website</label>

@@ -13,7 +13,9 @@ const CompanySignupPage = () => {
     industry: '',
     companySize: '',
     website: '',
-    description: ''
+    description: '',
+    location: '',
+    gstNumber: ''
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +24,7 @@ const CompanySignupPage = () => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: name === 'gstNumber' ? value.toUpperCase() : value
     }));
     // Clear error when user starts typing
     if (errors[name]) {
@@ -64,6 +66,14 @@ const CompanySignupPage = () => {
 
     if (!formData.companySize.trim()) {
       newErrors.companySize = 'Company size is required';
+    }
+
+    // Validate GST Number if provided
+    if (formData.gstNumber && formData.gstNumber.trim()) {
+      const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+      if (!gstRegex.test(formData.gstNumber.toUpperCase())) {
+        newErrors.gstNumber = 'Please enter a valid GST number (15 characters)';
+      }
     }
     
     setErrors(newErrors);
@@ -376,11 +386,83 @@ const CompanySignupPage = () => {
                 )}
               </motion.div>
 
-              {/* Website Field (Optional) */}
+              {/* Location Field (Optional) */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.2 }}
+              >
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Location (Optional)
+                </label>
+                <motion.div
+                  whileFocus={{ scale: 1.02 }}
+                  className="relative"
+                >
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-200"
+                    placeholder="City, State"
+                  />
+                </motion.div>
+              </motion.div>
+
+              {/* GST Number Field (Optional) */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.25 }}
+              >
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  GST Number (Optional)
+                </label>
+                <motion.div
+                  whileFocus={{ scale: 1.02 }}
+                  className="relative"
+                >
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    name="gstNumber"
+                    value={formData.gstNumber}
+                    onChange={handleChange}
+                    maxLength={15}
+                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${errors.gstNumber
+                      ? 'border-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:border-indigo-500'
+                      } focus:ring-2 focus:ring-indigo-200 outline-none uppercase`}
+                    placeholder="15 characters"
+                  />
+                </motion.div>
+                {errors.gstNumber && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-1 text-sm text-red-600"
+                  >
+                    {errors.gstNumber}
+                  </motion.p>
+                )}
+              </motion.div>
+
+              {/* Website Field (Optional) */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.3 }}
               >
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Website (Optional)
@@ -409,7 +491,7 @@ const CompanySignupPage = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.3 }}
+                transition={{ delay: 1.4 }}
               >
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Company Description (Optional)
@@ -428,7 +510,7 @@ const CompanySignupPage = () => {
               <motion.button
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.4 }}
+                transition={{ delay: 1.5 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"

@@ -32,7 +32,9 @@ const registerCompany = async (req, res) => {
       companySize,
       website,
       description,
-      address
+      address,
+      location,
+      gstNumber
     } = req.body;
 
     // Check if company already exists
@@ -61,6 +63,12 @@ const registerCompany = async (req, res) => {
     if (description && description.trim() !== '') {
       companyData.description = description;
     }
+    if (location && location.trim() !== '') {
+      companyData.location = location;
+    }
+    if (gstNumber && gstNumber.trim() !== '') {
+      companyData.gstNumber = gstNumber;
+    }
     if (address && Object.keys(address).length > 0) {
       companyData.address = address;
     }
@@ -82,6 +90,8 @@ const registerCompany = async (req, res) => {
           companySize: company.companySize,
           website: company.website,
           description: company.description,
+          location: company.location,
+          gstNumber: company.gstNumber,
           isEmailVerified: company.isEmailVerified
         },
         token
@@ -170,6 +180,8 @@ const loginCompany = async (req, res) => {
           companySize: company.companySize,
           website: company.website,
           description: company.description,
+          location: company.location,
+          gstNumber: company.gstNumber,
           isEmailVerified: company.isEmailVerified,
           lastLogin: company.lastLogin,
           logo: company.logo,
@@ -214,6 +226,8 @@ const getMe = async (req, res) => {
           companySize: company.companySize,
           website: company.website,
           description: company.description,
+          location: company.location,
+          gstNumber: company.gstNumber,
           address: company.address,
           logo: company.logo,
           coverImage: company.coverImage,
@@ -259,7 +273,9 @@ const updateProfile = async (req, res) => {
       website,
       description,
       address,
-      socialLinks
+      socialLinks,
+      location,
+      gstNumber
     } = req.body;
 
     const company = await Company.findById(req.company.id);
@@ -277,6 +293,8 @@ const updateProfile = async (req, res) => {
     if (companySize) company.companySize = companySize;
     if (website !== undefined) company.website = website;
     if (description !== undefined) company.description = description;
+    if (location !== undefined) company.location = location;
+    if (gstNumber !== undefined) company.gstNumber = gstNumber;
     if (address) company.address = { ...company.address, ...address };
     if (socialLinks) company.socialLinks = { ...company.socialLinks, ...socialLinks };
 
@@ -294,6 +312,8 @@ const updateProfile = async (req, res) => {
           companySize: company.companySize,
           website: company.website,
           description: company.description,
+          location: company.location,
+          gstNumber: company.gstNumber,
           address: company.address,
           socialLinks: company.socialLinks
         }
