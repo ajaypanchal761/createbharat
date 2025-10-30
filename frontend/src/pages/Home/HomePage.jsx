@@ -1,4 +1,4 @@
-                                                                import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavbar from '../../components/common/BottomNavbar';
@@ -672,20 +672,20 @@ const HomePage = () => {
                                                         </motion.div>
                         
                         <div className="relative z-10">
-                            <motion.h2 
+                                <motion.h2 
                                 className="text-lg font-bold text-gray-800 mb-3"
-                                initial={{ opacity: 0, x: -30 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.3 }}
-                            >
-                                Start Your Journey
-                            </motion.h2>
+                                    initial={{ opacity: 0, x: -30 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.3 }}
+                                >
+                                    Start Your Journey
+                                </motion.h2>
                             
                             {/* Bank Account Service Card */}
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.4 }}
+                                    transition={{ delay: 0.4 }}
                                 className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-4 mb-4 shadow-lg ring-1 ring-white/10"
                             >
                                 <div className="flex items-center justify-between">
@@ -695,8 +695,8 @@ const HomePage = () => {
                                             <h3 className="font-bold text-white text-base">Bank Account Opening</h3>
                                             <p className="text-xs text-blue-100">Coming Soon</p>
                                         </div>
-                                    </div>
-                                    <motion.button
+                                                    </div>
+                            <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         className="px-4 py-2 bg-white text-blue-600 font-semibold rounded-lg text-sm"
@@ -719,7 +719,7 @@ const HomePage = () => {
                             >
                                 Get Started
                             </motion.button>
-                        </div>
+                                                </div>
                             </motion.div>
 
                     {/* Middle Service Grid - 4 Columns */}
@@ -1006,23 +1006,23 @@ const HomePage = () => {
                                             >
                                                 Profile
                                             </Link>
-                                            <button 
-                                                onClick={() => {
-                                                    userLogout();
-                                                    navigate('/');
-                                                }}
-                                                className="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all duration-300"
-                                            >
-                                                Logout
-                                            </button>
+                                    <button 
+                                            onClick={() => {
+                                                userLogout();
+                                                navigate('/');
+                                            }}
+                                            className="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all duration-300"
+                                        >
+                                            Logout
+                                    </button>
                                         </>
                                     ) : (
-                                        <button 
+                                    <button 
                                             onClick={() => navigate('/login')}
-                                            className="px-6 py-2 bg-gradient-to-r from-orange-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300"
-                                        >
+                                        className="px-6 py-2 bg-gradient-to-r from-orange-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300"
+                                    >
                                             Login
-                                        </button>
+                                    </button>
                                     )}
                                 </div>
                             </div>

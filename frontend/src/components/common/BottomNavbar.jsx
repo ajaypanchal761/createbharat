@@ -89,13 +89,14 @@ const BottomNavbar = ({ tabs = [] }) => {
         >
             <div className="flex items-center justify-around py-3 px-2">
                 {navTabs.map((tab, index) => {
-                    const isActive = location.pathname === tab.path;
+                    const isActive = tab.isActive !== undefined ? tab.isActive : location.pathname === tab.path;
                     
                     return (
                         <motion.button
                             key={tab.name}
                             whileHover={{ scale: 1.1, y: -2 }}
                             whileTap={{ scale: 0.95 }}
+                            onClick={tab.onClick || undefined}
                             className={`flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-300 ${
                                 isActive 
                                     ? 'bg-gradient-to-b from-orange-50 to-orange-100 shadow-lg' 
@@ -108,35 +109,70 @@ const BottomNavbar = ({ tabs = [] }) => {
                                     : '0 2px 4px rgba(0, 0, 0, 0.1)'
                             }}
                         >
-                            <Link
-                                to={tab.path}
-                                className={`flex flex-col items-center space-y-1 ${
+                            {tab.onClick ? (
+                                <div className={`flex flex-col items-center space-y-1 ${
                                     isActive 
                                         ? 'text-orange-500' 
                                         : 'text-gray-600 hover:text-orange-500'
-                                }`}
-                            >
-                                <motion.div
-                                    animate={isActive ? { 
-                                        scale: [1, 1.2, 1],
-                                        rotateY: [0, 10, 0]
-                                    } : {}}
-                                    transition={{ duration: 0.4, ease: "easeInOut" }}
-                                    style={{
-                                        transformStyle: 'preserve-3d',
-                                        perspective: '1000px'
-                                    }}
-                                >
-                                    {React.cloneElement(tab.icon, { active: isActive })}
-                                </motion.div>
-                                <span className={`text-xs font-semibold transition-all duration-300 ${
-                                    isActive 
-                                        ? 'text-orange-500 scale-105' 
-                                        : 'text-gray-600'
                                 }`}>
-                                    {tab.name}
-                                </span>
-                            </Link>
+                                    <motion.div
+                                        animate={isActive ? { 
+                                            scale: [1, 1.2, 1],
+                                            rotateY: [0, 10, 0]
+                                        } : {}}
+                                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                                        style={{
+                                            transformStyle: 'preserve-3d',
+                                            perspective: '1000px'
+                                        }}
+                                    >
+                                        {React.cloneElement(tab.icon, { active: isActive })}
+                                    </motion.div>
+                                    <span className={`text-xs font-semibold transition-all duration-300 ${
+                                        isActive 
+                                            ? 'text-orange-500 scale-105' 
+                                            : 'text-gray-600'
+                                    }`}>
+                                        {tab.name}
+                                    </span>
+                                </div>
+                            ) : (
+                                <Link
+                                    to={tab.path}
+                                    onClick={() => {
+                                        // Save current page before navigating to profile
+                                        if (tab.path === '/profile') {
+                                            localStorage.setItem('previousPageBeforeProfile', location.pathname);
+                                        }
+                                    }}
+                                    className={`flex flex-col items-center space-y-1 ${
+                                        isActive 
+                                            ? 'text-orange-500' 
+                                            : 'text-gray-600 hover:text-orange-500'
+                                    }`}
+                                >
+                                    <motion.div
+                                        animate={isActive ? { 
+                                            scale: [1, 1.2, 1],
+                                            rotateY: [0, 10, 0]
+                                        } : {}}
+                                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                                        style={{
+                                            transformStyle: 'preserve-3d',
+                                            perspective: '1000px'
+                                        }}
+                                    >
+                                        {React.cloneElement(tab.icon, { active: isActive })}
+                                    </motion.div>
+                                    <span className={`text-xs font-semibold transition-all duration-300 ${
+                                        isActive 
+                                            ? 'text-orange-500 scale-105' 
+                                            : 'text-gray-600'
+                                    }`}>
+                                        {tab.name}
+                                    </span>
+                                </Link>
+                            )}
                         </motion.button>
                     );
                 })}

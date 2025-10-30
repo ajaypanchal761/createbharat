@@ -6,7 +6,6 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import TestOTP from './pages/TestOTP';
 import HomePage from './pages/Home/HomePage';
 import LoansPage from './pages/Loans/LoansPage';
-import LoanApplicationPage from './pages/Loans/LoanApplicationPage';
 import LoanStatusPage from './pages/Loans/LoanStatusPage';
 import LoanDetailPage from './pages/Loans/LoanDetailPage';
 import InternshipsPage from './pages/Internships/InternshipsPage';
@@ -84,7 +83,6 @@ function App() {
                   <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/loans" element={<LoansPage />} />
-                    <Route path="/loans/apply" element={<LoanApplicationPage />} />
                     <Route path="/loans/status" element={<LoanStatusPage />} />
                     <Route path="/loans/:schemeId" element={<LoanDetailPage />} />
                     <Route path="/internships" element={<InternshipsPage />} />

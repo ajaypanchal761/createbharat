@@ -1,29 +1,66 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import BottomNavbar from '../../components/common/BottomNavbar';
 import { mentorAPI } from '../../utils/api';
 
 const MentorProfilePage = () => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+  
+  // Default mentor profile data to avoid slow loading
+  const defaultPricing = {
+    quick: {
+      duration: '20-25 minutes',
+      price: 150,
+      label: 'Quick consultation'
+    },
+    inDepth: {
+      duration: '50-60 minutes',
+      price: 300,
+      label: 'In-depth session'
+    },
+    comprehensive: {
+      duration: '90-120 minutes',
+      price: 450,
+      label: 'Comprehensive consultation'
+    }
+  };
 
+  const defaultProfile = {
+    firstName: 'Mentor',
+    lastName: 'Name',
+    title: 'Senior Mentor',
+    company: 'Your Company',
+    experience: '5+ years',
+    specialization: 'Business & Strategy',
+    bio: 'Experienced mentor helping businesses grow.',
+    profileImage: null,
+    rating: 0,
+    totalSessions: 0,
+    responseTime: '24 hours',
+    pricing: defaultPricing,
+    skills: ['Strategy', 'Business'],
+    languages: ['English', 'Hindi'],
+    education: [],
+    certifications: [],
+    categories: [],
+    profileVisibility: true
+  };
+  
   // Mentor profile data
-  const [profileData, setProfileData] = useState(null);
-  const [formData, setFormData] = useState(null);
+  const [profileData, setProfileData] = useState(defaultProfile);
+  const [formData, setFormData] = useState(defaultProfile);
 
-  // Fetch mentor profile on mount
+  // Fetch mentor profile on mount (optional, runs in background)
   useEffect(() => {
     const fetchProfile = async () => {
-      setIsLoading(true);
       try {
         const token = localStorage.getItem('mentorToken');
         if (!token) {
-          navigate('/mentors/login');
           return;
         }
 
@@ -31,40 +68,21 @@ const MentorProfilePage = () => {
         if (response.success && response.data.mentor) {
           const mentor = response.data.mentor;
 
-          // Initialize default values if not present
-          const defaultPricing = {
-            quick: {
-              duration: '20-25 minutes',
-              price: 150,
-              label: 'Quick consultation'
-            },
-            inDepth: {
-              duration: '50-60 minutes',
-              price: 300,
-              label: 'In-depth session'
-            },
-            comprehensive: {
-              duration: '90-120 minutes',
-              price: 450,
-              label: 'Comprehensive consultation'
-            }
-          };
-
           const profile = {
-            firstName: mentor.firstName || '',
-            lastName: mentor.lastName || '',
-            title: mentor.title || '',
-            company: mentor.company || '',
-            experience: mentor.experience || '',
-            specialization: mentor.specialization || '',
-            bio: mentor.bio || '',
+            firstName: mentor.firstName || defaultProfile.firstName,
+            lastName: mentor.lastName || defaultProfile.lastName,
+            title: mentor.title || defaultProfile.title,
+            company: mentor.company || defaultProfile.company,
+            experience: mentor.experience || defaultProfile.experience,
+            specialization: mentor.specialization || defaultProfile.specialization,
+            bio: mentor.bio || defaultProfile.bio,
             profileImage: mentor.profileImage || null,
             rating: mentor.rating || 0,
             totalSessions: mentor.totalSessions || 0,
-            responseTime: mentor.responseTime || '24 hours',
+            responseTime: mentor.responseTime || defaultProfile.responseTime,
             pricing: mentor.pricing || defaultPricing,
-            skills: mentor.skills || [],
-            languages: mentor.languages || [],
+            skills: mentor.skills || defaultProfile.skills,
+            languages: mentor.languages || defaultProfile.languages,
             education: mentor.education || [],
             certifications: mentor.certifications || [],
             categories: mentor.categories || [],
@@ -76,17 +94,12 @@ const MentorProfilePage = () => {
         }
       } catch (err) {
         console.error('Error fetching profile:', err);
-        setError(err.message || 'Failed to load profile');
-        if (err.message && err.message.includes('token')) {
-          navigate('/mentors/login');
-        }
-      } finally {
-        setIsLoading(false);
+        // Don't block UI for API errors
       }
     };
 
     fetchProfile();
-  }, [navigate]);
+  }, []);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -141,12 +154,12 @@ const MentorProfilePage = () => {
       const response = await mentorAPI.updateProfile(token, updateData);
 
       if (response.success) {
-        setProfileData(formData);
-        setIsEditing(false);
+    setProfileData(formData);
+    setIsEditing(false);
         // Update localStorage with new mentor data
         const updatedMentor = { ...response.data.mentor };
         localStorage.setItem('mentorData', JSON.stringify(updatedMentor));
-        alert('Profile updated successfully!');
+    alert('Profile updated successfully!');
       }
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -249,37 +262,6 @@ const MentorProfilePage = () => {
     }));
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!profileData || !formData) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Failed to load profile'}</p>
-          <button
-            onClick={() => navigate('/mentors/login')}
-            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
-          >
-            Go to Login
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const tabs = [
-    { id: 'profile', label: 'Profile' },
-    { id: 'pricing', label: 'Pricing' }
-  ];
 
   const renderProfileTab = () => (
     <div className="space-y-6">
@@ -310,8 +292,8 @@ const MentorProfilePage = () => {
                   className="bg-white/20 text-white placeholder-white/80 rounded-lg px-3 py-2 w-full"
                   placeholder="First Name"
                 />
-                <input
-                  type="text"
+              <input
+                type="text"
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
                   className="bg-white/20 text-white placeholder-white/80 rounded-lg px-3 py-2 w-full"
@@ -345,7 +327,7 @@ const MentorProfilePage = () => {
             )}
           </div>
         </div>
-
+        
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mt-6">
           <div className="text-center">
@@ -396,7 +378,7 @@ const MentorProfilePage = () => {
           {formData.skills.length > 0 ? (
             formData.skills.map((skill, index) => (
               <span key={index} className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
-                {skill}
+              {skill}
                 {isEditing && (
                   <button
                     onClick={() => handleRemoveSkill(index)}
@@ -405,7 +387,7 @@ const MentorProfilePage = () => {
                     ×
                   </button>
                 )}
-              </span>
+            </span>
             ))
           ) : (
             <p className="text-gray-500 text-sm">No skills added yet</p>
@@ -476,12 +458,12 @@ const MentorProfilePage = () => {
                   </div>
                 ) : (
                   <>
-                    <h4 className="font-semibold text-gray-800">{edu.degree}</h4>
-                    <p className="text-gray-600">{edu.university}</p>
-                    <p className="text-gray-500 text-sm">{edu.year}</p>
+              <h4 className="font-semibold text-gray-800">{edu.degree}</h4>
+              <p className="text-gray-600">{edu.university}</p>
+              <p className="text-gray-500 text-sm">{edu.year}</p>
                   </>
                 )}
-              </div>
+            </div>
             ))
           ) : (
             <p className="text-gray-500 text-sm">No education added yet</p>
@@ -507,9 +489,9 @@ const MentorProfilePage = () => {
             formData.certifications.map((cert, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <span className="text-orange-500">🏆</span>
-                  <span className="text-gray-700">{cert}</span>
-                </div>
+              <span className="text-orange-500">🏆</span>
+              <span className="text-gray-700">{cert}</span>
+            </div>
                 {isEditing && (
                   <button
                     onClick={() => handleRemoveCertification(index)}
@@ -580,8 +562,8 @@ const MentorProfilePage = () => {
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
             </label>
-          </div>
         </div>
+      </div>
       )}
 
       {/* Experience & Specialization */}
@@ -621,55 +603,50 @@ const MentorProfilePage = () => {
           </div>
         </>
       )}
-    </div>
-  );
 
-  const renderPricingTab = () => {
-    const pricingSessions = [
-      {
-        key: 'quick',
-        duration: formData.pricing.quick?.duration || '20-25 minutes',
-        price: formData.pricing.quick?.price || 150,
-        label: formData.pricing.quick?.label || 'Quick consultation',
-        icon: '⚡'
-      },
-      {
-        key: 'inDepth',
-        duration: formData.pricing.inDepth?.duration || '50-60 minutes',
-        price: formData.pricing.inDepth?.price || 300,
-        label: formData.pricing.inDepth?.label || 'In-depth session',
-        icon: '💡'
-      },
-      {
-        key: 'comprehensive',
-        duration: formData.pricing.comprehensive?.duration || '90-120 minutes',
-        price: formData.pricing.comprehensive?.price || 450,
-        label: formData.pricing.comprehensive?.label || 'Comprehensive consultation',
-        icon: '🎯'
-      }
-    ];
-
-    return (
+      {/* Pricing Section */}
       <div className="space-y-6">
-        <div className="bg-white rounded-xl p-6 shadow-lg">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Session Pricing</h3>
+        <div className="bg-white rounded-xl p-3 md:p-6 shadow-lg">
+          <h3 className="text-sm md:text-lg font-semibold text-gray-800 mb-2 md:mb-4">Session Pricing</h3>
           {!isEditing && (
-            <p className="text-sm text-gray-600 mb-4">Click "Edit Profile" to update pricing</p>
+            <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4">Click "Edit Profile" to update pricing</p>
           )}
-          <div className="space-y-4">
-            {pricingSessions.map((session) => (
-              <div key={session.key} className="p-4 border border-gray-200 rounded-lg">
+          <div className="space-y-3 md:space-y-4">
+            {[
+              {
+                key: 'quick',
+                duration: formData.pricing.quick?.duration || '20-25 minutes',
+                price: formData.pricing.quick?.price || 150,
+                label: formData.pricing.quick?.label || 'Quick consultation',
+                icon: '⚡'
+              },
+              {
+                key: 'inDepth',
+                duration: formData.pricing.inDepth?.duration || '50-60 minutes',
+                price: formData.pricing.inDepth?.price || 300,
+                label: formData.pricing.inDepth?.label || 'In-depth session',
+                icon: '💡'
+              },
+              {
+                key: 'comprehensive',
+                duration: formData.pricing.comprehensive?.duration || '90-120 minutes',
+                price: formData.pricing.comprehensive?.price || 450,
+                label: formData.pricing.comprehensive?.label || 'Comprehensive consultation',
+                icon: '🎯'
+              }
+            ].map((session) => (
+              <div key={session.key} className="p-3 md:p-4 border border-gray-200 rounded-lg">
                 <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">{session.icon}</span>
+                  <div className="flex items-center space-x-2 md:space-x-3">
+                    <span className="text-lg md:text-2xl">{session.icon}</span>
                     <div>
-                      <span className="font-semibold text-gray-800">{session.label}</span>
-                      <p className="text-sm text-gray-600">{session.duration}</p>
+                      <span className="font-semibold text-gray-800 text-xs md:text-base">{session.label}</span>
+                      <p className="text-xs md:text-sm text-gray-600">{session.duration}</p>
                     </div>
                   </div>
                   {!isEditing && (
                     <div className="text-right">
-                      <span className="text-2xl font-bold text-orange-600">₹{session.price}</span>
+                      <span className="text-base md:text-2xl font-bold text-orange-600">₹{session.price}</span>
                     </div>
                   )}
                 </div>
@@ -727,7 +704,7 @@ const MentorProfilePage = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-6">
+        <div className="hidden md:block bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-2">💡 Pricing Tips</h3>
           <ul className="text-sm text-gray-600 space-y-1">
             <li>• Consider your experience level when setting prices</li>
@@ -737,132 +714,53 @@ const MentorProfilePage = () => {
           </ul>
         </div>
       </div>
-    );
-  };
+
+      {/* Edit Profile Button */}
+      <div className="flex justify-center mt-6 md:mt-8">
+        {!isEditing ? (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="px-6 md:px-8 py-2 md:py-3 text-sm md:text-base bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors shadow-lg"
+          >
+            Edit Profile
+          </button>
+        ) : (
+          <div className="flex space-x-3 md:space-x-4">
+            <button
+              onClick={handleCancel}
+              className="px-6 md:px-8 py-2 md:py-3 text-sm md:text-base bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="px-6 md:px-8 py-2 md:py-3 text-sm md:text-base bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+            >
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100">
-      {/* Mobile Header */}
-      <div className="md:hidden bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 sticky top-0 z-40">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => navigate('/mentors')}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className="text-xl font-bold">Mentor Profile</h1>
-          </div>
-          <div className="flex items-center space-x-2">
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleCancel}
-                  className="px-3 py-1 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="px-3 py-1 bg-white text-orange-600 rounded-lg hover:bg-orange-50 transition-colors font-semibold disabled:opacity-50"
-                >
-                  {isSaving ? 'Saving...' : 'Save'}
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="px-3 py-1 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors"
-              >
-                Edit
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop Header */}
-      <div className="hidden md:block bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => navigate('/mentors')}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className="text-2xl font-bold">Mentor Profile</h1>
-          </div>
-          <div className="flex items-center space-x-3">
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleCancel}
-                  className="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="px-4 py-2 bg-white text-orange-600 rounded-lg hover:bg-orange-50 transition-colors font-semibold disabled:opacity-50"
-                >
-                  {isSaving ? 'Saving...' : 'Save Changes'}
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors"
-              >
-                Edit Profile
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto p-4 md:p-6 pb-20 md:pb-6">
-        {/* Tab Navigation */}
-        <div className="mb-6">
-          <div className="flex space-x-1 bg-white rounded-xl p-1 shadow-lg overflow-x-auto scrollbar-hide">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex-shrink-0 flex items-center justify-center py-2 px-3 rounded-lg transition-all duration-300 text-xs md:text-sm ${activeTab === tab.id
-                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg'
-                  : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-              >
-                <span className="font-medium whitespace-nowrap">{tab.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Tab Content */}
+      <div className="max-w-6xl mx-auto p-4 md:p-6 pb-4 md:pb-6">
+        {/* Content - Only Profile Tab */}
         <motion.div
-          key={activeTab}
+          key="profile"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          {activeTab === 'profile' && renderProfileTab()}
-          {activeTab === 'pricing' && renderPricingTab()}
+          {renderProfileTab()}
         </motion.div>
       </div>
-
-      {/* Bottom Navigation */}
-      <BottomNavbar />
     </div>
   );
 };

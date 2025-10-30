@@ -306,14 +306,6 @@ const LoanStatusPage = () => {
               </div>
               <h3 className="text-lg font-semibold text-gray-600 mb-2">No applications found</h3>
               <p className="text-gray-500 mb-4">No loan applications match the selected filter.</p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate('/loans/apply')}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Apply for Loan
-              </motion.button>
             </motion.div>
           )}
         </motion.div>
@@ -324,7 +316,6 @@ const LoanStatusPage = () => {
         tabs={[
           { name: 'Home', path: '/', icon: <HomeIcon /> },
           { name: 'Loans', path: '/loans', icon: <BriefcaseIcon /> },
-          { name: 'Apply', path: '/loans/apply', icon: <PlusIcon /> },
           { name: 'Status', path: '/loans/status', icon: <BarChartIcon /> },
           { name: 'Profile', path: '/profile', icon: <UserIcon /> }
         ]}
