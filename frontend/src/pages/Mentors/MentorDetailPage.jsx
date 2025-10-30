@@ -60,7 +60,7 @@ const MentorDetailPage = () => {
             pricing: apiMentor.pricing,
             image: apiMentor.profileImage || '',
             specialties: apiMentor.skills || [],
-            availability: 'Available',
+    availability: 'Available',
             responseTime: apiMentor.responseTime || '24 hours',
             description: apiMentor.bio || '',
             achievements: apiMentor.certifications || [],
@@ -119,23 +119,23 @@ const MentorDetailPage = () => {
   };
 
   if (isLoading) {
-    return (
+  return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/30 to-slate-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading mentor profile...</p>
-        </div>
-      </div>
+              </div>
+            </div>
     );
   }
 
   if (!mentorData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+                    <div className="text-center">
           <p className="text-lg text-gray-600">Mentor not found.</p>
-        </div>
-      </div>
+              </div>
+            </div>
     );
   }
 
@@ -181,7 +181,7 @@ const MentorDetailPage = () => {
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">{mentor.name}</h1>
                 <p className="text-lg text-gray-600 mb-1">{mentor.title}</p>
                 <p className="text-sm text-gray-500 mb-4">{mentor.company}</p>
-
+                
                 <div className="flex items-center space-x-4 mb-4">
                   <div className="flex items-center space-x-1">
                     <StarIcon />
@@ -258,7 +258,7 @@ const MentorDetailPage = () => {
                 className="bg-white rounded-xl p-6 shadow-lg border-2 border-gray-100 sticky top-24"
               >
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Book a Session</h3>
-
+                
                 {/* Time Slots */}
                 <div className="space-y-3 mb-6">
                   {timeSlots.map((slot) => (
@@ -284,9 +284,9 @@ const MentorDetailPage = () => {
                   onClick={() => handleBooking(selectedSlot)}
                   disabled={!selectedSlot || isBooking}
                   className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${selectedSlot && !isBooking
-                    ? 'bg-orange-600 text-white hover:bg-orange-700'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
+                      ? 'bg-orange-600 text-white hover:bg-orange-700'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
                 >
                   {isBooking ? 'Processing...' : 'Book Consultant'}
                 </button>

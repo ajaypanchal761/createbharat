@@ -572,12 +572,12 @@ const MentorProfilePage = () => {
           ) : (
             <p className="text-gray-500 text-sm">No languages added yet</p>
           )}
-        </div>
       </div>
+    </div>
 
       {/* Profile Visibility */}
       {isEditing && (
-        <div className="bg-white rounded-xl p-6 shadow-lg">
+      <div className="bg-white rounded-xl p-6 shadow-lg">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Profile Visibility</h3>
           <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
             <div>
@@ -587,8 +587,8 @@ const MentorProfilePage = () => {
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
+                <input
+                  type="checkbox"
                 checked={formData.profileVisibility !== false}
                 onChange={(e) => handleInputChange('profileVisibility', e.target.checked)}
                 className="sr-only peer"
@@ -698,7 +698,7 @@ const MentorProfilePage = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
                         placeholder="e.g., 20-25 minutes"
                       />
-                    </div>
+              </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
                       <input
@@ -717,7 +717,7 @@ const MentorProfilePage = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
                       <div className="flex items-center space-x-2">
                         <span className="text-gray-500">₹</span>
-                        <input
+                      <input
                           type="number"
                           value={session.price}
                           onChange={(e) => {
@@ -727,55 +727,55 @@ const MentorProfilePage = () => {
                           }}
                           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
                           min="0"
-                        />
-                      </div>
+                      />
                     </div>
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="hidden md:block bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">💡 Pricing Tips</h3>
-          <ul className="text-sm text-gray-600 space-y-1">
-            <li>• Consider your experience level when setting prices</li>
-            <li>• Research market rates for your specialization</li>
-            <li>• Start competitive and adjust based on demand</li>
-            <li>• Session links will be shared via email after payment</li>
-          </ul>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
+
+        <div className="hidden md:block bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">💡 Pricing Tips</h3>
+        <ul className="text-sm text-gray-600 space-y-1">
+          <li>• Consider your experience level when setting prices</li>
+          <li>• Research market rates for your specialization</li>
+          <li>• Start competitive and adjust based on demand</li>
+            <li>• Session links will be shared via email after payment</li>
+        </ul>
+      </div>
+    </div>
 
       {/* Edit Profile Button */}
       <div className="flex justify-center mt-6 md:mt-8">
         {!isEditing ? (
-          <button
-            onClick={() => setIsEditing(true)}
+              <button
+                onClick={() => setIsEditing(true)}
             className="px-6 md:px-8 py-2 md:py-3 text-sm md:text-base bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors shadow-lg"
-          >
+              >
             Edit Profile
-          </button>
+              </button>
         ) : (
           <div className="flex space-x-3 md:space-x-4">
-            <button
-              onClick={handleCancel}
+                <button
+                  onClick={handleCancel}
               className="px-6 md:px-8 py-2 md:py-3 text-sm md:text-base bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
               disabled={isSaving}
               className="px-6 md:px-8 py-2 md:py-3 text-sm md:text-base bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-            >
+                >
               {isSaving ? 'Saving...' : 'Save Changes'}
-            </button>
+                </button>
           </div>
-        )}
-      </div>
-    </div>
+            )}
+          </div>
+        </div>
   );
 
 

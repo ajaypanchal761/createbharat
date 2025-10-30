@@ -219,9 +219,9 @@ const MentorDashboard = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-2 md:px-4 py-1 md:py-2 rounded-md md:rounded-lg font-medium transition-all whitespace-nowrap flex-shrink-0 text-xs md:text-base ${activeTab === tab.id
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
               >
                 {tab.label}
               </button>
@@ -256,8 +256,8 @@ const MentorDashboard = () => {
                     className="bg-gray-50 rounded-lg md:rounded-xl p-3 md:p-6 border-2 border-gray-100"
                   >
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
-                      {/* Booking Info */}
-                      <div className="flex-1">
+                  {/* Booking Info */}
+                  <div className="flex-1">
                         <div className="flex items-center space-x-2 md:space-x-3 mb-2">
                           <h3 className="text-base md:text-lg font-semibold text-gray-900">
                             {(booking.user && `${booking.user.firstName || ''} ${booking.user.lastName || ''}`.trim()) || 'Student'}
@@ -310,20 +310,20 @@ const MentorDashboard = () => {
                         )}
                       </div>
 
-                      {/* Actions */}
-                      {booking.status === 'pending' && (
+                  {/* Actions */}
+                  {booking.status === 'pending' && (
                         <div className="flex flex-row md:flex-col space-x-2 md:space-x-0 md:space-y-2 md:ml-4">
                           <button
                             onClick={() => handleAcceptBooking(booking)}
                             className="flex-1 md:flex-none px-3 md:px-4 py-1.5 md:py-2 bg-green-600 text-white font-medium rounded-md md:rounded-lg hover:bg-green-700 transition-colors text-xs md:text-base"
-                          >
-                            Accept
+                      >
+                        Accept
                           </button>
                           <button
                             onClick={() => handleRejectBooking(booking)}
                             className="flex-1 md:flex-none px-3 md:px-4 py-1.5 md:py-2 bg-red-600 text-white font-medium rounded-md md:rounded-lg hover:bg-red-700 transition-colors text-xs md:text-base"
-                          >
-                            Reject
+                      >
+                        Reject
                           </button>
                         </div>
                       )}
@@ -574,7 +574,7 @@ const MentorDashboard = () => {
                   Reject & Refund
                 </button>
               </div>
-            </div>
+      </div>
           </div>
         </>
       )}
