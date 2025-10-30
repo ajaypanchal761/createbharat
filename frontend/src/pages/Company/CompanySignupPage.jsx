@@ -137,7 +137,7 @@ const CompanySignupPage = () => {
       localStorage.setItem('companyName', company.companyName || '');
       localStorage.setItem('companyEmail', company.email || '');
       localStorage.setItem('companyData', JSON.stringify(company));
-
+      
       // Navigate to company dashboard
       navigate('/company/internships');
     } catch (err) {

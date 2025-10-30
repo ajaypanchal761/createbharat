@@ -162,20 +162,20 @@ const AdminDashboard = () => {
     ];
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-3 md:space-y-6">
             {/* Welcome Section */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-6 text-white"
+                className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl md:rounded-2xl p-4 md:p-6 text-white"
             >
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold mb-2">
+                        <h1 className="text-lg md:text-3xl font-bold mb-1 md:mb-2">
                             Welcome back, Admin! 👋
                         </h1>
-                        <p className="text-orange-100 text-lg">
+                        <p className="text-orange-100 text-sm md:text-lg">
                             Here's what's happening with your platform today.
                         </p>
                     </div>
@@ -188,7 +188,7 @@ const AdminDashboard = () => {
             </motion.div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
                 {kpiCards.map((card, index) => {
                     const Icon = card.icon;
                     return (
@@ -197,13 +197,13 @@ const AdminDashboard = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: index * 0.1 }}
-                            className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300"
+                            className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300"
                         >
-                            <div className="flex items-center justify-between mb-4">
-                                <div className={`w-12 h-12 bg-gradient-to-r ${card.color} rounded-xl flex items-center justify-center`}>
-                                    <Icon className="w-6 h-6 text-white" />
+                            <div className="flex items-center justify-between mb-3 md:mb-4">
+                                <div className={`w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r ${card.color} rounded-lg md:rounded-xl flex items-center justify-center`}>
+                                    <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                                 </div>
-                                <div className={`flex items-center text-sm font-medium ${
+                                <div className={`flex items-center text-xs md:text-sm font-medium ${
                                     card.trend === 'up' ? 'text-green-600' : 'text-red-600'
                                 }`}>
                                     {card.trend === 'up' ? (
@@ -215,10 +215,10 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
                             <div>
-                                <h3 className="text-2xl font-bold text-gray-900 mb-1">
+                                <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">
                                     {card.value}
                                 </h3>
-                                <p className="text-gray-600 text-sm">
+                                <p className="text-gray-600 text-xs md:text-sm">
                                     {card.title}
                                 </p>
                             </div>
@@ -228,21 +228,21 @@ const AdminDashboard = () => {
             </div>
 
             {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
                 {/* Recent Activity */}
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
-                    className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
+                    className="lg:col-span-2 bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200"
                 >
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
-                        <button className="text-orange-600 hover:text-orange-700 text-sm font-medium">
+                    <div className="flex items-center justify-between mb-4 md:mb-6">
+                        <h2 className="text-lg md:text-xl font-bold text-gray-900">Recent Activity</h2>
+                        <button className="text-orange-600 hover:text-orange-700 text-xs md:text-sm font-medium">
                             View all
                         </button>
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-2 md:space-y-4">
                         {recentActivity.map((activity, index) => {
                             const Icon = activity.icon;
                             return (
@@ -251,17 +251,17 @@ const AdminDashboard = () => {
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ duration: 0.3, delay: index * 0.1 }}
-                                    className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                                    className="flex items-center space-x-3 md:space-x-4 p-3 md:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
                                 >
-                                    <div className={`w-10 h-10 ${activity.color} bg-gray-100 rounded-lg flex items-center justify-center`}>
-                                        <Icon className="w-5 h-5" />
+                                    <div className={`w-8 h-8 md:w-10 md:h-10 ${activity.color} bg-gray-100 rounded-lg flex items-center justify-center`}>
+                                        <Icon className="w-4 h-4 md:w-5 md:h-5" />
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium text-gray-900">
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs md:text-sm font-medium text-gray-900 truncate">
                                             {activity.message}
                                         </p>
-                                        <p className="text-xs text-gray-500 flex items-center">
-                                            <FaClock className="w-3 h-3 mr-1" />
+                                        <p className="text-[10px] md:text-xs text-gray-500 flex items-center">
+                                            <FaClock className="w-2.5 h-2.5 md:w-3 md:h-3 mr-1" />
                                             {activity.time}
                                         </p>
                                     </div>
@@ -276,10 +276,10 @@ const AdminDashboard = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: 0.4 }}
-                    className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
+                    className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200"
                 >
-                    <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-                    <div className="space-y-4">
+                    <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6">Quick Actions</h2>
+                    <div className="space-y-2 md:space-y-4">
                         {quickActions.map((action, index) => {
                             const Icon = action.icon;
                             return (
@@ -288,17 +288,17 @@ const AdminDashboard = () => {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.3, delay: index * 0.1 }}
-                                    className="w-full p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-left group"
+                                    className="w-full p-3 md:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-left group"
                                 >
-                                    <div className="flex items-center space-x-3">
-                                        <div className={`w-10 h-10 bg-gradient-to-r ${action.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                                            <Icon className="w-5 h-5 text-white" />
+                                    <div className="flex items-center space-x-2 md:space-x-3">
+                                        <div className={`w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r ${action.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                                            <Icon className="w-4 h-4 md:w-5 md:h-5 text-white" />
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-900">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs md:text-sm font-medium text-gray-900 truncate">
                                                 {action.title}
                                             </p>
-                                            <p className="text-xs text-gray-500">
+                                            <p className="text-[10px] md:text-xs text-gray-500 truncate">
                                                 {action.description}
                                             </p>
                                         </div>
@@ -315,46 +315,46 @@ const AdminDashboard = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
-                className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
+                className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200"
             >
-                <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                        <FaUsers className="text-orange-600" />
-                        Mentor Bookings Overview
+                <div className="flex items-center justify-between mb-4 md:mb-6">
+                    <h3 className="text-lg md:text-xl font-bold text-gray-900 flex items-center gap-2">
+                        <FaUsers className="text-orange-600 text-base md:text-lg" />
+                        <span className="truncate">Mentor Bookings Overview</span>
                     </h3>
-                    <button className="text-orange-600 hover:text-orange-700 font-semibold">
+                    <button className="text-orange-600 hover:text-orange-700 font-semibold text-sm md:text-base">
                         View All
                     </button>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-6">
                     {[
                         { label: 'Total Bookings', value: '124', color: 'blue' },
                         { label: 'Pending', value: '32', color: 'yellow' },
                         { label: 'Active', value: '45', color: 'green' },
                         { label: 'Completed', value: '47', color: 'purple' }
                     ].map((stat, idx) => (
-                        <div key={idx} className={`bg-${stat.color}-50 rounded-xl p-4 border border-${stat.color}-100`}>
-                            <div className="text-2xl font-bold mb-1">{stat.value}</div>
-                            <div className="text-sm text-gray-600">{stat.label}</div>
+                        <div key={idx} className={`bg-${stat.color}-50 rounded-lg md:rounded-xl p-3 md:p-4 border border-${stat.color}-100`}>
+                            <div className="text-xl md:text-2xl font-bold mb-1">{stat.value}</div>
+                            <div className="text-xs md:text-sm text-gray-600">{stat.label}</div>
                         </div>
                     ))}
                 </div>
                 
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                     {[
                         { mentor: 'Dr. Sarah Johnson', student: 'John Doe', date: '2024-01-20', status: 'pending', amount: '₹300' },
                         { mentor: 'Prof. Michael Chen', student: 'Jane Smith', date: '2024-01-19', status: 'active', amount: '₹450' },
                         { mentor: 'Dr. Emily Rodriguez', student: 'Mike Johnson', date: '2024-01-18', status: 'completed', amount: '₹300' }
                     ].map((booking, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <div className="flex-1">
-                                <div className="font-semibold text-gray-900">{booking.mentor}</div>
-                                <div className="text-sm text-gray-600">{booking.student} • {booking.date}</div>
+                        <div key={idx} className="flex items-center justify-between p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-xs md:text-sm text-gray-900 truncate">{booking.mentor}</div>
+                                <div className="text-[10px] md:text-sm text-gray-600 truncate">{booking.student} • {booking.date}</div>
                             </div>
-                            <div className="flex items-center gap-4">
-                                <div className="text-sm text-gray-600">{booking.amount}</div>
-                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            <div className="flex items-center gap-2 md:gap-4 ml-2">
+                                <div className="text-xs md:text-sm text-gray-600">{booking.amount}</div>
+                                <span className={`px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-medium ${
                                     booking.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
                                     booking.status === 'active' ? 'bg-green-100 text-green-700' :
                                     'bg-blue-100 text-blue-700'
@@ -372,28 +372,28 @@ const AdminDashboard = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
-                className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+                className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6"
             >
                 {/* Revenue Chart */}
-                <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue Trend</h3>
-                    <div className="h-64 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl flex items-center justify-center">
+                <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200">
+                    <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Revenue Trend</h3>
+                    <div className="h-48 md:h-64 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl flex items-center justify-center">
                         <div className="text-center">
-                            <div className="text-4xl mb-2">📈</div>
-                            <p className="text-gray-600">Revenue chart visualization</p>
-                            <p className="text-sm text-gray-500">Interactive charts coming soon</p>
+                            <div className="text-3xl md:text-4xl mb-2">📈</div>
+                            <p className="text-sm md:text-base text-gray-600">Revenue chart visualization</p>
+                            <p className="text-xs md:text-sm text-gray-500">Interactive charts coming soon</p>
                         </div>
                     </div>
                 </div>
 
                 {/* User Growth Chart */}
-                <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">User Growth</h3>
-                    <div className="h-64 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl flex items-center justify-center">
+                <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200">
+                    <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">User Growth</h3>
+                    <div className="h-48 md:h-64 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl flex items-center justify-center">
                         <div className="text-center">
-                            <div className="text-4xl mb-2">👥</div>
-                            <p className="text-gray-600">User growth visualization</p>
-                            <p className="text-sm text-gray-500">Interactive charts coming soon</p>
+                            <div className="text-3xl md:text-4xl mb-2">👥</div>
+                            <p className="text-sm md:text-base text-gray-600">User growth visualization</p>
+                            <p className="text-xs md:text-sm text-gray-500">Interactive charts coming soon</p>
                         </div>
                     </div>
                 </div>

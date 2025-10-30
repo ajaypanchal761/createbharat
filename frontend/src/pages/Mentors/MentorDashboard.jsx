@@ -204,9 +204,9 @@ const MentorDashboard = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-2 md:px-4 py-1 md:py-2 rounded-md md:rounded-lg font-medium transition-all whitespace-nowrap flex-shrink-0 text-xs md:text-base ${activeTab === tab.id
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
               >
                 {tab.label}
               </button>
@@ -241,71 +241,71 @@ const MentorDashboard = () => {
                     className="bg-gray-50 rounded-lg md:rounded-xl p-3 md:p-6 border-2 border-gray-100"
                   >
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
-                      {/* Booking Info */}
-                      <div className="flex-1">
+                  {/* Booking Info */}
+                  <div className="flex-1">
                         <div className="flex items-center space-x-2 md:space-x-3 mb-2">
                           <h3 className="text-base md:text-lg font-semibold text-gray-900">{booking.studentName}</h3>
                           <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs md:text-sm font-medium border ${getStatusColor(booking.status)}`}>
-                            <span className="flex items-center space-x-1">
-                              {getStatusIcon(booking.status)}
-                              <span className="capitalize">{booking.status}</span>
-                            </span>
-                          </span>
-                        </div>
-
+                        <span className="flex items-center space-x-1">
+                          {getStatusIcon(booking.status)}
+                          <span className="capitalize">{booking.status}</span>
+                        </span>
+                      </span>
+                    </div>
+                    
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm text-gray-600">
-                          <div>
-                            <span className="font-medium">Email:</span> {booking.studentEmail}
-                          </div>
-                          <div>
-                            <span className="font-medium">Session:</span> {booking.sessionType}
-                          </div>
-                          <div>
+                      <div>
+                        <span className="font-medium">Email:</span> {booking.studentEmail}
+                      </div>
+                      <div>
+                        <span className="font-medium">Session:</span> {booking.sessionType}
+                      </div>
+                      <div>
                             <span className="font-medium">Date:</span> {booking.date || '-'}{booking.time ? ` at ${booking.time}` : ''}
-                          </div>
-                          <div>
-                            <span className="font-medium">Amount:</span> ₹{booking.amount}
-                          </div>
-                        </div>
+                      </div>
+                      <div>
+                        <span className="font-medium">Amount:</span> ₹{booking.amount}
+                      </div>
+                    </div>
 
                         <div className="mt-2 md:mt-3">
                           <span className="font-medium text-gray-900 text-xs md:text-sm">Message:</span>
                           <p className="text-gray-600 mt-0.5 md:mt-1 text-xs md:text-sm">{booking.message || '-'}</p>
-                        </div>
+                    </div>
 
                         <div className="mt-2 md:mt-3">
                           <span className="font-medium text-gray-900 text-xs md:text-sm">Specialties:</span>
                           <div className="flex flex-wrap gap-1 md:gap-2 mt-0.5 md:mt-1">
                             {(booking.specialties || []).map((specialty, idx) => (
-                              <span
-                                key={idx}
+                          <span
+                            key={idx}
                                 className="px-1.5 md:px-2 py-0.5 md:py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
-                              >
-                                {specialty}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
+                          >
+                            {specialty}
+                          </span>
+                        ))}
                       </div>
+                    </div>
+                  </div>
 
-                      {/* Actions */}
-                      {booking.status === 'pending' && (
+                  {/* Actions */}
+                  {booking.status === 'pending' && (
                         <div className="flex flex-row md:flex-col space-x-2 md:space-x-0 md:space-y-2 md:ml-4">
                           <button
                             onClick={() => handleAcceptBooking(booking)}
                             className="flex-1 md:flex-none px-3 md:px-4 py-1.5 md:py-2 bg-green-600 text-white font-medium rounded-md md:rounded-lg hover:bg-green-700 transition-colors text-xs md:text-base"
-                          >
-                            Accept
+                      >
+                        Accept
                           </button>
                           <button
                             onClick={() => handleRejectBooking(booking)}
                             className="flex-1 md:flex-none px-3 md:px-4 py-1.5 md:py-2 bg-red-600 text-white font-medium rounded-md md:rounded-lg hover:bg-red-700 transition-colors text-xs md:text-base"
-                          >
-                            Reject
+                      >
+                        Reject
                           </button>
-                        </div>
-                      )}
                     </div>
+                  )}
+                </div>
                   </div>
                 ))
               )}
@@ -541,7 +541,7 @@ const MentorDashboard = () => {
                   Reject & Refund
                 </button>
               </div>
-            </div>
+      </div>
           </div>
         </>
       )}

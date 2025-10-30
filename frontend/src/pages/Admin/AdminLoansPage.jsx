@@ -242,45 +242,45 @@ const AdminLoansPage = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-3 md:space-y-6">
             {/* Page Header */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
-                className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
+                className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200"
             >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-3">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Loan Schemes Management</h1>
-                        <p className="text-gray-600 mt-1">Manage all loan schemes and applications</p>
+                        <h1 className="text-lg md:text-3xl font-bold text-gray-900">Loan Schemes Management</h1>
+                        <p className="text-sm md:text-base text-gray-600 mt-1">Manage all loan schemes and applications</p>
                     </div>
                     <div className="flex items-center space-x-4">
                         <div className="text-right">
-                            <div className="text-sm text-gray-500">Total Schemes</div>
-                            <div className="text-2xl font-bold text-orange-600">{schemes.length}</div>
+                            <div className="text-xs md:text-sm text-gray-500">Total Schemes</div>
+                            <div className="text-xl md:text-2xl font-bold text-orange-600">{schemes.length}</div>
                         </div>
                     </div>
                 </div>
             </motion.div>
 
             {/* Main Content */}
-            <div className="space-y-6">
+            <div className="space-y-3 md:space-y-6">
                 {/* Search and Create Button */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.1 }}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6"
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 mb-4 md:mb-6"
                 >
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
                         <div className="flex-1">
                             <input
                                 type="text"
                                 placeholder="Search schemes by name, description, or category..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                className="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm md:text-base"
                             />
                         </div>
                         <motion.button
@@ -290,7 +290,7 @@ const AdminLoansPage = () => {
                                 resetForm();
                                 setShowCreateModal(true);
                             }}
-                            className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-semibold shadow-lg"
+                            className="px-4 md:px-6 py-2 md:py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-semibold shadow-lg text-sm md:text-base whitespace-nowrap"
                         >
                             ➕ Create New Scheme
                         </motion.button>
@@ -302,7 +302,7 @@ const AdminLoansPage = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6"
                 >
                     {filteredSchemes.map((scheme, index) => (
                         <motion.div
@@ -311,15 +311,15 @@ const AdminLoansPage = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
                             whileHover={{ scale: 1.02, y: -4 }}
-                            className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300"
+                            className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6 hover:shadow-xl transition-all duration-300"
                         >
                             {/* Scheme Header */}
-                            <div className="flex items-start justify-between mb-4">
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">{scheme.name}</h3>
-                                    <p className="text-sm text-gray-600 capitalize">{scheme.category}</p>
+                            <div className="flex items-start justify-between mb-3 md:mb-4">
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-base md:text-lg font-semibold text-gray-900 truncate">{scheme.name}</h3>
+                                    <p className="text-xs md:text-sm text-gray-600 capitalize">{scheme.category}</p>
                                 </div>
-                                <div className="flex space-x-2">
+                                <div className="flex space-x-2 ml-2">
                                     <motion.button
                                         whileHover={{ scale: 1.1 }}
                                         whileTap={{ scale: 0.9 }}
@@ -327,7 +327,7 @@ const AdminLoansPage = () => {
                                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                         title="Edit Scheme"
                                     >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
                                     </motion.button>
@@ -338,7 +338,7 @@ const AdminLoansPage = () => {
                                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                         title="Delete Scheme"
                                     >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
                                     </motion.button>
@@ -346,35 +346,35 @@ const AdminLoansPage = () => {
                             </div>
 
                             {/* Scheme Details */}
-                            <div className="space-y-3 mb-4">
+                            <div className="space-y-2 md:space-y-3 mb-3 md:mb-4">
                                 <div>
-                                    <h4 className="text-sm font-medium text-gray-700">Full Name</h4>
-                                    <p className="text-sm text-gray-900">{scheme.name}</p>
+                                    <h4 className="text-xs md:text-sm font-medium text-gray-700">Full Name</h4>
+                                    <p className="text-xs md:text-sm text-gray-900 truncate">{scheme.name}</p>
                                 </div>
                                 <div>
-                                    <h4 className="text-sm font-medium text-gray-700">Description</h4>
-                                    <p className="text-sm text-gray-600 line-clamp-2">{scheme.description}</p>
+                                    <h4 className="text-xs md:text-sm font-medium text-gray-700">Description</h4>
+                                    <p className="text-xs md:text-sm text-gray-600 line-clamp-2">{scheme.description}</p>
                                 </div>
-                                <div className="flex justify-between items-center">
-                                    <div>
-                                        <h4 className="text-sm font-medium text-gray-700">Amount Range</h4>
-                                        <p className="text-sm text-gray-900">
+                                <div className="flex justify-between items-center gap-2">
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="text-xs md:text-sm font-medium text-gray-700">Amount Range</h4>
+                                        <p className="text-xs md:text-sm text-gray-900 truncate">
                                             ₹{scheme.minAmount.toLocaleString()} - ₹{scheme.maxAmount.toLocaleString()}
                                         </p>
                                     </div>
-                                    <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
+                                    <span className="px-2 md:px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-[10px] md:text-xs font-medium whitespace-nowrap">
                                         {scheme.category}
                                     </span>
                                 </div>
                             </div>
 
                             {/* Status */}
-                            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                            <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-gray-200">
                                 <div className="flex items-center space-x-2">
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span className="text-xs text-gray-500">Active</span>
+                                    <span className="text-[10px] md:text-xs text-gray-500">Active</span>
                                 </div>
-                                <div className="text-xs text-gray-500">
+                                <div className="text-[10px] md:text-xs text-gray-500">
                                     {scheme.benefits?.length || 0} benefits
                                 </div>
                             </div>
