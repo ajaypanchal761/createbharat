@@ -109,6 +109,7 @@ function App() {
                     <Route path="/mentors/category/:categoryId" element={<MentorListingPage />} />
                     <Route path="/mentors/:mentorId" element={<MentorDetailPage />} />
                     <Route path="/mentors/:mentorId/book/:slotId" element={<MentorBookingPage />} />
+                    <Route path="/mentors/booking/:bookingId" element={<MentorBookingPage />} />
                     <Route path="/mentors/dashboard" element={<MentorDashboard />} />
                     <Route path="/mentors/become-mentor" element={<BecomeMentorPage />} />
                     <Route path="/mentors/profile" element={<MentorProfilePage />} />

@@ -1,5 +1,8 @@
 const Admin = require('../models/admin');
 const jwt = require('jsonwebtoken');
+const MentorBooking = require('../models/mentorBooking');
+const Mentor = require('../models/mentor');
+const User = require('../models/user');
 
 // Generate JWT Token
 const generateToken = (adminId) => {
@@ -433,6 +436,74 @@ const deleteAdmin = async (req, res) => {
   }
 };
 
+// @desc    List all mentor bookings (paginated, admin)
+// @route   GET /api/admin/mentor-bookings
+// @access  Private (Admin)
+const adminListMentorBookings = async (req, res) => {
+  try {
+    if (!req.user || !req.user.isAdmin) {
+      return res.status(403).json({ success: false, message: 'Admins only' });
+    }
+    const { page = 1, limit = 20, status } = req.query;
+    const query = {};
+    if (status) query.status = status;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const bookings = await MentorBooking.find(query)
+      .populate('mentor', 'firstName lastName email title company')
+      .populate('user', 'firstName lastName email phone')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+    const total = await MentorBooking.countDocuments(query);
+    res.status(200).json({
+      success: true,
+      count: bookings.length,
+      total,
+      bookings
+    });
+  } catch (err) {
+    console.error('Admin get mentor bookings error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// @desc    Admin update mentor booking status (cancel/resolve/refund)
+// @route   PUT /api/admin/mentor-bookings/:id/status
+// @access  Private (Admin)
+const adminUpdateMentorBookingStatus = async (req, res) => {
+  try {
+    if (!req.user || !req.user.isAdmin) {
+      return res.status(403).json({ success: false, message: 'Admins only' });
+    }
+    const { status, cancellationReason } = req.body;
+    const allowed = [ 'cancelled', 'completed', 'refunded' ];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+    const booking = await MentorBooking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+    booking.status = status;
+    if (status === 'cancelled') {
+      booking.cancellationReason = cancellationReason || 'Admin cancelled';
+      booking.cancelledAt = new Date();
+      booking.cancelledBy = 'system';
+    }
+    if (status === 'refunded') {
+      booking.paymentStatus = 'refunded';
+    }
+    if (status === 'completed') {
+      booking.completedAt = new Date();
+    }
+    await booking.save();
+    res.status(200).json({ success: true, message: 'Booking status updated', data: { booking } });
+  } catch (err) {
+    console.error('Admin update mentor booking status error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
 module.exports = {
   loginAdmin,
   getMe,
@@ -441,6 +512,8 @@ module.exports = {
   updateProfile,
   changePassword,
   updateAdmin,
-  deleteAdmin
+  deleteAdmin,
+  adminListMentorBookings,
+  adminUpdateMentorBookingStatus
 };
 
