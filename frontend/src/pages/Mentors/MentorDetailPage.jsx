@@ -156,7 +156,9 @@ const MentorDetailPage = () => {
       alert('Please select a time slot');
       return;
     }
-    setShowBookingModal(true);
+    // Navigate directly to payment page, skip booking modal
+    setIsBooking(true);
+    navigate(`/mentors/${mentorId}/book/${selectedSlot}`);
   };
 
   const handleConfirmBooking = () => {

@@ -345,6 +345,12 @@ const MentorListingPage = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <Link
+                to="/"
+                className="px-6 py-2 bg-white text-orange-600 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Home
+              </Link>
               <button
                 onClick={() => navigate('/mentors/login')}
                 className="px-6 py-2 bg-white text-orange-600 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
