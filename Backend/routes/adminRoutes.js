@@ -8,9 +8,11 @@ const {
   updateProfile,
   changePassword,
   updateAdmin,
-  deleteAdmin
+  deleteAdmin,
+  adminListMentorBookings,
+  adminUpdateMentorBookingStatus
 } = require('../controllers/adminController');
-const { protect, authorize } = require('../middleware/adminAuth');
+const { protect, authorize, protect: adminProtect } = require('../middleware/adminAuth');
 
 const router = express.Router();
 
@@ -46,6 +48,9 @@ router.get('/', protect, authorize('super_admin'), getAllAdmins);
 router.post('/create', protect, authorize('super_admin'), createAdminValidation, createAdmin);
 router.put('/:id', protect, authorize('super_admin'), updateAdmin);
 router.delete('/:id', protect, authorize('super_admin'), deleteAdmin);
+
+router.get('/mentor-bookings', adminProtect, adminListMentorBookings);
+router.put('/mentor-bookings/:id/status', adminProtect, adminUpdateMentorBookingStatus);
 
 module.exports = router;
 

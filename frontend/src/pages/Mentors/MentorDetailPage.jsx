@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import logo from '../../assets/logo.png';
-import { mentorAPI } from '../../utils/api';
+import { mentorAPI, mentorBookingAPI } from '../../utils/api';
 
 // Icons
 const MenuIcon = () => (
@@ -40,40 +38,8 @@ const MentorDetailPage = () => {
   const navigate = useNavigate();
   const [selectedSlot, setSelectedSlot] = useState('');
   const [isBooking, setIsBooking] = useState(false);
-  const [showBookingModal, setShowBookingModal] = useState(false);
-  const [selectedDate, setSelectedDate] = useState('');
-  const [selectedTime, setSelectedTime] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [mentorData, setMentorData] = useState(null);
-
-  // Mock mentor data (fallback)
-  const mockMentor = {
-    id: parseInt(mentorId),
-    name: 'Sarah Johnson',
-    title: 'Senior Business Consultant',
-    company: 'TechCorp Inc.',
-    experience: '10+ years',
-    rating: 4.9,
-    reviews: 127,
-    pricing: {
-      quick: { duration: '20-25 minutes', price: 150, label: 'Quick consultation' },
-      inDepth: { duration: '50-60 minutes', price: 300, label: 'In-depth session' },
-      comprehensive: { duration: '90-120 minutes', price: 450, label: 'Comprehensive consultation' }
-    },
-    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=300&fit=crop&crop=face',
-    specialties: ['Startup Strategy', 'Business Planning', 'Leadership', 'Team Management'],
-    availability: 'Available',
-    responseTime: '2 hours',
-    description: 'Experienced business consultant with over 10 years of helping startups and established companies grow. Specialized in strategic planning, team leadership, and scaling operations.',
-    achievements: [
-      'Helped 50+ startups raise funding',
-      'Led teams of 100+ employees',
-      'MBA from Harvard Business School',
-      'Certified Business Consultant'
-    ],
-    education: 'MBA - Harvard Business School, BS - Stanford University',
-    languages: ['English', 'Spanish', 'French']
-  };
 
   // Fetch mentor data
   useEffect(() => {
@@ -91,24 +57,22 @@ const MentorDetailPage = () => {
             experience: apiMentor.experience || '',
             rating: apiMentor.rating || 0,
             reviews: apiMentor.totalSessions || 0,
-            pricing: apiMentor.pricing || mockMentor.pricing,
-            image: apiMentor.profileImage || mockMentor.image,
+            pricing: apiMentor.pricing,
+            image: apiMentor.profileImage || '',
             specialties: apiMentor.skills || [],
             availability: 'Available',
             responseTime: apiMentor.responseTime || '24 hours',
-            description: apiMentor.bio || 'Experienced mentor ready to help you achieve your goals.',
+            description: apiMentor.bio || '',
             achievements: apiMentor.certifications || [],
             education: apiMentor.education?.map(edu => `${edu.degree} - ${edu.university}`).join(', ') || '',
             languages: apiMentor.languages || []
           });
         } else {
-          // Use mock data if API fails
-          setMentorData(mockMentor);
+          setMentorData(null);
         }
       } catch (err) {
+        setMentorData(null);
         console.error('Error fetching mentor:', err);
-        // Use mock data on error
-        setMentorData(mockMentor);
       } finally {
         setIsLoading(false);
       }
@@ -118,86 +82,40 @@ const MentorDetailPage = () => {
   }, [mentorId]);
 
   // Use mentorData or mockMentor
-  const mentor = mentorData || mockMentor;
+  const mentor = mentorData;
 
   // Time slots based on pricing
   const timeSlots = [
-    { id: 'quick', duration: mentor.pricing?.quick?.duration || '20-25 minutes', price: mentor.pricing?.quick?.price || 150, description: mentor.pricing?.quick?.label || 'Quick consultation' },
-    { id: 'inDepth', duration: mentor.pricing?.inDepth?.duration || '50-60 minutes', price: mentor.pricing?.inDepth?.price || 300, description: mentor.pricing?.inDepth?.label || 'In-depth session' },
-    { id: 'comprehensive', duration: mentor.pricing?.comprehensive?.duration || '90-120 minutes', price: mentor.pricing?.comprehensive?.price || 450, description: mentor.pricing?.comprehensive?.label || 'Comprehensive consultation' }
+    { id: 'quick', duration: mentor?.pricing?.quick?.duration || '20-25 minutes', price: mentor?.pricing?.quick?.price || 150, description: mentor?.pricing?.quick?.label || 'Quick consultation' },
+    { id: 'inDepth', duration: mentor?.pricing?.inDepth?.duration || '50-60 minutes', price: mentor?.pricing?.inDepth?.price || 300, description: mentor?.pricing?.inDepth?.label || 'In-depth session' },
+    { id: 'comprehensive', duration: mentor?.pricing?.comprehensive?.duration || '90-120 minutes', price: mentor?.pricing?.comprehensive?.price || 450, description: mentor?.pricing?.comprehensive?.label || 'Comprehensive consultation' }
   ];
 
-  // Available dates (next 7 days)
-  const availableDates = [
-    { date: '2024-01-15', day: 'Today', available: true },
-    { date: '2024-01-16', day: 'Tomorrow', available: true },
-    { date: '2024-01-17', day: 'Wednesday', available: true },
-    { date: '2024-01-18', day: 'Thursday', available: true },
-    { date: '2024-01-19', day: 'Friday', available: true },
-    { date: '2024-01-20', day: 'Saturday', available: false },
-    { date: '2024-01-21', day: 'Sunday', available: false }
-  ];
+  // (date/time selection handled later by mentor after acceptance)
 
-  // Available time slots
-  const availableTimes = [
-    { time: '09:00 AM', available: true },
-    { time: '10:00 AM', available: true },
-    { time: '11:00 AM', available: false },
-    { time: '12:00 PM', available: true },
-    { time: '02:00 PM', available: true },
-    { time: '03:00 PM', available: true },
-    { time: '04:00 PM', available: false },
-    { time: '05:00 PM', available: true },
-    { time: '06:00 PM', available: true }
-  ];
-
-  const handleBooking = () => {
-    if (!selectedSlot) {
-      alert('Please select a time slot');
-      return;
-    }
-    // Navigate directly to payment page, skip booking modal
-    setIsBooking(true);
-    navigate(`/mentors/${mentorId}/book/${selectedSlot}`);
-  };
-
-  const handleConfirmBooking = () => {
-    if (!selectedDate || !selectedTime) {
-      alert('Please select date and time');
+  const handleBooking = async (slotId) => {
+    if (!slotId) {
+      alert('Please select a slot');
       return;
     }
     setIsBooking(true);
-    // Navigate to payment page
-    navigate(`/mentors/${mentorId}/book/${selectedSlot}`);
-  };
-
-  // Animation variants
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
-  };
-
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
+    try {
+      const rawToken = (localStorage.getItem('token') || localStorage.getItem('authToken') || '').trim();
+      const token = rawToken.replace(/^["']/, '').replace(/["']$/, '');
+      const sessionTypeMap = { quick: '20min', inDepth: '50min', comprehensive: '90min' };
+      const sessionType = sessionTypeMap[slotId];
+      if (!sessionType) throw new Error('Invalid session type');
+      const bookingData = { sessionType };
+      const res = await mentorBookingAPI.create(token, mentorId, bookingData);
+      if (res.success && res.data && res.data.booking && res.data.booking._id) {
+        navigate(`/mentors/booking/${res.data.booking._id}`);
+      } else {
+        alert('Booking failed');
       }
+    } catch {
+      alert('Booking failed');
     }
-  };
-
-  const scaleIn = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: { 
-      opacity: 1, 
-      scale: 1,
-      transition: { duration: 0.5, ease: "easeOut" }
-    }
+    setIsBooking(false);
   };
 
   if (isLoading) {
@@ -211,133 +129,20 @@ const MentorDetailPage = () => {
     );
   }
 
+  if (!mentorData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg text-gray-600">Mentor not found.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/30 to-slate-50">
-      {/* Booking Modal */}
-      {showBookingModal && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setShowBookingModal(false)}
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ duration: 0.3 }}
-            className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Book Consultation</h2>
-              <button
-                onClick={() => setShowBookingModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Mentor Info */}
-            <div className="flex items-center space-x-4 mb-6 p-4 bg-orange-50 rounded-xl">
-              <img
-                src={mentor.image}
-                alt={mentor.name}
-                className="w-16 h-16 rounded-full object-cover border-2 border-orange-200"
-              />
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">{mentor.name}</h3>
-                <p className="text-orange-600">{mentor.title}</p>
-                <p className="text-sm text-gray-600">Session: {timeSlots.find(s => s.id === selectedSlot)?.duration}</p>
-              </div>
-            </div>
-
-            {/* Date Selection */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Date</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {availableDates.map((date) => (
-                  <motion.button
-                    key={date.date}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setSelectedDate(date.date)}
-                    disabled={!date.available}
-                    className={`p-3 rounded-lg border-2 transition-all ${selectedDate === date.date
-                        ? 'border-orange-500 bg-orange-50 text-orange-700'
-                        : date.available
-                        ? 'border-gray-200 hover:border-orange-300 text-gray-700'
-                        : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    <div className="text-center">
-                      <div className="text-sm font-medium">{date.day}</div>
-                      <div className="text-xs text-gray-500">{date.date}</div>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-
-            {/* Time Selection */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Time</h3>
-              <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-                {availableTimes.map((timeSlot) => (
-                  <motion.button
-                    key={timeSlot.time}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setSelectedTime(timeSlot.time)}
-                    disabled={!timeSlot.available}
-                    className={`p-3 rounded-lg border-2 transition-all ${selectedTime === timeSlot.time
-                        ? 'border-orange-500 bg-orange-50 text-orange-700'
-                        : timeSlot.available
-                        ? 'border-gray-200 hover:border-orange-300 text-gray-700'
-                        : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    {timeSlot.time}
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex space-x-3">
-              <button
-                onClick={() => setShowBookingModal(false)}
-                className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Cancel
-              </button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleConfirmBooking}
-                disabled={!selectedDate || !selectedTime}
-                className={`flex-1 py-3 px-4 font-medium rounded-lg transition-all ${selectedDate && selectedTime
-                    ? 'bg-orange-600 text-white hover:bg-orange-700'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                Confirm Booking
-              </motion.button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-
       {/* Header */}
-      <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+      <div
         className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -357,29 +162,26 @@ const MentorDetailPage = () => {
             </div>
           </div>
         </div>
-      </motion.header>
+      </div>
 
       {/* Main Content */}
       <div className="px-4 pt-6 pb-4">
         <div className="max-w-4xl mx-auto">
           {/* Mentor Profile */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+          <div
             className="bg-white rounded-xl p-6 shadow-lg border-2 border-gray-100 mb-6"
           >
             <div className="flex flex-col md:flex-row items-start space-y-4 md:space-y-0 md:space-x-6">
               <img
-                src={mentor.image}
-                alt={mentor.name}
+                src={mentor.image || undefined}
+                alt={mentor.name || 'Mentor'}
                 className="w-24 h-24 rounded-full object-cover border-4 border-gray-100"
               />
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">{mentor.name}</h1>
                 <p className="text-lg text-gray-600 mb-1">{mentor.title}</p>
                 <p className="text-sm text-gray-500 mb-4">{mentor.company}</p>
-                
+
                 <div className="flex items-center space-x-4 mb-4">
                   <div className="flex items-center space-x-1">
                     <StarIcon />
@@ -395,16 +197,13 @@ const MentorDetailPage = () => {
                 <p className="text-gray-700 leading-relaxed">{mentor.description}</p>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column - Details */}
             <div className="lg:col-span-2 space-y-6">
               {/* Specialties */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
+              <div
                 className="bg-white rounded-xl p-6 shadow-lg border-2 border-gray-100"
               >
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Specialties</h3>
@@ -418,13 +217,10 @@ const MentorDetailPage = () => {
                     </span>
                   ))}
                 </div>
-              </motion.div>
+              </div>
 
               {/* Achievements */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
+              <div
                 className="bg-white rounded-xl p-6 shadow-lg border-2 border-gray-100"
               >
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Achievements</h3>
@@ -436,13 +232,10 @@ const MentorDetailPage = () => {
                     </li>
                   ))}
                 </ul>
-              </motion.div>
+              </div>
 
               {/* Education */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
+              <div
                 className="bg-white rounded-xl p-6 shadow-lg border-2 border-gray-100"
               >
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Education & Languages</h3>
@@ -456,30 +249,22 @@ const MentorDetailPage = () => {
                     <p className="text-gray-600">{mentor.languages.join(', ')}</p>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </div>
 
             {/* Right Column - Booking */}
             <div className="lg:col-span-1">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.6 }}
+              <div
                 className="bg-white rounded-xl p-6 shadow-lg border-2 border-gray-100 sticky top-24"
               >
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Book a Session</h3>
-                
+
                 {/* Time Slots */}
                 <div className="space-y-3 mb-6">
                   {timeSlots.map((slot) => (
-                    <motion.div
+                    <div
                       key={slot.id}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedSlot === slot.id
-                          ? 'border-orange-500 bg-orange-50'
-                          : 'border-gray-200 hover:border-orange-300'
-                      }`}
+                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedSlot === slot.id ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'}`}
                       onClick={() => setSelectedSlot(slot.id)}
                     >
                       <div className="flex items-center justify-between mb-2">
@@ -490,30 +275,28 @@ const MentorDetailPage = () => {
                         <span className="font-bold text-gray-900">₹{slot.price}</span>
                       </div>
                       <p className="text-sm text-gray-600">{slot.description}</p>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
 
                 {/* Booking Button */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleBooking}
+                <button
+                  onClick={() => handleBooking(selectedSlot)}
                   disabled={!selectedSlot || isBooking}
                   className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${selectedSlot && !isBooking
-                      ? 'bg-orange-600 text-white hover:bg-orange-700'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
+                    ? 'bg-orange-600 text-white hover:bg-orange-700'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
                 >
                   {isBooking ? 'Processing...' : 'Book Consultant'}
-                </motion.button>
+                </button>
 
                 <div className="mt-4 text-center">
                   <p className="text-xs text-gray-500">
                     Response time: {mentor.responseTime}
                   </p>
                 </div>
-              </motion.div>
+              </div>
             </div>
           </div>
         </div>

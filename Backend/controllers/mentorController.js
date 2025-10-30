@@ -287,8 +287,8 @@ const getAllMentors = async (req, res) => {
       limit = 10
     } = req.query;
 
-    const query = { 
-      isActive: true, 
+    const query = {
+      isActive: true,
       isBlocked: false,
       profileVisibility: true  // Only show mentors with visible profiles
     };
@@ -399,72 +399,55 @@ const createBooking = async (req, res) => {
         errors: errors.array()
       });
     }
-
     const mentor = await Mentor.findById(req.params.id);
-
     if (!mentor) {
-      return res.status(404).json({
-        success: false,
-        message: 'Mentor not found'
-      });
+      return res.status(404).json({ success: false, message: 'Mentor not found' });
     }
-
     if (!mentor.isActive || mentor.isBlocked) {
-      return res.status(400).json({
-        success: false,
-        message: 'Mentor is not available'
-      });
+      return res.status(400).json({ success: false, message: 'Mentor is not available' });
     }
-
-    const { sessionType, date, time, message } = req.body;
-
-    // Determine duration and price based on session type
+    const { sessionType } = req.body;
+    const pricing = mentor.pricing || {};
     const sessionDetails = {
-      '20min': { duration: '20-25 minutes', price: mentor.pricing.email || 100 },
-      '50min': { duration: '50-60 minutes', price: (mentor.pricing.email || 100) * 2 },
-      '90min': { duration: '90-120 minutes', price: (mentor.pricing.email || 100) * 3 }
+      '20min': {
+        duration: pricing.quick?.duration || '20-25 minutes',
+        price: pricing.quick?.price ?? 150,
+      },
+      '50min': {
+        duration: pricing.inDepth?.duration || '50-60 minutes',
+        price: pricing.inDepth?.price ?? 300,
+      },
+      '90min': {
+        duration: pricing.comprehensive?.duration || '90-120 minutes',
+        price: pricing.comprehensive?.price ?? 450,
+      }
     };
-
     const details = sessionDetails[sessionType];
     if (!details) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid session type'
-      });
+      return res.status(400).json({ success: false, message: 'Invalid session type' });
     }
-
-    // Create booking
+    // date, time = null by default (mentor will set later)
     const booking = await MentorBooking.create({
       mentor: mentor._id,
       user: req.user.id,
       sessionType,
       duration: details.duration,
-      date: new Date(date),
-      time,
+      date: null,
+      time: null,
       amount: details.price,
-      message: message || '',
       status: 'pending',
       paymentStatus: 'pending'
     });
-
     await booking.populate('user', 'firstName lastName email phone');
     await booking.populate('mentor', 'firstName lastName title company profileImage');
-
     res.status(201).json({
       success: true,
       message: 'Booking created successfully',
-      data: {
-        booking
-      }
+      data: { booking }
     });
-
   } catch (error) {
     console.error('Create booking error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    res.status(500).json({ success: false, message: 'Server error', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -517,6 +500,54 @@ const updatePaymentStatus = async (req, res) => {
       message: 'Server error',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
+  }
+};
+
+// @desc    Get a booking by ID (for the logged-in user)
+// @route   GET /api/mentors/bookings/:id
+// @access  Private (User)
+const getBookingById = async (req, res) => {
+  try {
+    const booking = await MentorBooking.findOne({ _id: req.params.id, user: req.user.id })
+      .populate('mentor', 'firstName lastName title company profileImage')
+      .populate('user', 'firstName lastName email phone');
+
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+
+    // Normalize mentor fields for frontend expectations
+    const mentor = booking.mentor;
+    const normalized = {
+      _id: booking._id,
+      mentor: {
+        _id: mentor?._id,
+        name: mentor ? `${mentor.firstName || ''} ${mentor.lastName || ''}`.trim() : 'Mentor',
+        title: mentor?.title || '',
+        company: mentor?.company || '',
+        image: mentor?.profileImage || '',
+      },
+      user: booking.user,
+      sessionType: booking.sessionType,
+      duration: booking.duration,
+      date: booking.date,
+      time: booking.time,
+      amount: booking.amount,
+      paymentMethod: booking.paymentMethod,
+      paymentStatus: booking.paymentStatus,
+      transactionId: booking.transactionId,
+      status: booking.status,
+      sessionLink: booking.sessionLink,
+      message: booking.message,
+      review: booking.review,
+      createdAt: booking.createdAt,
+      updatedAt: booking.updatedAt,
+    };
+
+    return res.status(200).json({ success: true, data: { booking: normalized } });
+  } catch (error) {
+    console.error('Get booking by id error:', error);
+    return res.status(500).json({ success: false, message: 'Server error', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -631,6 +662,65 @@ const updateBookingStatus = async (req, res) => {
   }
 };
 
+// @desc    Add or update session link for accepted booking
+// @route   PUT /api/mentors/bookings/:id/session-link
+// @access  Private (Mentor)
+const setSessionLink = async (req, res) => {
+  try {
+    const { sessionLink } = req.body;
+    if (!sessionLink) {
+      return res.status(400).json({
+        success: false,
+        message: 'Session link is required'
+      });
+    }
+    const booking = await MentorBooking.findOne({
+      _id: req.params.id,
+      mentor: req.mentor.id,
+      status: 'accepted',
+    });
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Accepted booking not found'
+      });
+    }
+    booking.sessionLink = sessionLink;
+    await booking.save();
+    res.status(200).json({
+      success: true,
+      message: 'Session link updated',
+      data: { booking }
+    });
+  } catch (error) {
+    console.error('Set session link error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Add or edit endpoint for mentor to update date, time, sessionLink for a booking later (PUT /api/mentors/bookings/:id/details)
+const mentorUpdateBookingDetails = async (req, res) => {
+  try {
+    const { date, time, sessionLink } = req.body;
+    const booking = await MentorBooking.findOne({ _id: req.params.id, mentor: req.mentor.id });
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+    if (date) booking.date = date;
+    if (time) booking.time = time;
+    if (sessionLink) booking.sessionLink = sessionLink;
+    await booking.save();
+    res.status(200).json({ success: true, data: { booking } });
+  } catch (error) {
+    console.error('Mentor update booking details error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
 // @desc    Get user bookings
 // @route   GET /api/mentors/my-bookings
 // @access  Private (User)
@@ -673,6 +763,97 @@ const getUserBookings = async (req, res) => {
   }
 };
 
+// @desc    Add review to a completed booking
+// @route   PUT /api/mentors/bookings/:id/review
+// @access  Private (User)
+const addBookingReview = async (req, res) => {
+  try {
+    const { rating, comment } = req.body;
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rating must be between 1 and 5',
+      });
+    }
+    const booking = await MentorBooking.findOne({
+      _id: req.params.id,
+      user: req.user.id,
+      status: 'completed',
+    });
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Completed booking not found',
+      });
+    }
+    if (booking.review && booking.review.rating) {
+      return res.status(400).json({
+        success: false,
+        message: 'Review already submitted',
+      });
+    }
+    booking.review.rating = rating;
+    booking.review.comment = comment || '';
+    booking.review.createdAt = new Date();
+    await booking.save();
+    res.status(200).json({
+      success: true,
+      message: 'Review submitted',
+      data: { review: booking.review }
+    });
+  } catch (error) {
+    console.error('Add booking review error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Create Razorpay order for a booking
+// @route   POST /api/mentors/bookings/:id/create-order
+// @access  Private (User)
+const createRazorpayOrder = async (req, res) => {
+  try {
+    const booking = await MentorBooking.findOne({ _id: req.params.id, user: req.user.id });
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+    if (!booking.amount || booking.amount <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid booking amount' });
+    }
+
+    const { getRazorpayClient } = require('../services/razorpay');
+    const razorpay = getRazorpayClient();
+    const options = {
+      amount: Math.round(booking.amount * 100),
+      currency: 'INR',
+      receipt: `booking_${booking._id}`,
+      notes: {
+        bookingId: booking._id.toString(),
+        userId: req.user.id,
+      },
+    };
+    const order = await razorpay.orders.create(options);
+    return res.status(200).json({
+      success: true,
+      data: {
+        orderId: order.id,
+        amount: order.amount,
+        currency: order.currency,
+        keyId: process.env.RAZORPAY_KEY_ID,
+      },
+    });
+  } catch (error) {
+    console.error('Create Razorpay order error:', error);
+    const message = error && error.message && error.message.includes('Razorpay keys')
+      ? 'Payment gateway not configured. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.'
+      : 'Server error';
+    return res.status(500).json({ success: false, message, error: process.env.NODE_ENV === 'development' ? error.message : undefined });
+  }
+};
+
 module.exports = {
   registerMentor,
   loginMentor,
@@ -684,6 +865,11 @@ module.exports = {
   updatePaymentStatus,
   getMentorBookings,
   updateBookingStatus,
-  getUserBookings
+  getUserBookings,
+  addBookingReview,
+  setSessionLink,
+  mentorUpdateBookingDetails,
+  getBookingById,
+  createRazorpayOrder
 };
 

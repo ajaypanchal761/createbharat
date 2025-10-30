@@ -633,21 +633,43 @@ export const mentorAPI = {
 export const mentorBookingAPI = {
   // Create booking
   create: async (token, mentorId, bookingData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^(["'])|\1$/g, '');
     return apiCall(`/mentors/${mentorId}/book`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${cleanToken}`,
       },
       body: JSON.stringify(bookingData),
     });
   },
 
+  // Create Razorpay order
+  createOrder: async (token, bookingId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^(["'])|\1$/g, '');
+    return apiCall(`/mentors/bookings/${bookingId}/create-order`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
   // Update payment status
   updatePayment: async (token, bookingId, paymentData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^(["'])|\1$/g, '');
     return apiCall(`/mentors/bookings/${bookingId}/payment`, {
       method: 'PUT',
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${cleanToken}`,
       },
       body: JSON.stringify(paymentData),
     });
@@ -656,10 +678,27 @@ export const mentorBookingAPI = {
   // Get user bookings
   getMyBookings: async (token, params = {}) => {
     const queryString = new URLSearchParams(params).toString();
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^(["'])|\1$/g, '');
     return apiCall(`/mentors/my-bookings${queryString ? `?${queryString}` : ''}`, {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  getById: async (token, bookingId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^(["'])|\1$/g, '');
+    return apiCall(`/mentors/bookings/${bookingId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
       },
     });
   },

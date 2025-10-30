@@ -29,11 +29,11 @@ const mentorBookingSchema = new mongoose.Schema({
   // Date and Time
   date: {
     type: Date,
-    required: [true, 'Session date is required']
+    default: null
   },
   time: {
     type: String,
-    required: [true, 'Session time is required']
+    default: null
   },
 
   // Payment Information
@@ -44,7 +44,7 @@ const mentorBookingSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['upi', 'card', 'netbanking', 'wallet'],
+    enum: ['upi', 'card', 'netbanking', 'wallet', 'razorpay'],
     default: null
   },
   paymentStatus: {
