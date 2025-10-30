@@ -227,14 +227,14 @@ const MentorListingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Link to="/mentors" className="p-2 rounded-lg hover:bg-white/20 transition-colors">
+              <Link to="/" className="p-2 rounded-lg hover:bg-white/20 transition-colors">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </Link>
               <div>
                 <h1 className="text-sm md:text-lg font-semibold text-white">
-                  {categoryNames[categoryId] || 'Mentors'}
+                  {categoryId ? categoryNames[categoryId] : 'All Mentors'}
                 </h1>
                 <p className="hidden md:block text-sm text-orange-100">{filteredMentors.length} mentors available</p>
               </div>
@@ -313,13 +313,13 @@ const MentorListingPage = () => {
             </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap gap-4">
+            <div className="flex gap-3">
               <select
                 value={selectedExperience}
                 onChange={(e) => setSelectedExperience(e.target.value)}
-                className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
-                <option value="">All Experience Levels</option>
+                <option value="">All Experience</option>
                 <option value="5+">5+ years</option>
                 <option value="8+">8+ years</option>
                 <option value="10+">10+ years</option>
@@ -328,7 +328,7 @@ const MentorListingPage = () => {
               <select
                 value={selectedRating}
                 onChange={(e) => setSelectedRating(e.target.value)}
-                className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
                 <option value="">All Ratings</option>
                 <option value="4.5">4.5+ stars</option>

@@ -290,7 +290,7 @@ const ProfilePage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
-            {/* Header */}
+            {/* Mobile Header */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -311,8 +311,19 @@ const ProfilePage = () => {
                 </div>
             </motion.div>
 
-            {/* Tab Navigation */}
-            <div className="bg-white border-b border-gray-200">
+            {/* Webview Header */}
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="hidden md:block bg-white shadow-sm border-b border-gray-200"
+            >
+                <div className="max-w-7xl mx-auto px-8 py-6">
+                    <h1 className="text-3xl font-bold text-gray-800">My Profile</h1>
+                </div>
+            </motion.div>
+
+            {/* Tab Navigation - Mobile */}
+            <div className="md:hidden bg-white border-b border-gray-200">
                 <div className="px-4">
                     <div className="flex space-x-1">
                         {tabs.map((tab) => (
@@ -337,10 +348,112 @@ const ProfilePage = () => {
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="p-4">
+
+            {/* Content - Mobile */}
+            <div className="md:hidden p-4">
                 <AnimatePresence mode="wait">
                     {activeTab === 'personal' && renderPersonalInfo()}
+                </AnimatePresence>
+            </div>
+
+            {/* Content - Desktop */}
+            <div className="hidden md:block max-w-7xl mx-auto px-8 py-8">
+                <AnimatePresence mode="wait">
+                    {activeTab === 'personal' && (
+                        <motion.div
+                            key="personal"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className="space-y-6"
+                        >
+                            {/* Profile Header */}
+                            <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-3xl p-8 text-white shadow-xl">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-6">
+                                        <motion.div
+                                            whileHover={{ scale: 1.05 }}
+                                            className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center"
+                                        >
+                                            <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                        </motion.div>
+                                        <div>
+                                            <h2 className="text-3xl font-bold mb-2">{formData.name || 'User'}</h2>
+                                            <p className="text-orange-100 text-lg">{formData.email || 'No email'}</p>
+                                            <p className="text-orange-100 text-lg">{formData.phone || 'No phone number'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-3">
+                                        <motion.button
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={handleSaveChanges}
+                                            className="px-6 py-3 bg-white/20 backdrop-blur-sm rounded-xl text-white font-medium hover:bg-white/30 transition-all"
+                                        >
+                                            {isEditing ? 'Save Changes' : 'Edit Profile'}
+                                        </motion.button>
+                                        <motion.button
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={handleLogout}
+                                            className="px-6 py-3 bg-red-500/20 backdrop-blur-sm rounded-xl text-white font-medium hover:bg-red-500/30 transition-all"
+                                        >
+                                            Logout
+                                        </motion.button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Personal Details */}
+                            <div className="bg-white rounded-3xl p-8 shadow-lg">
+                                <h3 className="text-2xl font-bold text-gray-800 mb-6">Personal Information</h3>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-600 mb-2">Full Name</label>
+                                        <input
+                                            type="text"
+                                            value={formData.name}
+                                            onChange={(e) => handleInputChange('name', e.target.value)}
+                                            disabled={!isEditing}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:bg-gray-50 text-lg"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-600 mb-2">Email</label>
+                                        <input
+                                            type="email"
+                                            value={formData.email}
+                                            disabled={true}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:bg-gray-50 text-lg"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-600 mb-2">Phone Number</label>
+                                        <input
+                                            type="tel"
+                                            value={formData.phone}
+                                            onChange={(e) => handleInputChange('phone', e.target.value)}
+                                            disabled={!isEditing}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:bg-gray-50 text-lg"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-600 mb-2">Address</label>
+                                        <textarea
+                                            value={formData.address}
+                                            onChange={(e) => handleInputChange('address', e.target.value)}
+                                            disabled={!isEditing}
+                                            rows={3}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:bg-gray-50 resize-none text-lg"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
                 </AnimatePresence>
             </div>
 

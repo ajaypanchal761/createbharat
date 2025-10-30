@@ -997,32 +997,32 @@ const HomePage = () => {
                             </nav>
                             
                             <div className="flex items-center gap-4">
-                                <button 
-                                    onClick={() => {
-                                        alert('Search feature coming soon!');
-                                    }}
-                                    className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                                >
-                                    <SearchIcon />
-                                </button>
                                 <div className="flex items-center gap-3">
                                     {isAuthenticated() ? (
-                                    <button 
-                                            onClick={() => {
-                                                userLogout();
-                                                navigate('/');
-                                            }}
-                                            className="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all duration-300"
-                                        >
-                                            Logout
-                                    </button>
+                                        <>
+                                            <Link 
+                                                to="/profile"
+                                                className="px-6 py-2 bg-white text-orange-600 font-semibold rounded-lg hover:bg-gray-50 transition-all duration-300 border border-orange-200"
+                                            >
+                                                Profile
+                                            </Link>
+                                            <button 
+                                                onClick={() => {
+                                                    userLogout();
+                                                    navigate('/');
+                                                }}
+                                                className="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all duration-300"
+                                            >
+                                                Logout
+                                            </button>
+                                        </>
                                     ) : (
-                                    <button 
+                                        <button 
                                             onClick={() => navigate('/login')}
-                                        className="px-6 py-2 bg-gradient-to-r from-orange-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300"
-                                    >
+                                            className="px-6 py-2 bg-gradient-to-r from-orange-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300"
+                                        >
                                             Login
-                                    </button>
+                                        </button>
                                     )}
                                 </div>
                             </div>

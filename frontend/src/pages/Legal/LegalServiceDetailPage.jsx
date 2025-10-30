@@ -49,14 +49,13 @@ const LegalServiceDetailPage = () => {
     'casual': 'Casual Taxable Person'
   };
 
-  // Redirect to specific pages based on serviceId (only if no type parameter for GST)
+  // Redirect to specific pages based on serviceId
   useEffect(() => {
-    if (serviceId === '1' && !selectedGSTType) {
-      navigate('/legal/gst-registration-type');
-    } else if (serviceId === '15') {
+    // GST Registration now goes directly to detail page (no redirect to category)
+    if (serviceId === '15') {
       navigate('/legal/project-report');
     }
-  }, [serviceId, navigate, selectedGSTType]);
+  }, [serviceId, navigate]);
 
   const legalServices = {
     1: {

@@ -107,7 +107,7 @@ function App() {
                     <Route path="/legal/service/:serviceId" element={<LegalServiceDetailPage />} />
                     <Route path="/legal/service/:serviceId/upload" element={<LegalDocumentUploadPage />} />
                     <Route path="/legal/service/:serviceId/payment" element={<LegalPaymentPage />} />
-                    <Route path="/mentors" element={<MentorCategoryPage />} />
+                    <Route path="/mentors" element={<MentorListingPage />} />
                     <Route path="/mentors/category/:categoryId" element={<MentorListingPage />} />
                     <Route path="/mentors/:mentorId" element={<MentorDetailPage />} />
                     <Route path="/mentors/:mentorId/book/:slotId" element={<MentorBookingPage />} />

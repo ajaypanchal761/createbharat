@@ -58,6 +58,19 @@ const LegalDocumentUploadPage = () => {
 
   const service = legalServices[parseInt(serviceId)];
 
+  // GST Types for category dropdown
+  const gstTypes = [
+    { id: 'proprietorship', name: 'Proprietorship (Individual Firm)' },
+    { id: 'partnership', name: 'Partnership Firm' },
+    { id: 'llp', name: 'LLP (Limited Liability Partnership)' },
+    { id: 'private-limited', name: 'Private Limited Company' },
+    { id: 'public-limited', name: 'Public Limited Company' },
+    { id: 'huf', name: 'HUF (Hindu Undivided Family)' },
+    { id: 'trust-society-ngo', name: 'Trust / Society / NGO' },
+    { id: 'government', name: 'Government Department / Local Authority' },
+    { id: 'casual', name: 'Casual Taxable Person' }
+  ];
+
   // Document requirements for each service
   const documentRequirements = {
     1: [
@@ -205,6 +218,7 @@ const LegalDocumentUploadPage = () => {
   const [uploadedFiles, setUploadedFiles] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('');
 
   const documents = documentRequirements[parseInt(serviceId)] || [];
 
@@ -250,6 +264,12 @@ const LegalDocumentUploadPage = () => {
   };
 
   const validateUploads = () => {
+    // Check GST category for GST Registration
+    if (parseInt(serviceId) === 1 && !selectedCategory) {
+      alert('Please select a GST registration type');
+      return false;
+    }
+
     const requiredDocs = documents.filter(doc => doc.required);
     const missingDocs = requiredDocs.filter(doc => !uploadedFiles[doc.name]);
     
@@ -357,6 +377,37 @@ const LegalDocumentUploadPage = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Upload Documents</h1>
           <p className="text-gray-600">Upload all required documents for {service.name}</p>
         </motion.div>
+
+        {/* GST Category Dropdown (only for GST Registration) */}
+        {parseInt(serviceId) === 1 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="bg-white rounded-xl p-6 shadow-md mb-6"
+          >
+            <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <DocumentIcon />
+              Select GST Registration Type <span className="text-red-500 text-sm">*</span>
+            </h3>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >
+              <option value="">Select Registration Type</option>
+              {gstTypes.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.name}
+                </option>
+              ))}
+            </select>
+            {!selectedCategory && (
+              <p className="text-xs text-red-500 mt-2">Please select a registration type to continue</p>
+            )}
+          </motion.div>
+        )}
 
         {/* Upload Form */}
         <motion.form
