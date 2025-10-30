@@ -46,6 +46,18 @@ const companySchema = new mongoose.Schema({
     default: ''
   },
 
+  // Additional Company Information
+  location: {
+    type: String,
+    trim: true
+  },
+  gstNumber: {
+    type: String,
+    trim: true,
+    uppercase: true,
+    match: [/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Please enter a valid GST number']
+  },
+
   // Address Information
   address: {
     street: {

@@ -2,10 +2,18 @@ import React, { useState } from 'react';
 
 const initialCourseForm = {
     title: '',
+    subtitle: '',
     description: '',
     provider: '',
+    instructor: '',
+    instructorEmail: '',
+    instructorWebsite: '',
     minimumDuration: '',
+    totalModules: '',
     language: '',
+    eligibility: '',
+    rating: '',
+    students: '',
     certificate: false,
     minPassScore: 70,
     autoGenerateCert: true,
@@ -13,6 +21,7 @@ const initialCourseForm = {
 };
 const initialModuleForm = {
     title: '',
+    subtitle: '',
     description: '',
     objective: '',
     duration: '',
@@ -121,7 +130,9 @@ const AdminTrainingPage = () => {
         if (editingTopicIndex !== null) {
             topics[editingTopicIndex] = { ...topicForm };
         } else {
-            topics.push({ ...topicForm });
+            // Auto-generate ID for new topic
+            const topicId = `${selectedModuleIdx + 1}.${topics.length + 1}`;
+            topics.push({ ...topicForm, id: topicId });
         }
         modules[selectedModuleIdx] = { ...modules[selectedModuleIdx], topics };
         setCreatedCourse(prev => ({ ...prev, modules }));
@@ -159,7 +170,9 @@ const AdminTrainingPage = () => {
         if (editingQuizIndex !== null) {
             quizzes[editingQuizIndex] = { ...quizForm };
         } else {
-            quizzes.push({ ...quizForm });
+            // Auto-generate ID for new quiz
+            const quizId = quizzes.length + 1;
+            quizzes.push({ ...quizForm, id: quizId });
         }
         topics[selectedTopicIdx] = { ...topics[selectedTopicIdx], quizzes };
         modules[selectedModuleIdx] = { ...modules[selectedModuleIdx], topics };
@@ -204,6 +217,17 @@ const AdminTrainingPage = () => {
                             />
                         </div>
                         <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Course Subtitle</label>
+                            <input
+                                type="text"
+                                name="subtitle"
+                                value={courseForm.subtitle}
+                                onChange={handleCourseChange}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                placeholder="Enter course subtitle"
+                            />
+                        </div>
+                        <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                             <textarea
                                 name="description"
@@ -227,6 +251,39 @@ const AdminTrainingPage = () => {
                                 />
                             </div>
                             <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Instructor Name</label>
+                                <input
+                                    type="text"
+                                    name="instructor"
+                                    value={courseForm.instructor}
+                                    onChange={handleCourseChange}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    placeholder="e.g. Koushik Chakraborty"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Instructor Email</label>
+                                <input
+                                    type="email"
+                                    name="instructorEmail"
+                                    value={courseForm.instructorEmail}
+                                    onChange={handleCourseChange}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    placeholder="e.g. koushik@innobharat.com"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Instructor Website</label>
+                                <input
+                                    type="text"
+                                    name="instructorWebsite"
+                                    value={courseForm.instructorWebsite}
+                                    onChange={handleCourseChange}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    placeholder="e.g. www.innobharat.com"
+                                />
+                            </div>
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Duration</label>
                                 <input
                                     type="text"
@@ -238,6 +295,17 @@ const AdminTrainingPage = () => {
                                 />
                             </div>
                             <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Total Modules</label>
+                                <input
+                                    type="number"
+                                    name="totalModules"
+                                    value={courseForm.totalModules}
+                                    onChange={handleCourseChange}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    placeholder="e.g. 9"
+                                />
+                            </div>
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Language(s)</label>
                                 <input
                                     type="text"
@@ -246,6 +314,39 @@ const AdminTrainingPage = () => {
                                     onChange={handleCourseChange}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                     placeholder="e.g. Hindi, English"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Eligibility</label>
+                                <input
+                                    type="text"
+                                    name="eligibility"
+                                    value={courseForm.eligibility}
+                                    onChange={handleCourseChange}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    placeholder="e.g. Students, Entrepreneurs"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+                                <input
+                                    type="text"
+                                    name="rating"
+                                    value={courseForm.rating}
+                                    onChange={handleCourseChange}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    placeholder="e.g. 4.9"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Students Enrolled</label>
+                                <input
+                                    type="text"
+                                    name="students"
+                                    value={courseForm.students}
+                                    onChange={handleCourseChange}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    placeholder="e.g. 12,458"
                                 />
                             </div>
                         </div>
@@ -329,6 +430,17 @@ const AdminTrainingPage = () => {
                                 required
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-orange-500"
                                 placeholder="Module title"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Module Subtitle</label>
+                            <input
+                                type="text"
+                                name="subtitle"
+                                value={moduleForm.subtitle}
+                                onChange={handleModuleChange}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-orange-500"
+                                placeholder="Module subtitle (optional)"
                             />
                         </div>
                         <div>

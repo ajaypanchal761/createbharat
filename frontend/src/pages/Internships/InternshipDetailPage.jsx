@@ -215,7 +215,8 @@ const InternshipDetailPage = () => {
 
                 {/* Vacancies */}
                 <div className="mb-6">
-                  <p className="text-gray-700 font-medium">{internship.openings}</p>
+                  <p className="text-sm text-gray-600 mb-1">Number of Openings</p>
+                  <p className="text-lg text-gray-900 font-semibold">{internship.openings}</p>
                 </div>
               </div>
 
@@ -229,71 +230,39 @@ const InternshipDetailPage = () => {
                   </div>
                 </div>
 
-                {/* Role Overview */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Role Overview:</h3>
-                  <ul className="space-y-3">
-                    {internshipData.responsibilities && internshipData.responsibilities.length > 0 && internshipData.responsibilities.slice(0, 3).map((responsibility, index) => (
-                      <li key={index} className="flex items-start gap-3">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
-                        <span className="text-gray-700">{responsibility}</span>
-                      </li>
-                    ))}
-                  </ul>
+                {/* About the Role - combined */}
+                <div className="mb-6">
+                  <p className="text-gray-700 leading-relaxed">{internshipData.description || 'No description available.'}</p>
                 </div>
 
                 {/* Requirements Section */}
                 {internshipData.requirements && internshipData.requirements.length > 0 && (
-                  <motion.div
-                    className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-6 border-l-4 border-orange-500 mb-8"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <svg className="w-5 h-5 text-orange-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      Requirements
-                    </h4>
+                  <div className="mb-6">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Required Documents</h4>
                     <ul className="space-y-2">
                       {internshipData.requirements.map((requirement, index) => (
                         <li key={index} className="flex items-start">
-                          <svg className="w-4 h-4 text-orange-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          <span className="text-gray-700 text-sm">{requirement}</span>
+                          <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                          <span className="text-gray-700">{requirement}</span>
                         </li>
                       ))}
                     </ul>
-                  </motion.div>
+                  </div>
                 )}
 
                 {/* Responsibilities Section */}
                 {internshipData.responsibilities && internshipData.responsibilities.length > 0 && (
-                  <motion.div
-                    className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-6 border-l-4 border-blue-500 mb-8"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                  >
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Responsibilities
-                    </h4>
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Responsibilities</h4>
                     <ul className="space-y-2">
                       {internshipData.responsibilities.map((responsibility, index) => (
                         <li key={index} className="flex items-start">
-                          <svg className="w-4 h-4 text-blue-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          <span className="text-gray-700 text-sm">{responsibility}</span>
+                          <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                          <span className="text-gray-700">{responsibility}</span>
                         </li>
                       ))}
                     </ul>
-                  </motion.div>
+                  </div>
                 )}
               </div>
 
@@ -460,7 +429,8 @@ const InternshipDetailPage = () => {
             variants={fadeInUp}
             className="mb-6"
           >
-            <span className="text-gray-700">{internship.openings}</span>
+            <p className="text-xs text-gray-600 mb-1">Number of Openings</p>
+            <p className="text-base text-gray-900 font-semibold">{internship.openings}</p>
           </motion.div>
 
           {/* About the Job Section */}
@@ -478,75 +448,39 @@ const InternshipDetailPage = () => {
               </div>
             </div>
 
-            {/* Role Overview */}
+            {/* About the Role - combined */}
             <div className="mb-4">
-              <h3 className="text-sm font-medium text-gray-800 mb-2">Role Overview:</h3>
-              <ul className="space-y-2">
-                {internshipData.responsibilities && internshipData.responsibilities.length > 0 && internshipData.responsibilities.slice(0, 2).map((responsibility, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span>
-                    <span className="text-sm text-gray-700">{responsibility}</span>
-                  </li>
-                ))}
-              </ul>
+              <p className="text-sm text-gray-700 leading-relaxed">{internshipData.description || 'No description available.'}</p>
             </div>
 
             {/* Requirements Section */}
             {internshipData.requirements && internshipData.requirements.length > 0 && (
-              <motion.div
-                initial="hidden"
-                animate="visible"
-                variants={fadeInUp}
-                className="mb-4"
-              >
-                <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-4 border-l-4 border-orange-500">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
-                    <svg className="w-4 h-4 text-orange-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Requirements
-                  </h4>
-                  <ul className="space-y-2">
-                    {internshipData.requirements.slice(0, 5).map((requirement, index) => (
-                      <li key={index} className="flex items-start">
-                        <svg className="w-3 h-3 text-orange-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <span className="text-gray-700 text-xs">{requirement}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </motion.div>
+              <div className="mb-4">
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">Required Documents</h4>
+                <ul className="space-y-2">
+                  {internshipData.requirements.slice(0, 5).map((requirement, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      <span className="text-sm text-gray-700">{requirement}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
 
             {/* Responsibilities Section */}
             {internshipData.responsibilities && internshipData.responsibilities.length > 0 && (
-              <motion.div
-                initial="hidden"
-                animate="visible"
-                variants={fadeInUp}
-                className="mb-4"
-              >
-                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border-l-4 border-blue-500">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
-                    <svg className="w-4 h-4 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Responsibilities
-                  </h4>
-                  <ul className="space-y-2">
-                    {internshipData.responsibilities.slice(0, 5).map((responsibility, index) => (
-                      <li key={index} className="flex items-start">
-                        <svg className="w-3 h-3 text-blue-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span className="text-gray-700 text-xs">{responsibility}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </motion.div>
+              <div className="mb-4">
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">Responsibilities</h4>
+                <ul className="space-y-2">
+                  {internshipData.responsibilities.slice(0, 5).map((responsibility, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      <span className="text-sm text-gray-700">{responsibility}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </motion.div>
 
