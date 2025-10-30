@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import logo from '../../assets/logo.png';
+import { companyAPI } from '../../utils/api';
 
 const CompanySignupPage = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const CompanySignupPage = () => {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,6 +35,7 @@ const CompanySignupPage = () => {
         [name]: ''
       }));
     }
+    if (apiError) setApiError('');
   };
 
   const validateForm = () => {
@@ -68,8 +71,10 @@ const CompanySignupPage = () => {
       newErrors.companySize = 'Company size is required';
     }
 
-    // Validate GST Number if provided
-    if (formData.gstNumber && formData.gstNumber.trim()) {
+    // Make GST Number required
+    if (!formData.gstNumber.trim()) {
+      newErrors.gstNumber = 'GST number is required';
+    } else {
       const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
       if (!gstRegex.test(formData.gstNumber.toUpperCase())) {
         newErrors.gstNumber = 'Please enter a valid GST number (15 characters)';
@@ -88,40 +93,80 @@ const CompanySignupPage = () => {
     }
 
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      // For demo purposes, save company data
-      localStorage.setItem('companyEmail', formData.email);
-      localStorage.setItem('companyName', formData.companyName);
+    setApiError('');
+
+    try {
+      // Prepare payload according to backend schema
+      const payload = {
+        companyName: formData.companyName.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        industry: formData.industry.trim(),
+        companySize: formData.companySize,
+        website: formData.website?.trim() || '',
+        description: formData.description?.trim() || '',
+        location: formData.location?.trim() || '',
+        gstNumber: formData.gstNumber?.trim() || ''
+      };
+
+      const response = await companyAPI.register(payload);
+
+      if (!response?.success) {
+        throw new Error(response?.message || 'Registration failed');
+      }
+
+      const token = response.data?.token;
+      const company = response.data?.company;
+
+      if (!token || !company) {
+        throw new Error('Invalid response from server');
+      }
+
+      // Clear any previous session to avoid cross-company bleed-through
+      localStorage.removeItem('userType');
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('companyName');
+      localStorage.removeItem('companyEmail');
+      localStorage.removeItem('companyToken');
+      localStorage.removeItem('companyData');
+
+      // Save new session
+      localStorage.setItem('companyToken', token);
       localStorage.setItem('userType', 'company');
       localStorage.setItem('isLoggedIn', 'true');
-      
-      setIsLoading(false);
+      localStorage.setItem('companyName', company.companyName || '');
+      localStorage.setItem('companyEmail', company.email || '');
+      localStorage.setItem('companyData', JSON.stringify(company));
+
+      // Navigate to company dashboard
       navigate('/company/internships');
-    }, 1500);
+    } catch (err) {
+      setApiError(err?.message || 'Something went wrong while creating your account');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-indigo-100 flex items-center justify-center p-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-indigo-100 flex items-center justify-center p-2 py-4">
       {/* Mobile/Tablet Layout */}
-      <div className="w-full max-w-md md:max-w-2xl">
+      <div className="w-full max-w-sm md:max-w-lg">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-white rounded-3xl shadow-2xl overflow-hidden"
+          className="bg-white rounded-2xl shadow overflow-hidden"
         >
           {/* Header Section with Gradient Background */}
-          <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 p-8 md:p-12 text-white">
-            <div className="flex items-center justify-center mb-4">
+          <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 p-4 md:p-6 text-white">
+            <div className="flex items-center justify-center mb-2">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                className="bg-white rounded-2xl p-4 shadow-lg"
+                className="bg-white rounded-xl p-2 shadow"
               >
-                <img src={logo} alt="CreateBharat" className="w-16 h-16 md:w-20 md:h-20" />
+                <img src={logo} alt="CreateBharat" className="w-10 h-10 md:w-12 md:h-12" />
               </motion.div>
             </div>
 
@@ -129,7 +174,7 @@ const CompanySignupPage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              className="text-3xl md:text-4xl font-bold text-center"
+              className="text-2xl md:text-3xl font-bold text-center"
             >
               Create Company Account
             </motion.h1>
@@ -138,20 +183,26 @@ const CompanySignupPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.5 }}
-              className="text-center mt-3 text-indigo-100"
+              className="text-center mt-1 text-indigo-100 text-sm"
             >
               Join CreateBharat and manage your internships
             </motion.p>
           </div>
 
           {/* Form Section */}
-          <div className="p-6 md:p-12">
-            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+          <div className="p-3 md:p-6">
+            {apiError && (
+              <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+                {apiError}
+              </div>
+            )}
+            <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
               {/* Company Name Field */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
+                className="mb-2"
               >
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Company Name *
@@ -170,10 +221,10 @@ const CompanySignupPage = () => {
                     name="companyName"
                     value={formData.companyName}
                     onChange={handleChange}
-                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${errors.companyName
+                    className={`w-full pl-12 pr-3 py-2 rounded-xl border-2 transition-all duration-200 ${errors.companyName
                       ? 'border-red-500 focus:border-red-500'
                       : 'border-gray-300 focus:border-indigo-500'
-                      } focus:ring-2 focus:ring-indigo-200 outline-none`}
+                      } focus:ring-2 focus:ring-indigo-200 outline-none text-sm`}
                     placeholder="Enter your company name"
                   />
                 </motion.div>
@@ -193,6 +244,7 @@ const CompanySignupPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 }}
+                className="mb-2"
               >
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Company Email *
@@ -211,10 +263,10 @@ const CompanySignupPage = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${errors.email
+                    className={`w-full pl-12 pr-3 py-2 rounded-xl border-2 transition-all duration-200 ${errors.email
                       ? 'border-red-500 focus:border-red-500'
                       : 'border-gray-300 focus:border-indigo-500'
-                      } focus:ring-2 focus:ring-indigo-200 outline-none`}
+                      } focus:ring-2 focus:ring-indigo-200 outline-none text-sm`}
                     placeholder="company@example.com"
                   />
                 </motion.div>
@@ -234,6 +286,7 @@ const CompanySignupPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
+                className="mb-2"
               >
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Password *
@@ -252,10 +305,10 @@ const CompanySignupPage = () => {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${errors.password
+                    className={`w-full pl-12 pr-3 py-2 rounded-xl border-2 transition-all duration-200 ${errors.password
                       ? 'border-red-500 focus:border-red-500'
                       : 'border-gray-300 focus:border-indigo-500'
-                      } focus:ring-2 focus:ring-indigo-200 outline-none`}
+                      } focus:ring-2 focus:ring-indigo-200 outline-none text-sm`}
                     placeholder="Enter password (min 6 characters)"
                   />
                 </motion.div>
@@ -275,6 +328,7 @@ const CompanySignupPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.9 }}
+                className="mb-2"
               >
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Confirm Password *
@@ -293,10 +347,10 @@ const CompanySignupPage = () => {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${errors.confirmPassword
+                    className={`w-full pl-12 pr-3 py-2 rounded-xl border-2 transition-all duration-200 ${errors.confirmPassword
                       ? 'border-red-500 focus:border-red-500'
                       : 'border-gray-300 focus:border-indigo-500'
-                      } focus:ring-2 focus:ring-indigo-200 outline-none`}
+                      } focus:ring-2 focus:ring-indigo-200 outline-none text-sm`}
                     placeholder="Re-enter your password"
                   />
                 </motion.div>
@@ -316,6 +370,7 @@ const CompanySignupPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1 }}
+                className="mb-2"
               >
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Industry *
@@ -324,10 +379,10 @@ const CompanySignupPage = () => {
                   name="industry"
                   value={formData.industry}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 ${errors.industry
+                  className={`w-full px-3 py-2 rounded-xl border-2 transition-all duration-200 ${errors.industry
                     ? 'border-red-500 focus:border-red-500'
                     : 'border-gray-300 focus:border-indigo-500'
-                    } focus:ring-2 focus:ring-indigo-200 outline-none`}
+                    } focus:ring-2 focus:ring-indigo-200 outline-none text-sm`}
                 >
                   <option value="">Select industry</option>
                   <option value="Technology">Technology</option>
@@ -355,6 +410,7 @@ const CompanySignupPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.1 }}
+                className="mb-2"
               >
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Company Size *
@@ -363,10 +419,10 @@ const CompanySignupPage = () => {
                   name="companySize"
                   value={formData.companySize}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 ${errors.companySize
+                  className={`w-full px-3 py-2 rounded-xl border-2 transition-all duration-200 ${errors.companySize
                     ? 'border-red-500 focus:border-red-500'
                     : 'border-gray-300 focus:border-indigo-500'
-                    } focus:ring-2 focus:ring-indigo-200 outline-none`}
+                    } focus:ring-2 focus:ring-indigo-200 outline-none text-sm`}
                 >
                   <option value="">Select company size</option>
                   <option value="1-10 employees">1-10 employees</option>
@@ -391,6 +447,7 @@ const CompanySignupPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.2 }}
+                className="mb-2"
               >
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Location (Optional)
@@ -410,7 +467,7 @@ const CompanySignupPage = () => {
                     name="location"
                     value={formData.location}
                     onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-200"
+                    className="w-full pl-12 pr-3 py-2 rounded-xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-200 text-sm"
                     placeholder="City, State"
                   />
                 </motion.div>
@@ -421,9 +478,10 @@ const CompanySignupPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.25 }}
+                className="mb-2"
               >
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  GST Number (Optional)
+                  GST Number *
                 </label>
                 <motion.div
                   whileFocus={{ scale: 1.02 }}
@@ -440,11 +498,12 @@ const CompanySignupPage = () => {
                     value={formData.gstNumber}
                     onChange={handleChange}
                     maxLength={15}
-                    className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 ${errors.gstNumber
+                    required
+                    className={`w-full pl-12 pr-3 py-2 rounded-xl border-2 transition-all duration-200 ${errors.gstNumber
                       ? 'border-red-500 focus:border-red-500'
                       : 'border-gray-300 focus:border-indigo-500'
-                      } focus:ring-2 focus:ring-indigo-200 outline-none uppercase`}
-                    placeholder="15 characters"
+                    } focus:ring-2 focus:ring-indigo-200 outline-none uppercase text-sm`}
+                    placeholder="Enter your GST number (15 characters)"
                   />
                 </motion.div>
                 {errors.gstNumber && (
@@ -463,6 +522,7 @@ const CompanySignupPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.3 }}
+                className="mb-2"
               >
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Website (Optional)
@@ -481,7 +541,7 @@ const CompanySignupPage = () => {
                     name="website"
                     value={formData.website}
                     onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-200"
+                    className="w-full pl-12 pr-3 py-2 rounded-xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-200 text-sm"
                     placeholder="www.company.com"
                   />
                 </motion.div>
@@ -492,6 +552,7 @@ const CompanySignupPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.4 }}
+                className="mb-2"
               >
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Company Description (Optional)
@@ -501,7 +562,7 @@ const CompanySignupPage = () => {
                   value={formData.description}
                   onChange={handleChange}
                   rows={3}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-200"
+                  className="w-full px-3 py-2 rounded-xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-200 text-sm"
                   placeholder="Briefly describe your company..."
                 />
               </motion.div>
@@ -511,13 +572,13 @@ const CompanySignupPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.5 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
                 type="submit"
                 disabled={isLoading}
-                className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg ${isLoading
+                className={`w-full py-2 rounded-lg font-semibold text-base transition-all duration-200 shadow ${isLoading
                   ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white hover:from-indigo-600 hover:to-indigo-700 hover:shadow-xl'
+                  : 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white hover:from-indigo-600 hover:to-indigo-700 hover:shadow'
                   }`}
               >
                 {isLoading ? (
