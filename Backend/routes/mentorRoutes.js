@@ -5,6 +5,7 @@ const {
   loginMentor,
   getMe,
   updateProfile,
+  uploadProfileImage,
   getAllMentors,
   getMentorById,
   createBooking,
@@ -20,6 +21,7 @@ const {
 } = require('../controllers/mentorController');
 const { protect: mentorProtect } = require('../middleware/mentorAuth');
 const { protect: userProtect } = require('../middleware/auth');
+const upload = require('../utils/multer');
 
 const router = express.Router();
 
@@ -56,6 +58,7 @@ router.get('/', getAllMentors);
 // Protected routes - Mentor
 router.get('/me/profile', mentorProtect, getMe);
 router.put('/profile', mentorProtect, updateProfile);
+router.put('/profile/image', mentorProtect, upload.single('image'), uploadProfileImage);
 router.get('/dashboard/bookings', mentorProtect, getMentorBookings);
 router.put('/bookings/:id/status', mentorProtect, updateBookingStatus);
 router.put('/bookings/:id/session-link', mentorProtect, setSessionLink);

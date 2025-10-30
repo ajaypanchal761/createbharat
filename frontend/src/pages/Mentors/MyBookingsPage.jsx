@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../../assets/logo.png';
+import { mentorBookingAPI } from '../../utils/api';
 
 // Icons
 const MenuIcon = () => (
@@ -23,77 +24,53 @@ const ClockIcon = () => (
 );
 
 const MyBookingsPage = () => {
-  const [activeTab, setActiveTab] = useState('upcoming');
+  const [activeTab, setActiveTab] = useState('all');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const bookings = [
-    {
-      id: 1,
-      mentorName: 'Sarah Johnson',
-      mentorTitle: 'Senior Business Consultant',
-      mentorImage: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-      sessionType: '50-60 minutes',
-      amount: 300,
-      status: 'confirmed',
-      date: '2024-01-20',
-      time: '10:00 AM',
-      message: 'Business strategy consultation for my startup',
-      specialties: ['Startup Strategy', 'Business Planning']
-    },
-    {
-      id: 2,
-      mentorName: 'Michael Chen',
-      mentorTitle: 'Full Stack Developer',
-      mentorImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      sessionType: '20-25 minutes',
-      amount: 150,
-      status: 'pending',
-      date: '2024-01-22',
-      time: '2:00 PM',
-      message: 'Code review and technical guidance',
-      specialties: ['React', 'Node.js']
-    },
-    {
-      id: 3,
-      mentorName: 'Emily Rodriguez',
-      mentorTitle: 'Career Coach',
-      mentorImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-      sessionType: '90-120 minutes',
-      amount: 450,
-      status: 'completed',
-      date: '2024-01-15',
-      time: '3:00 PM',
-      message: 'Career transition and resume building',
-      specialties: ['Career Development', 'Resume Writing']
-    }
-  ];
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        setLoading(true);
+        const rawToken = (localStorage.getItem('token') || localStorage.getItem('authToken') || '').trim();
+        const token = rawToken.replace(/^['"]/, '').replace(/['"]$/, '');
+        const res = await mentorBookingAPI.getMyBookings(token);
+        if (res.success && Array.isArray(res.data)) {
+          setBookings(res.data);
+          setError('');
+        } else {
+          setBookings([]);
+          setError('No bookings found');
+        }
+      } catch {
+        setBookings([]);
+        setError('Error fetching bookings');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBookings();
+  }, []);
 
   const filteredBookings = bookings.filter(booking => {
     if (activeTab === 'all') return true;
     return booking.status === activeTab;
   });
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'pending':
-        return <ClockIcon />;
-      case 'confirmed':
-        return <CheckIcon />;
-      case 'completed':
-        return <CheckIcon />;
-      default:
-        return <ClockIcon />;
-    }
-  };
+  const formatStatus = (s) => (s || '').charAt(0).toUpperCase() + (s || '').slice(1);
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending':
         return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'confirmed':
+      case 'accepted':
         return 'text-green-600 bg-green-50 border-green-200';
       case 'completed':
         return 'text-blue-600 bg-blue-50 border-blue-200';
+      case 'rejected':
+        return 'text-red-600 bg-red-50 border-red-200';
       default:
         return 'text-gray-600 bg-gray-50 border-gray-200';
     }
@@ -212,7 +189,7 @@ const MyBookingsPage = () => {
         >
           {[
             { label: 'Total Bookings', value: bookings.length, color: 'blue' },
-            { label: 'Upcoming', value: bookings.filter(b => b.status === 'confirmed').length, color: 'green' },
+            { label: 'Upcoming', value: bookings.filter(b => b.status === 'accepted').length, color: 'green' },
             { label: 'Pending', value: bookings.filter(b => b.status === 'pending').length, color: 'yellow' },
             { label: 'Completed', value: bookings.filter(b => b.status === 'completed').length, color: 'purple' }
           ].map((stat, index) => (
@@ -237,7 +214,7 @@ const MyBookingsPage = () => {
           <div className="flex flex-wrap gap-2 mb-6">
             {[
               { id: 'all', label: 'All Bookings' },
-              { id: 'confirmed', label: 'Upcoming' },
+              { id: 'accepted', label: 'Upcoming' },
               { id: 'pending', label: 'Pending' },
               { id: 'completed', label: 'Completed' }
             ].map((tab) => (
@@ -262,85 +239,79 @@ const MyBookingsPage = () => {
             variants={staggerContainer}
             className="space-y-4"
           >
-            {filteredBookings.map((booking, index) => (
-              <motion.div
-                key={booking.id}
-                variants={scaleIn}
-                className="bg-gray-50 rounded-xl p-6 border-2 border-gray-100"
-              >
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-                  {/* Booking Info */}
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-4 mb-3">
-                      <img
-                        src={booking.mentorImage}
-                        alt={booking.mentorName}
-                        className="w-12 h-12 rounded-full object-cover border-2 border-gray-100"
-                      />
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">{booking.mentorName}</h3>
-                        <p className="text-gray-600">{booking.mentorTitle}</p>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(booking.status)}`}>
-                        <span className="flex items-center space-x-1">
-                          {getStatusIcon(booking.status)}
-                          <span className="capitalize">{booking.status}</span>
-                        </span>
-                      </span>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                      <div>
-                        <span className="font-medium">Session:</span> {booking.sessionType}
-                      </div>
-                      <div>
-                        <span className="font-medium">Date:</span> {booking.date} at {booking.time}
-                      </div>
-                      <div>
-                        <span className="font-medium">Amount:</span> ₹{booking.amount}
-                      </div>
-                      <div>
-                        <span className="font-medium">Message:</span> {booking.message}
-                      </div>
-                    </div>
-
-                    <div className="mt-3">
-                      <span className="font-medium text-gray-900">Specialties:</span>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {booking.specialties.map((specialty, idx) => (
-                          <span
-                            key={idx}
-                            className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
-                          >
-                            {specialty}
+            {loading ? (
+              <div className="text-center py-8">Loading...</div>
+            ) : error ? (
+              <div className="text-center py-8 text-gray-500">{error}</div>
+            ) : (
+              filteredBookings.map((booking) => {
+                const mentor = booking.mentor || {};
+                const mentorName = `${mentor.firstName || ''} ${mentor.lastName || ''}`.trim() || 'Mentor';
+                const mentorTitle = mentor.title || '';
+                const mentorImg = mentor.profileImage || undefined;
+                const whenDate = booking.date ? new Date(booking.date) : null;
+                const dateStr = whenDate ? whenDate.toLocaleDateString() : '-';
+                const timeStr = booking.time || '';
+                return (
+                  <motion.div
+                    key={booking._id}
+                    variants={scaleIn}
+                    className="bg-gray-50 rounded-xl p-6 border-2 border-gray-100"
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                      {/* Booking Info */}
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-4 mb-3">
+                          <img
+                            src={mentorImg}
+                            alt={mentorName}
+                            className="w-12 h-12 rounded-full object-cover border-2 border-gray-100"
+                          />
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">{mentorName}</h3>
+                            <p className="text-gray-600">{mentorTitle}</p>
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(booking.status)}`}>
+                            <span className="flex items-center space-x-1">
+                              <span className="capitalize">{formatStatus(booking.status)}</span>
+                            </span>
                           </span>
-                        ))}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                          <div>
+                            <span className="font-medium">Session:</span> {booking.sessionType}
+                          </div>
+                          <div>
+                            <span className="font-medium">Date/Time:</span> {dateStr}{timeStr ? ` at ${timeStr}` : ''}
+                          </div>
+                          <div>
+                            <span className="font-medium">Amount:</span> ₹{booking.amount}
+                          </div>
+                          <div>
+                            <span className="font-medium">Message:</span> {booking.message || '-'}
+                          </div>
+                        </div>
+
+                        {booking.sessionLink && booking.status === 'accepted' && (
+                          <div className="mt-3">
+                            <span className="font-medium text-gray-900">Session Link:</span>{' '}
+                            <a
+                              href={booking.sessionLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-blue-600 hover:underline break-all"
+                            >
+                              {booking.sessionLink}
+                            </a>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-
-                  {/* Actions */}
-                  {booking.status === 'confirmed' && (
-                    <div className="flex flex-col space-y-2 md:ml-4">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        Join Session
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-4 py-2 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 transition-colors"
-                      >
-                        Reschedule
-                      </motion.button>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            ))}
+                  </motion.div>
+                );
+              })
+            )}
           </motion.div>
 
           {filteredBookings.length === 0 && (

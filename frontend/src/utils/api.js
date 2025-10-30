@@ -591,6 +591,19 @@ export const mentorAPI = {
     });
   },
 
+  // Upload mentor profile image
+  uploadProfileImage: async (token, file) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    return apiCall('/mentors/profile/image', {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+  },
+
   // Get all mentors (public)
   getAll: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
@@ -618,13 +631,16 @@ export const mentorAPI = {
   },
 
   // Mentor: Update booking status
-  updateBookingStatus: async (token, bookingId, status) => {
+  updateBookingStatus: async (token, bookingId, status, date, time, sessionLink, rejectReason) => {
+    const body = { status };
+    if(date) body.date = date;
+    if(time) body.time = time;
+    if(sessionLink) body.sessionLink = sessionLink;
+    if(status === 'rejected' && rejectReason) body.reason = rejectReason;
     return apiCall(`/mentors/bookings/${bookingId}/status`, {
       method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ status }),
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
     });
   },
 };

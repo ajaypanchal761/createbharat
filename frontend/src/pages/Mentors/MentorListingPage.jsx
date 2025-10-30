@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { mentorAPI } from '../../utils/api';
 import BottomNavbar from '../../components/common/BottomNavbar';
+import { mentorBookingAPI } from '../../utils/api';
 
 // Icons
 const MenuIcon = () => (
@@ -40,6 +41,9 @@ const MentorListingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('mentors');
+  const [bookings, setBookings] = useState([]);
+  const [isLoadingBookings, setIsLoadingBookings] = useState(false);
+  const [bookingsError, setBookingsError] = useState('');
 
   // Navbar icons for bottom navigation
   const HomeIcon = ({ active }) => (
@@ -75,6 +79,27 @@ const MentorListingPage = () => {
     personal: 'Personal Development'
   };
 
+  const fetchUserBookings = async () => {
+    try {
+      setIsLoadingBookings(true);
+      setBookingsError('');
+      const rawToken = (localStorage.getItem('token') || localStorage.getItem('authToken') || '').trim();
+      const token = rawToken.replace(/^['"]/, '').replace(/['"]$/, '');
+      const res = await mentorBookingAPI.getMyBookings(token);
+      if (res.success && Array.isArray(res.data)) {
+        setBookings(res.data);
+      } else {
+        setBookings([]);
+        setBookingsError('No bookings found');
+      }
+    } catch {
+      setBookings([]);
+      setBookingsError('Error fetching bookings');
+    } finally {
+      setIsLoadingBookings(false);
+    }
+  };
+
   useEffect(() => {
     const fetchMentors = async () => {
       setIsLoading(true);
@@ -105,8 +130,11 @@ const MentorListingPage = () => {
 
   // Listen for tab changes from Navbar (webview)
   useEffect(() => {
-    const handleNavbarTabChange = (event) => {
-      setActiveTab(event.detail.tab);
+    const handleNavbarTabChange = (e) => {
+      if (e?.detail?.tab === 'status') {
+        setActiveTab('status');
+        fetchUserBookings();
+      }
     };
     window.addEventListener('navbarMentorsTabChange', handleNavbarTabChange);
     return () => window.removeEventListener('navbarMentorsTabChange', handleNavbarTabChange);
@@ -453,73 +481,85 @@ const MentorListingPage = () => {
             transition={{ duration: 0.3 }}
             className="space-y-4 pb-32"
           >
-            {/* Mock booking data */}
-            {mentors.length === 0 ? (
+            {isLoadingBookings ? (
+              <div className="text-center py-12 text-gray-500">Loading bookings...</div>
+            ) : bookingsError ? (
+              <div className="text-center py-12 text-gray-500">{bookingsError}</div>
+            ) : bookings.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-gray-500 text-lg">No Bookings Found</div>
                 <p className="text-gray-400 mt-2">Your mentor booking status will appear here</p>
               </div>
             ) : (
-              mentors.map((mentor) => (
-                <Motion.div
-                  key={mentor._id || mentor.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-white rounded-xl p-6 shadow-lg border-2 border-gray-100"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="text-4xl">{'👩‍💼'}</div>
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">{mentor.firstName || 'Mentor'} {mentor.lastName || ''}</h3>
-                        <p className="text-sm text-gray-600 mt-1">Booked on: {new Date().toISOString().slice(0, 10)}</p>
+              bookings.map((booking) => {
+                const mentor = booking.mentor || {};
+                const mentorName = `${mentor.firstName || ''} ${mentor.lastName || ''}`.trim() || 'Mentor';
+                const whenDate = booking.date ? new Date(booking.date) : null;
+                const dateStr = whenDate ? whenDate.toLocaleDateString() : '-';
+                const timeStr = booking.time || '';
+                const isAccepted = booking.status === 'accepted';
+                const isPending = booking.status === 'pending';
+                const isRejected = booking.status === 'rejected';
+                return (
+                  <Motion.div
+                    key={booking._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white rounded-xl p-6 shadow-lg border-2 border-gray-100"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-4">
+                        <img
+                          src={mentor.profileImage || undefined}
+                          alt={mentorName}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-gray-100"
+                        />
+                        <div>
+                          <div className="text-lg font-semibold text-gray-900">{mentorName}</div>
+                          <div className="text-sm text-gray-600">{mentor.title || ''}</div>
+                        </div>
                       </div>
+                      <span className="px-3 py-1 rounded-full text-sm font-medium border capitalize">
+                        {booking.status}
+                      </span>
                     </div>
-                    {(() => {
-                      const status = (mentor.status || 'pending').toLowerCase();
-                      const cls = status === 'accepted'
-                        ? 'bg-green-100 text-green-800'
-                        : status === 'rejected'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-yellow-100 text-yellow-800';
-                      const label = status.charAt(0).toUpperCase() + status.slice(1);
-                      return (
-                        <span className={`px-4 py-2 rounded-full text-sm font-medium ${cls}`}>
-                          {label}
-                        </span>
-                      );
-                    })()}
-                  </div>
 
-                  {/* Show details only if accepted */}
-                  {mentor.status === 'accepted' && mentor.schedule && (
-                    <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
-                      <h4 className="font-semibold text-gray-900">Session Details</h4>
-                      <div className="bg-blue-50 rounded-lg p-4 space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-gray-600">📅</span>
-                          <span className="text-sm text-gray-700">Date: {mentor.schedule?.date || '-'}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-gray-600">⏰</span>
-                          <span className="text-sm text-gray-700">Time: {mentor.schedule?.time || '-'}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-gray-600">🔗</span>
-                          <a
-                            href={mentor.schedule?.link || '#'}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:text-blue-800 underline"
-                          >
-                            Join Meeting
-                          </a>
-                        </div>
+                    {/* Common: duration and amount */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
+                      <div>
+                        <span className="font-medium">Duration:</span> {booking.duration}
+                      </div>
+                      <div>
+                        <span className="font-medium">Amount:</span> ₹{booking.amount}
                       </div>
                     </div>
-                  )}
-                </Motion.div>
-              ))
+
+                    {/* Accepted: date/time + session link */}
+                    {isAccepted && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600 mt-3">
+                        <div>
+                          <span className="font-medium">Date/Time:</span> {dateStr}{timeStr ? ` at ${timeStr}` : ''}
+                        </div>
+                        {booking.sessionLink && (
+                          <div>
+                            <span className="font-medium text-gray-900">Session Link:</span>{' '}
+                            <a href={booking.sessionLink} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline break-all">
+                              {booking.sessionLink}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Rejected: message */}
+                    {isRejected && (
+                      <div className="mt-3 text-sm text-gray-600">
+                        <span className="font-medium">Message:</span> {booking.cancellationReason || booking.message || '-'}
+                      </div>
+                    )}
+                  </Motion.div>
+                );
+              })
             )}
           </Motion.div>
         )}
@@ -530,7 +570,7 @@ const MentorListingPage = () => {
         tabs={[
           { name: 'Home', path: '/', icon: <HomeIcon /> },
           { name: 'Mentors', path: '/mentors', icon: <UserIcon />, onClick: () => setActiveTab('mentors'), isActive: activeTab === 'mentors' },
-          { name: 'Status', path: '#', icon: <StatusIcon />, onClick: () => setActiveTab('status'), isActive: activeTab === 'status' },
+          { name: 'Status', path: '#', icon: <StatusIcon />, onClick: () => { setActiveTab('status'); fetchUserBookings(); }, isActive: activeTab === 'status' },
           { name: 'Profile', path: '/profile', icon: <ProfileIcon /> }
         ]}
       />

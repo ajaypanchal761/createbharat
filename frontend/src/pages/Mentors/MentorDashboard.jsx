@@ -29,7 +29,7 @@ const ClockIcon = () => (
 );
 
 const MentorDashboard = () => {
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState('all');
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -71,6 +71,7 @@ const MentorDashboard = () => {
 
   const filteredBookings = bookings.filter(booking => {
     if (activeTab === 'all') return true;
+    if (activeTab === 'rejected') return booking.status === 'rejected';
     return booking.status === activeTab;
   });
 
@@ -89,11 +90,12 @@ const MentorDashboard = () => {
     if (!selectedBooking) return;
     try {
       const token = localStorage.getItem('mentorToken');
-      await mentorAPI.updateBookingStatus(token, selectedBooking._id, 'accepted');
+      // Accept with schedule details
+      await mentorAPI.updateBookingStatus(token, selectedBooking._id, 'accepted', newSchedule.date, newSchedule.time, newSchedule.meetingLink);
+      setBookings(prev => prev.map(b => b._id === selectedBooking._id ? { ...b, status: 'accepted', acceptedAt: new Date().toISOString(), date: newSchedule.date, time: newSchedule.time, sessionLink: newSchedule.meetingLink } : b));
       setShowAcceptModal(false);
       setSelectedBooking(null);
       setNewSchedule({ date: '', time: '', meetingLink: '' });
-      // Refresh bookings
       const response = await mentorAPI.getMentorBookings(token);
       if (response.success && Array.isArray(response.data)) setBookings(response.data);
     } catch {
@@ -111,8 +113,10 @@ const MentorDashboard = () => {
     if (!selectedBooking) return;
     try {
       const token = localStorage.getItem('mentorToken');
-      await mentorAPI.updateBookingStatus(token, selectedBooking._id, 'rejected');
+      await mentorAPI.updateBookingStatus(token, selectedBooking._id, 'rejected', undefined, undefined, undefined, rejectReason);
       setRefundAmount(selectedBooking.amount);
+      // Optimistic update
+      setBookings(prev => prev.map(b => b._id === selectedBooking._id ? { ...b, status: 'rejected', rejectedAt: new Date().toISOString(), cancellationReason: rejectReason } : b));
       setShowRejectModal(false);
       setSelectedBooking(null);
       setRejectReason('');
@@ -122,6 +126,16 @@ const MentorDashboard = () => {
       if (response.success && Array.isArray(response.data)) setBookings(response.data);
     } catch {
       alert('Failed to reject booking.');
+    }
+  };
+
+  const handleMarkCompleted = async (booking) => {
+    try {
+      const token = localStorage.getItem('mentorToken');
+      await mentorAPI.updateBookingStatus(token, booking._id, 'completed');
+      setBookings(prev => prev.map(b => b._id === booking._id ? { ...b, status: 'completed', completedAt: new Date().toISOString() } : b));
+    } catch {
+      alert('Failed to mark as completed. Backend may not support this yet.');
     }
   };
 
@@ -197,6 +211,7 @@ const MentorDashboard = () => {
               { id: 'all', label: 'All Bookings' },
               { id: 'pending', label: 'Pending' },
               { id: 'accepted', label: 'Accepted' },
+              { id: 'rejected', label: 'Rejected' },
               { id: 'completed', label: 'Completed' },
               { id: 'profile', label: 'Profile' }
             ].map((tab) => (
@@ -244,7 +259,9 @@ const MentorDashboard = () => {
                       {/* Booking Info */}
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 md:space-x-3 mb-2">
-                          <h3 className="text-base md:text-lg font-semibold text-gray-900">{booking.studentName}</h3>
+                          <h3 className="text-base md:text-lg font-semibold text-gray-900">
+                            {(booking.user && `${booking.user.firstName || ''} ${booking.user.lastName || ''}`.trim()) || 'Student'}
+                          </h3>
                           <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs md:text-sm font-medium border ${getStatusColor(booking.status)}`}>
                             <span className="flex items-center space-x-1">
                               {getStatusIcon(booking.status)}
@@ -253,39 +270,44 @@ const MentorDashboard = () => {
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm text-gray-600">
-                          <div>
-                            <span className="font-medium">Email:</span> {booking.studentEmail}
+                        {/* Minimal fields per status */}
+                        {(booking.status === 'pending') && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm text-gray-600">
+                            <div><span className="font-medium">Email:</span> {booking.user?.email || '-'}</div>
+                            <div><span className="font-medium">Phone:</span> {booking.user?.phone || '-'}</div>
+                            <div><span className="font-medium">Duration:</span> {booking.duration}</div>
+                            <div><span className="font-medium">Amount:</span> ₹{booking.amount}</div>
                           </div>
-                          <div>
-                            <span className="font-medium">Session:</span> {booking.sessionType}
-                          </div>
-                          <div>
-                            <span className="font-medium">Date:</span> {booking.date || '-'}{booking.time ? ` at ${booking.time}` : ''}
-                          </div>
-                          <div>
-                            <span className="font-medium">Amount:</span> ₹{booking.amount}
-                          </div>
-                        </div>
+                        )}
 
-                        <div className="mt-2 md:mt-3">
-                          <span className="font-medium text-gray-900 text-xs md:text-sm">Message:</span>
-                          <p className="text-gray-600 mt-0.5 md:mt-1 text-xs md:text-sm">{booking.message || '-'}</p>
-                        </div>
-
-                        <div className="mt-2 md:mt-3">
-                          <span className="font-medium text-gray-900 text-xs md:text-sm">Specialties:</span>
-                          <div className="flex flex-wrap gap-1 md:gap-2 mt-0.5 md:mt-1">
-                            {(booking.specialties || []).map((specialty, idx) => (
-                              <span
-                                key={idx}
-                                className="px-1.5 md:px-2 py-0.5 md:py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
-                              >
-                                {specialty}
-                              </span>
-                            ))}
+                        {(booking.status === 'rejected') && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm text-gray-600">
+                            <div><span className="font-medium">Email:</span> {booking.user?.email || '-'}</div>
+                            <div><span className="font-medium">Phone:</span> {booking.user?.phone || '-'}</div>
+                            <div><span className="font-medium">Duration:</span> {booking.duration}</div>
+                            <div><span className="font-medium">Amount:</span> ₹{booking.amount}</div>
+                            <div className="md:col-span-2"><span className="font-medium">Reason:</span> {booking.cancellationReason || booking.message || '-'}</div>
                           </div>
-                        </div>
+                        )}
+
+                        {(booking.status === 'accepted') && (
+                          <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm text-gray-600">
+                              <div><span className="font-medium">Email:</span> {booking.user?.email || '-'}</div>
+                              <div><span className="font-medium">Phone:</span> {booking.user?.phone || '-'}</div>
+                              <div><span className="font-medium">Duration:</span> {booking.duration}</div>
+                              <div><span className="font-medium">Amount:</span> ₹{booking.amount}</div>
+                              <div><span className="font-medium">Date:</span> {booking.date ? new Date(booking.date).toLocaleDateString() : '-'}</div>
+                              <div><span className="font-medium">Time:</span> {booking.time || '-'}</div>
+                            </div>
+                            {booking.sessionLink && (
+                              <div className="mt-2 md:mt-3 text-xs md:text-sm">
+                                <span className="font-medium text-gray-900">Session Link:</span>{' '}
+                                <a href={booking.sessionLink} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline break-all">{booking.sessionLink}</a>
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
 
                       {/* Actions */}
@@ -302,6 +324,17 @@ const MentorDashboard = () => {
                             className="flex-1 md:flex-none px-3 md:px-4 py-1.5 md:py-2 bg-red-600 text-white font-medium rounded-md md:rounded-lg hover:bg-red-700 transition-colors text-xs md:text-base"
                           >
                             Reject
+                          </button>
+                        </div>
+                      )}
+
+                      {booking.status === 'accepted' && (
+                        <div className="flex flex-row md:flex-col space-x-2 md:space-x-0 md:space-y-2 md:ml-4">
+                          <button
+                            onClick={() => handleMarkCompleted(booking)}
+                            className="flex-1 md:flex-none px-3 md:px-4 py-1.5 md:py-2 bg-blue-600 text-white font-medium rounded-md md:rounded-lg hover:bg-blue-700 transition-colors text-xs md:text-base"
+                          >
+                            Mark as Completed
                           </button>
                         </div>
                       )}
@@ -361,27 +394,27 @@ const MentorDashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                   <div>
                     <span className="text-xs md:text-sm text-gray-600">Student Name:</span>
-                    <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking.studentName}</p>
+                    <p className="text-sm md:text-base text-gray-900 font-medium">{(selectedBooking?.user && `${selectedBooking.user.firstName || ''} ${selectedBooking.user.lastName || ''}`.trim()) || 'Student'}</p>
                   </div>
                   <div>
                     <span className="text-xs md:text-sm text-gray-600">Email:</span>
-                    <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking.studentEmail}</p>
+                    <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking?.user?.email || '-'}</p>
                   </div>
                   <div>
                     <span className="text-xs md:text-sm text-gray-600">Session Type:</span>
-                    <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking.sessionType}</p>
+                    <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking?.sessionType} ({selectedBooking?.duration})</p>
                   </div>
                   <div>
                     <span className="text-xs md:text-sm text-gray-600">Amount:</span>
-                    <p className="text-sm md:text-base text-gray-900 font-medium">₹{selectedBooking.amount}</p>
+                    <p className="text-sm md:text-base text-gray-900 font-medium">₹{selectedBooking?.amount}</p>
                   </div>
                   <div>
                     <span className="text-xs md:text-sm text-gray-600">Current Date:</span>
-                    <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking.date}</p>
+                    <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking?.date ? new Date(selectedBooking.date).toLocaleDateString() : '-'}</p>
                   </div>
                   <div>
                     <span className="text-xs md:text-sm text-gray-600">Current Time:</span>
-                    <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking.time}</p>
+                    <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking?.time || '-'}</p>
                   </div>
                 </div>
                 <div className="mt-3 md:mt-4">
@@ -484,15 +517,15 @@ const MentorDashboard = () => {
                 <div className="space-y-2 text-xs md:text-sm">
                   <div>
                     <span className="text-gray-600">Student:</span>
-                    <span className="text-gray-900 font-medium ml-2">{selectedBooking.studentName}</span>
+                    <span className="text-gray-900 font-medium ml-2">{(selectedBooking?.user && `${selectedBooking.user.firstName || ''} ${selectedBooking.user.lastName || ''}`.trim()) || 'Student'}</span>
                   </div>
                   <div>
                     <span className="text-gray-600">Email:</span>
-                    <span className="text-gray-900 font-medium ml-2">{selectedBooking.studentEmail}</span>
+                    <span className="text-gray-900 font-medium ml-2">{selectedBooking?.user?.email || '-'}</span>
                   </div>
                   <div>
                     <span className="text-gray-600">Amount Paid:</span>
-                    <span className="text-gray-900 font-medium ml-2">₹{selectedBooking.amount}</span>
+                    <span className="text-gray-900 font-medium ml-2">₹{selectedBooking?.amount}</span>
                   </div>
                 </div>
               </div>

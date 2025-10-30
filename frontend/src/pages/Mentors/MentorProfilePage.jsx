@@ -262,6 +262,29 @@ const MentorProfilePage = () => {
     }));
   };
 
+  const handleImageChange = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    try {
+      setIsSaving(true);
+      const token = localStorage.getItem('mentorToken');
+      const res = await mentorAPI.uploadProfileImage(token, file);
+      if (res.success && res.data && res.data.url) {
+        setFormData(prev => ({ ...prev, profileImage: res.data.url }));
+        setProfileData(prev => ({ ...prev, profileImage: res.data.url }));
+      } else if (res.success && res.data && res.data.mentor && res.data.mentor.profileImage) {
+        setFormData(prev => ({ ...prev, profileImage: res.data.mentor.profileImage }));
+        setProfileData(prev => ({ ...prev, profileImage: res.data.mentor.profileImage }));
+      } else {
+        alert('Image upload failed');
+      }
+    } catch (err) {
+      alert('Image upload failed');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
 
   const renderProfileTab = () => (
     <div className="space-y-6">
@@ -275,11 +298,13 @@ const MentorProfilePage = () => {
       {/* Profile Header */}
       <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-6 text-white">
         <div className="flex items-center space-x-4">
-          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-4xl">
+          <div className="w-20 h-20 bg-white/20 rounded-full overflow-hidden">
             {formData.profileImage ? (
-              <img src={formData.profileImage} alt="Profile" className="w-full h-full rounded-full object-cover" />
+              <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover" />
             ) : (
-              <span>{formData.firstName?.[0] || 'M'}</span>
+              <div className="w-full h-full flex items-center justify-center text-4xl">
+                <span>{formData.firstName?.[0] || 'M'}</span>
+              </div>
             )}
           </div>
           <div className="flex-1">
@@ -326,6 +351,14 @@ const MentorProfilePage = () => {
               <p className="text-orange-100">{profileData.company || 'No company set'}</p>
             )}
           </div>
+          {isEditing && (
+            <div>
+              <label className="inline-block px-4 py-2 bg-white text-orange-600 font-semibold rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                Upload Image
+                <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+              </label>
+            </div>
+          )}
         </div>
         
         {/* Stats */}

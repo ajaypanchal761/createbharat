@@ -3,6 +3,7 @@ const MentorBooking = require('../models/mentorBooking');
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
+const { uploadToCloudinary } = require('../utils/cloudinary');
 
 // Generate JWT Token
 const generateToken = (mentorId) => {
@@ -268,6 +269,25 @@ const updateProfile = async (req, res) => {
       message: 'Server error',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
+  }
+};
+
+// @desc    Upload mentor profile image
+// @route   PUT /api/mentors/profile/image
+// @access  Private (Mentor)
+const uploadProfileImage = async (req, res) => {
+  try {
+    if (!req.file || !req.file.path) {
+      return res.status(400).json({ success: false, message: 'No image file provided' });
+    }
+    const mentorId = req.mentor.id;
+    const result = await uploadToCloudinary(req.file.path, 'mentors/profile', `mentor_${mentorId}`);
+    req.mentor.profileImage = result.url;
+    await req.mentor.save();
+    return res.status(200).json({ success: true, message: 'Profile image updated', data: { url: result.url, mentor: req.mentor } });
+  } catch (err) {
+    console.error('Upload profile image error:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
@@ -606,7 +626,7 @@ const getMentorBookings = async (req, res) => {
 // @access  Private (Mentor)
 const updateBookingStatus = async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, date, time, sessionLink, reason, message } = req.body;
 
     if (!['accepted', 'rejected'].includes(status)) {
       return res.status(400).json({
@@ -637,8 +657,13 @@ const updateBookingStatus = async (req, res) => {
     booking.status = status;
     if (status === 'accepted') {
       booking.acceptedAt = new Date();
+      if (date) booking.date = date;
+      if (time) booking.time = time;
+      if (sessionLink) booking.sessionLink = sessionLink;
     } else {
       booking.rejectedAt = new Date();
+      const rejectReason = reason || message;
+      if (rejectReason) booking.cancellationReason = rejectReason;
     }
     await booking.save();
 
@@ -647,9 +672,7 @@ const updateBookingStatus = async (req, res) => {
     res.status(200).json({
       success: true,
       message: `Booking ${status} successfully`,
-      data: {
-        booking
-      }
+      data: { booking }
     });
 
   } catch (error) {
@@ -859,6 +882,7 @@ module.exports = {
   loginMentor,
   getMe,
   updateProfile,
+  uploadProfileImage,
   getAllMentors,
   getMentorById,
   createBooking,
