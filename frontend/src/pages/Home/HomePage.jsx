@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavbar from '../../components/common/BottomNavbar';
 import { useUser } from '../../contexts/UserContext';
 import LoginPage from '../Auth/LoginPage';
-import logo from '../../assets/logo.png';
 import techImage from '../../assets/techImage.webp';
 import mentorImage from '../../assets/mentor.png';
 import legalImage from '../../assets/legal.png';
@@ -332,18 +331,18 @@ const HomePage = () => {
     return (
         <>
             {/* Mobile View - New Design */}
-            <div id="hero" className="md:hidden min-h-screen bg-gradient-to-b from-orange-50 via-white to-indigo-50 pb-20">
+            <div id="hero" className="md:hidden min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 pb-20">
                 {/* Header */}
                         <motion.header 
                             initial={{ opacity: 0, y: -20 }}
                             animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
-                    className="bg-gradient-to-r from-orange-500 to-orange-600 shadow-md sticky top-0 z-50"
+                    className="bg-white shadow-md sticky top-0 z-50"
                 >
                     <div className="px-4 py-4">
                         <div className="flex items-center justify-between">
                             <motion.button 
-                                className="p-2 text-white"
+                                className="p-2 text-gray-800"
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -353,8 +352,11 @@ const HomePage = () => {
                                 </svg>
                             </motion.button>
                             <div className="flex items-center space-x-2">
-                                <img src={logo} alt="CreateBharat" className="h-8 w-8" />
-                                <h1 className="text-lg font-bold text-white">CreateBharat</h1>
+                                <img src="/logo.png" alt="CreateBharat" className="h-14 w-14" />
+                                <div>
+                                        <h1 className="text-2xl font-bold text-gray-900 ml-3">CreateBharat</h1>
+                                        <p className="text-sm text-gray-600 font-medium ml-3">Empowering Your Dreams</p>
+                                    </div>
                             </div>
                             <div className="w-10"></div>
                         </div>
@@ -385,49 +387,49 @@ const HomePage = () => {
                                 <div className="space-y-3">
                                 <Link 
                                     to="/" 
-                                    className="block py-2 text-gray-700 hover:text-orange-500 font-medium transition-colors"
+                                    className="block py-2 text-gray-700 hover:text-blue-600 font-medium transition-colors"
                                     onClick={() => setIsMobileMenuOpen(false)}
                                 >
                                     Home
                                 </Link>
                                 <Link 
                                     to="/loans" 
-                                    className="block py-2 text-gray-700 hover:text-orange-500 font-medium transition-colors"
+                                    className="block py-2 text-gray-700 hover:text-blue-600 font-medium transition-colors"
                                     onClick={() => setIsMobileMenuOpen(false)}
                                 >
                                     Loans
                                 </Link>
                                 <Link 
                                     to="/internships" 
-                                    className="block py-2 text-gray-700 hover:text-orange-500 font-medium transition-colors"
+                                    className="block py-2 text-gray-700 hover:text-blue-600 font-medium transition-colors"
                                     onClick={() => setIsMobileMenuOpen(false)}
                                 >
                                     Internships
                                 </Link>
                                 <Link 
                                     to="/legal" 
-                                    className="block py-2 text-gray-700 hover:text-orange-500 font-medium transition-colors"
+                                    className="block py-2 text-gray-700 hover:text-blue-600 font-medium transition-colors"
                                     onClick={() => setIsMobileMenuOpen(false)}
                                 >
                                     Legal Services
                                 </Link>
                                 <Link 
                                     to="/mentors" 
-                                    className="block py-2 text-gray-700 hover:text-orange-500 font-medium transition-colors"
+                                    className="block py-2 text-gray-700 hover:text-blue-600 font-medium transition-colors"
                                     onClick={() => setIsMobileMenuOpen(false)}
                                 >
                                     Mentorship
                                 </Link>
                                 <Link 
                                     to="/training" 
-                                    className="block py-2 text-gray-700 hover:text-orange-500 font-medium transition-colors"
+                                    className="block py-2 text-gray-700 hover:text-blue-600 font-medium transition-colors"
                                     onClick={() => setIsMobileMenuOpen(false)}
                                 >
                                     Training
                                 </Link>
                                 <Link 
                                     to="/app-development" 
-                                    className="block py-2 text-gray-700 hover:text-orange-500 font-medium transition-colors"
+                                    className="block py-2 text-gray-700 hover:text-blue-600 font-medium transition-colors"
                                     onClick={() => setIsMobileMenuOpen(false)}
                                 >
                                     Development
@@ -447,7 +449,7 @@ const HomePage = () => {
                                     ) : (
                                     <Link 
                                         to="/login" 
-                                        className="block py-2 text-gray-700 hover:text-orange-500 font-medium transition-colors"
+                                        className="block py-2 text-gray-700 hover:text-blue-600 font-medium transition-colors"
                                         onClick={() => setIsMobileMenuOpen(false)}
                                     >
                                         Login
@@ -600,50 +602,34 @@ const HomePage = () => {
                                 path: '/app-development'
                             }
                         ].map((service, index) => (
-                                            <motion.div 
+                            <motion.div 
                                 key={service.name}
                                 variants={bounceIn}
-                                                whileHover={{ 
-                                    scale: 1.08, 
-                                    rotateY: 8,
-                                    rotateX: 5,
-                                    boxShadow: "0 25px 50px rgba(0,0,0,0.15)",
-                                    transition: { duration: 0.3, ease: "easeOut" }
+                                whileHover={{ 
+                                    scale: 1.05,
+                                    y: -5,
+                                    transition: { duration: 0.2 }
                                 }}
                                 whileTap={{ 
-                                    scale: 0.92,
-                                    rotateY: 0,
-                                    rotateX: 0,
+                                    scale: 0.95,
                                     transition: { duration: 0.1 }
                                 }}
                                 onClick={(e) => handleServiceClick(e, service.path)}
-                                className=" rounded-xl bg-white p-1 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]  hover:shadow-[0_35px_70px_-12px_rgba(0,0,0,0.4)] hover:border-orange-400 hover:border-4 transition-all duration-300 cursor-pointer group"
+                                className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl border border-gray-100 transition-all duration-300 cursor-pointer group overflow-hidden"
                             >
-                                                            <motion.div 
-                                    className="w-full object-fill h-20 mb-3 rounded-lg overflow-hidden"
-                                    whileHover={{ scale: 1.1 }}
-                                    transition={{ duration: 0.3 }}
-                                >
+                                {/* Image with hover effect */}
+                                <div className="w-full h-20 mb-3 rounded-xl overflow-hidden">
                                     <motion.img 
-                                                                    src={service.image} 
-                                                                    alt={service.name} 
-                                                                    className="w-full h-full object-cover" 
-                                        whileHover={{ scale: 1.2 }}
-                                        transition={{ duration: 0.4 }}
-                                                                />
-                                                            </motion.div>
+                                        src={service.image} 
+                                        alt={service.name} 
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                    />
+                                </div>
 
-                                                            <motion.h3 
-                                    className="text-xs font-bold pb-2 text-gray-800 text-center leading-tight"
-                                    whileHover={{ 
-                                        color: "#F97316",
-                                        scale: 1.05,
-                                        y: -2
-                                    }}
-                                    transition={{ duration: 0.2 }}
-                                                            >
-                                                                {service.name}
-                                                            </motion.h3>
+                                {/* Service name */}
+                                <h3 className="text-sm font-bold text-gray-800 text-center leading-tight group-hover:text-blue-600 transition-colors duration-200">
+                                    {service.name}
+                                </h3>
                             </motion.div>
                         ))}
                     </motion.div>
@@ -653,7 +639,7 @@ const HomePage = () => {
                         variants={slideInLeft}
                         initial="hidden"
                         animate="visible"
-                        className="bg-gradient-to-r from-orange-200 to-orange-300 rounded-2xl p-6 relative overflow-hidden shadow-lg ring-1 ring-orange-200"
+                        className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-2xl p-6 relative overflow-hidden shadow-lg ring-1 ring-blue-200"
                     >
                         {/* Animated Background Text */}
                                                             <motion.div
@@ -671,16 +657,7 @@ const HomePage = () => {
                             <span className="text-6xl font-bold text-gray-400">SUCCESS</span>
                                                         </motion.div>
                         
-                        <div className="relative z-10">
-                                <motion.h2 
-                                className="text-lg font-bold text-gray-800 mb-3"
-                                    initial={{ opacity: 0, x: -30 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.3 }}
-                                >
-                                    Start Your Journey
-                                </motion.h2>
-                            
+                        <div className="relative z-10">    
                             {/* Bank Account Service Card */}
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
@@ -707,18 +684,7 @@ const HomePage = () => {
                                 </div>
                             </motion.div>
 
-                            {/* Get Started Button */}
-                            <motion.button
-                                initial={{ opacity: 0, x: -30 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.5 }}
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={(e) => handleServiceClick(e, '/training')}
-                                className="w-full py-3 bg-gradient-to-r from-orange-600 to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ring-1 ring-white/10"
-                            >
-                                Get Started
-                            </motion.button>
+                            {/* Removed Get Started Button as requested */}
                                                 </div>
                             </motion.div>
 
@@ -768,7 +734,7 @@ const HomePage = () => {
                                     transition: { duration: 0.1 }
                                 }}
                                 onClick={(e) => handleServiceClick(e, service.path)}
-                                className="relative rounded-2xl bg-white p-3 shadow-lg ring-1 ring-black/5 hover:shadow-xl hover:ring-orange-300 hover:ring-2 transition-all duration-300 cursor-pointer group"
+                                className="relative rounded-2xl bg-white p-3 shadow-lg ring-1 ring-black/5 hover:shadow-xl hover:ring-blue-300 hover:ring-2 transition-all duration-300 cursor-pointer group"
                             >
                                 <motion.div 
                                     className="w-full h-20 mb-3 rounded-xl overflow-hidden"
@@ -787,7 +753,7 @@ const HomePage = () => {
                                 <motion.h3 
                                     className="text-sm font-semibold text-gray-800 text-center leading-tight break-words hyphens-auto"
                                     whileHover={{ 
-                                        color: "#F97316",
+                                        color: "#2563EB",
                                         scale: 1.02,
                                         y: -1
                                     }}
@@ -804,7 +770,7 @@ const HomePage = () => {
                         variants={slideInLeft}
                             initial="hidden"
                         animate="visible"
-                        className="bg-gradient-to-r from-orange-100 to-orange-200 rounded-2xl p-6 relative overflow-hidden shadow-lg ring-1 ring-orange-200"
+                        className="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-2xl p-6 relative overflow-hidden shadow-lg ring-1 ring-blue-200"
                     >
                         {/* Animated Background Text */}
                                     <motion.div 
@@ -857,7 +823,7 @@ const HomePage = () => {
                         variants={staggerContainer}
                             initial="hidden"
                         animate="visible"
-                        className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-2xl p-6"
+                        className="bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 rounded-2xl p-6"
                     >
                         <motion.h2 
                             variants={fadeInUp}
@@ -873,7 +839,7 @@ const HomePage = () => {
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={(e) => handleServiceClick(e, item.path)}
-                                    className="bg-white rounded-xl p-4 shadow-lg ring-1 ring-black/5 cursor-pointer hover:shadow-xl hover:ring-orange-300 transition-all duration-300"
+                                    className="bg-white rounded-xl p-4 shadow-lg ring-1 ring-black/5 cursor-pointer hover:shadow-xl hover:ring-blue-300 transition-all duration-300"
                                 >
                                     <div className="flex flex-col space-y-1">
                                         <h3 className="text-sm font-semibold text-gray-900 leading-tight">{item.title}</h3>
@@ -928,58 +894,21 @@ const HomePage = () => {
                         </div>
                     </motion.div>
 
-                    {/* Quick Actions Section */}
-                    <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="bg-gradient-to-br from-orange-50 via-white to-indigo-50 rounded-2xl p-6 mb-6 shadow-lg ring-1 ring-black/5"
-                    >
-                        <motion.h2 
-                            variants={fadeInUp}
-                            className="text-xl font-bold text-gray-900 mb-4"
-                        >
-                            Quick Actions
-                        </motion.h2>
-                        <div className="grid grid-cols-2 gap-3">
-                            {[
-                                { name: 'Apply Loan', icon: '💰', color: 'from-green-500 to-emerald-500', path: '/loans' },
-                                { name: 'Find Jobs', icon: '💼', color: 'from-orange-500 to-cyan-500', path: '/internships' },
-                                { name: 'Legal Help', icon: '⚖️', color: 'from-purple-500 to-violet-500', path: '/legal' },
-                                { name: 'Get Mentor', icon: '👨‍🏫', color: 'from-orange-500 to-red-500', path: '/mentors' }
-                            ].map((action, index) => (
-                                <motion.div 
-                                    key={action.name}
-                                    variants={fadeInUp}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={(e) => handleServiceClick(e, action.path)}
-                                    className="bg-white rounded-xl p-4 shadow-lg ring-1 ring-black/5 text-center cursor-pointer"
-                                >
-                                    <div className={`w-12 h-12 bg-gradient-to-r ${action.color} rounded-full flex items-center justify-center mx-auto mb-2 text-2xl`}>
-                                        {action.icon}
-                                    </div>
-                                    <h3 className="text-sm font-semibold text-gray-900">{action.name}</h3>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </motion.div>
+                    {/* Quick Actions Section removed as requested */}
             </div>
 
             {/* Bottom Navigation - Mobile Only */}
             <BottomNavbar />
 
             {/* Desktop View */}
-            <div className="hidden md:block min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-indigo-50">
+            <div className="hidden md:block min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
                 {/* Desktop Header */}
                 <header className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
                     <div className="max-w-7xl mx-auto px-8 py-6">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <Link to="/" className="flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-orange-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                                        <img src={logo} alt="CreateBharat" className="w-8 h-8 object-contain" />
-                                    </div>
+                                <Link to="/" className="flex items-center gap-5">
+                                    <img src="/logo.png" alt="CreateBharat" className="w-20 h-20 object-contain" />
                                     <div>
                                         <h1 className="text-2xl font-bold text-gray-900">CreateBharat</h1>
                                         <p className="text-sm text-gray-600 font-medium">Empowering Your Dreams</p>
@@ -988,12 +917,12 @@ const HomePage = () => {
             </div>
 
                             <nav className="hidden lg:flex items-center space-x-8">
-                                <Link to="/" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Home</Link>
-                                <Link to="/loans" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Loans</Link>
-                                <Link to="/internships" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Internships</Link>
-                                <Link to="/legal" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Legal</Link>
-                                <Link to="/mentors" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Mentors</Link>
-                                <Link to="/training" className="text-gray-700 hover:text-orange-600 font-semibold transition-colors">Training</Link>
+                                <Link to="/" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Home</Link>
+                                <Link to="/loans" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Loans</Link>
+                                <Link to="/internships" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Internships</Link>
+                                <Link to="/legal" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Legal</Link>
+                                <Link to="/mentors" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Mentors</Link>
+                                <Link to="/training" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Training</Link>
                             </nav>
                             
                             <div className="flex items-center gap-4">
@@ -1002,7 +931,7 @@ const HomePage = () => {
                                         <>
                                             <Link 
                                                 to="/profile"
-                                                className="px-6 py-2 bg-white text-orange-600 font-semibold rounded-lg hover:bg-gray-50 transition-all duration-300 border border-orange-200"
+                                                className="px-6 py-2 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-50 transition-all duration-300 border border-blue-200"
                                             >
                                                 Profile
                                             </Link>
@@ -1019,7 +948,7 @@ const HomePage = () => {
                                     ) : (
                                     <button 
                                             onClick={() => navigate('/login')}
-                                        className="px-6 py-2 bg-gradient-to-r from-orange-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300"
+                                        className="px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300"
                                     >
                                             Login
                                     </button>
@@ -1031,7 +960,7 @@ const HomePage = () => {
                 </header>
 
                 {/* Desktop Hero Section */}
-                <section id="hero" className="py-16 lg:py-24 bg-gradient-to-br from-orange-50 via-indigo-50 to-purple-50 relative overflow-hidden">
+                <section id="hero" className="py-16 lg:py-24 bg-gradient-to-br from-slate-50 to-blue-50 relative overflow-hidden">
                     <div className="max-w-7xl mx-auto px-8">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <motion.div 
@@ -1043,7 +972,7 @@ const HomePage = () => {
                                 <div>
                                     <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                                         Empower Your
-                                        <span className="bg-gradient-to-r from-orange-600 to-purple-600 bg-clip-text text-transparent"> Dreams</span>
+                                        <span className="bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent"> Dreams</span>
                                     </h1>
                                     <p className="text-xl text-gray-600 mb-8 leading-relaxed">
                                         Access government loans, find internships, get legal support, and connect with mentors - all in one platform designed for your success.
@@ -1055,7 +984,7 @@ const HomePage = () => {
                                         whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                                         onClick={(e) => handleServiceClick(e, '/training')}
-                                        className="px-8 py-4 bg-gradient-to-r from-orange-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                                        className="px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                                     >
                                         Get Started
                   </motion.button>
@@ -1071,15 +1000,15 @@ const HomePage = () => {
                                 
                                 <div className="flex items-center gap-8 pt-8">
                       <div className="text-center">
-                                        <div className="text-3xl font-bold text-orange-600">10K+</div>
+                                        <div className="text-3xl font-bold text-blue-600">10K+</div>
                                         <div className="text-sm text-gray-600">Active Users</div>
                       </div>
                       <div className="text-center">
-                                        <div className="text-3xl font-bold text-purple-600">500+</div>
+                                        <div className="text-3xl font-bold text-indigo-600">500+</div>
                                         <div className="text-sm text-gray-600">Success Stories</div>
                       </div>
                       <div className="text-center">
-                                        <div className="text-3xl font-bold text-indigo-600">50+</div>
+                                        <div className="text-3xl font-bold text-blue-600">50+</div>
                                         <div className="text-sm text-gray-600">Partners</div>
                       </div>
                     </div>
@@ -1097,7 +1026,7 @@ const HomePage = () => {
                                         alt="Technology"
                                         className="w-full h-auto rounded-2xl shadow-2xl"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-orange-600/20 to-transparent rounded-2xl"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-blue-600/20 to-transparent rounded-2xl"></div>
                 </div>
               </motion.div>
             </div>
@@ -1276,10 +1205,10 @@ const HomePage = () => {
                             whileHover={{ scale: 1.08 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={(e) => handleServiceClick(e, service.path)}
-                            className="w-full py-3 bg-gradient-to-r from-orange-600 via-orange-700 to-purple-600 text-white font-bold rounded-2xl hover:shadow-xl transition-all duration-300 text-sm shadow-lg relative overflow-hidden group"
+                            className="w-full py-3 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 text-white font-bold rounded-2xl hover:shadow-xl transition-all duration-300 text-sm shadow-lg relative overflow-hidden group"
                           >
                             <span className="relative z-10">Learn More</span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-orange-500 via-orange-600 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                           </motion.button>
                         </div>
                       </div>
@@ -1295,11 +1224,11 @@ const HomePage = () => {
                       {/* Premium Content Section */}
                       <div className="p-8 flex flex-col h-full bg-gradient-to-b from-white via-gray-50/30 to-white relative">
                         {/* Subtle pattern overlay */}
-                        <div className="absolute inset-0 opacity-5 bg-gradient-to-br from-orange-500/20 to-purple-500/20"></div>
+                        <div className="absolute inset-0 opacity-5 bg-gradient-to-br from-blue-500/20 to-indigo-500/20"></div>
                         
                         <div className="relative z-10">
                           {/* Heading with enhanced styling */}
-                          <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-orange-600 transition-colors duration-300">
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors duration-300">
                             {service.name}
                           </h3>
 
@@ -1324,10 +1253,10 @@ const HomePage = () => {
                             whileHover={{ scale: 1.08 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={(e) => handleServiceClick(e, service.path)}
-                            className="w-full py-4 bg-gradient-to-r from-orange-600 via-orange-700 to-purple-600 text-white font-bold rounded-2xl hover:shadow-xl transition-all duration-300 text-lg shadow-lg relative overflow-hidden group"
+                            className="w-full py-4 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 text-white font-bold rounded-2xl hover:shadow-xl transition-all duration-300 text-lg shadow-lg relative overflow-hidden group"
                           >
                             <span className="relative z-10">Learn More</span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-orange-500 via-orange-600 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                           </motion.button>
                         </div>
                       </div>
@@ -1339,7 +1268,7 @@ const HomePage = () => {
         </section>
 
                 {/* Desktop Stats Section */}
-                <section className="py-16 lg:py-24 bg-gradient-to-r from-orange-600 to-purple-600">
+                <section className="py-16 lg:py-24 bg-gradient-to-r from-blue-600 to-indigo-600">
                     <div className="max-w-7xl mx-auto px-8">
             <motion.div 
               initial="hidden"
@@ -1430,8 +1359,8 @@ const HomePage = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                             <div>
                                 <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-orange-600 to-purple-600 rounded-lg flex items-center justify-center">
-                                        <img src={logo} alt="CreateBharat" className="w-6 h-6 object-contain" />
+                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                                        <img src="/logo.png" alt="CreateBharat" className="w-6 h-6 object-contain" />
                                     </div>
                                     <h3 className="text-xl font-bold">CreateBharat</h3>
                                 </div>
@@ -1473,7 +1402,7 @@ const HomePage = () => {
                                 <div className="mt-6 pt-4 border-t border-gray-800">
                                     <button
                                         onClick={() => navigate('/admin/login')}
-                                        className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2 px-4 rounded-lg font-medium hover:from-orange-600 hover:to-orange-700 transition-all duration-300 text-sm"
+                                        className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 text-sm"
                                     >
                                         👨‍💼 Admin Access
                                     </button>

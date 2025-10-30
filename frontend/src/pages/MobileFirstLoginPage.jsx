@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useUser } from '../contexts/UserContext';
-import logo from '../assets/logo.png';
 
 const MobileFirstLoginPage = () => {
     const [phone, setPhone] = useState('');
@@ -82,7 +81,7 @@ const MobileFirstLoginPage = () => {
                 {/* Header */}
                 <div className="text-center mb-6">
                     <div className="w-20 h-20 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <img src={logo} alt="CreateBharat" className="w-12 h-12 object-contain" />
+                        <img src="/logo.png" alt="CreateBharat" className="w-12 h-12 object-contain" />
                     </div>
                     <h1 className="text-2xl font-bold text-gray-800 mb-2">
                         {step === 'phone' ? 'Welcome to CreateBharat' : 'Verify OTP'}

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { entrepreneurshipCourse, allModules, modules as detailedModules } from '../../data/entrepreneurshipTraining';
-import logo from '../../assets/logo.png';
 
 const ModulesListPage = () => {
   const navigate = useNavigate();
@@ -54,7 +53,7 @@ const ModulesListPage = () => {
           </button>
 
           <Link to="/" className="flex items-center">
-            <img src={logo} alt="CreateBharat Logo" className="h-12 w-auto object-contain" />
+            <img src="/logo.png" alt="CreateBharat Logo" className="h-12 w-auto object-contain" />
           </Link>
 
           <div className="w-10" />

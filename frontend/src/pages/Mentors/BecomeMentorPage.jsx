@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import logo from '../../assets/logo.png';
 
 // Icons
 const MenuIcon = () => (
@@ -118,7 +117,7 @@ const BecomeMentorPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <img src={logo} alt="Logo" className="h-8 w-auto" />
+              <img src="/logo.png" alt="Logo" className="h-8 w-auto" />
             </div>
             <div className="flex items-center space-x-4">
               <Link

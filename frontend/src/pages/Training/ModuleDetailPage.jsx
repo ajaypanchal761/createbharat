@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { allModules, modules as detailedModules } from '../../data/entrepreneurshipTraining';
-import logo from '../../assets/logo.png';
 
 const ModuleDetailPage = () => {
   const { moduleId } = useParams();
@@ -50,7 +49,7 @@ const ModuleDetailPage = () => {
           </button>
           
           <Link to="/" className="flex items-center">
-            <img src={logo} alt="CreateBharat Logo" className="h-12 w-auto object-contain" />
+            <img src="/logo.png" alt="CreateBharat Logo" className="h-12 w-auto object-contain" />
           </Link>
           
           <div className="w-10" />

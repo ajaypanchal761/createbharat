@@ -10,7 +10,12 @@ const {
   updateAdmin,
   deleteAdmin,
   adminListMentorBookings,
-  adminUpdateMentorBookingStatus
+  adminUpdateMentorBookingStatus,
+  getAllUsersForAdmin,
+  getUserByIdForAdmin,
+  updateUserForAdmin,
+  deleteUserForAdmin,
+  deactivateUserForAdmin
 } = require('../controllers/adminController');
 const { protect, authorize, protect: adminProtect } = require('../middleware/adminAuth');
 
@@ -51,6 +56,13 @@ router.delete('/:id', protect, authorize('super_admin'), deleteAdmin);
 
 router.get('/mentor-bookings', adminProtect, adminListMentorBookings);
 router.put('/mentor-bookings/:id/status', adminProtect, adminUpdateMentorBookingStatus);
+
+// User Management Routes (Admin access)
+router.get('/users', adminProtect, getAllUsersForAdmin);
+router.get('/users/:id', adminProtect, getUserByIdForAdmin);
+router.put('/users/:id', adminProtect, updateUserForAdmin);
+router.delete('/users/:id', adminProtect, deleteUserForAdmin);
+router.patch('/users/:id/deactivate', adminProtect, deactivateUserForAdmin);
 
 module.exports = router;
 

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import logo from '../../assets/logo.png';
 import { mentorAPI } from '../../utils/api';
 
 const MentorLoginPage = () => {
@@ -60,7 +59,7 @@ const MentorLoginPage = () => {
           <div className="flex justify-center mb-6 md:mb-8">
             <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-orange-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
               <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center">
-                <img src={logo} alt="CreateBharat" className="w-12 h-12 md:w-16 md:h-16 object-contain" />
+                <img src="/logo.png" alt="CreateBharat" className="w-12 h-12 md:w-16 md:h-16 object-contain" />
               </div>
             </div>
           </div>

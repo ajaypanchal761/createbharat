@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '../../contexts/UserContext';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { AnimatePresence, motion } from 'framer-motion';
-import logo from '../../assets/logo.png';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -68,39 +67,28 @@ const Navbar = () => {
       className={`hidden md:block sticky top-0 z-50 ${
         scrolled
           ? 'bg-white/98 backdrop-blur-2xl shadow-2xl border-b border-gray-200/60'
-          : 'bg-gradient-to-r from-orange-400 to-orange-500 shadow-2xl'
+          : 'bg-white shadow-2xl border-b border-gray-200/60'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-24">
-          {/* Logo */}
+          {/* Brand with public logo */}
           <div className="flex items-center space-x-4">
-            <Link to="/" className="flex items-center space-x-4">
-              <div className="relative">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
-                  scrolled 
-                    ? 'bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg' 
-                    : 'bg-white/20 backdrop-blur-sm'
-                }`}>
-                  <img src={logo} alt="CreateBharat Logo" className="w-10 h-10 object-contain" />
-                </div>
-                <div className="absolute -top-2 -right-2 w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center text-xs font-bold shadow-lg">
-                  ✨
-                </div>
-              </div>
-            <div className="flex flex-col">
+            <Link to="/" className="flex items-center space-x-5">
+              <img src="/logo.png" alt="CreateBharat Logo" className="w-20 h-20 object-contain" />
+              <div className="flex flex-col">
                 <span className={`font-bold text-2xl leading-tight ${
-                  scrolled ? 'text-gray-900' : 'text-white'
+                  scrolled ? 'text-gray-900' : 'text-gray-900'
                 }`}>
                   CreateBharat
                 </span>
                 <span className={`text-sm font-medium ${
-                  scrolled ? 'text-gray-600' : 'text-orange-100'
+                  scrolled ? 'text-gray-600' : 'text-gray-600'
                 }`}>
                   Empowering Entrepreneurs
                 </span>
-            </div>
-          </Link>
+              </div>
+            </Link>
           </div>
 
           {/* Desktop Navigation (webview) - simplified, no active tab styling */}
@@ -114,7 +102,7 @@ const Navbar = () => {
                       window.dispatchEvent(new CustomEvent('navbarLegalTabChange', { detail: { tab: 'services' } }));
                     }}
                     className={`group relative px-6 py-3 rounded-2xl text-sm font-semibold ${
-                      scrolled ? 'text-gray-700' : 'text-white/90'
+                      scrolled ? 'text-gray-700' : 'text-gray-700'
                     }`}
                   >
                     <span className="flex items-center space-x-2">
@@ -125,7 +113,7 @@ const Navbar = () => {
                   <Link
                     to={link.path}
                     className={`group relative px-6 py-3 rounded-2xl text-sm font-semibold ${
-                      scrolled ? 'text-gray-700' : 'text-white/90'
+                      scrolled ? 'text-gray-700' : 'text-gray-700'
                     }`}
                   >
                     <span className="flex items-center space-x-2">
@@ -208,7 +196,7 @@ const Navbar = () => {
               className={`p-3 rounded-xl ${
                 scrolled
                   ? 'text-gray-600 hover:text-orange-600 hover:bg-gray-50'
-                  : 'text-white hover:bg-white/10'
+                  : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
               {mobileMenuOpen ? <FaTimes className="h-6 w-6" /> : <FaBars className="h-6 w-6" />}

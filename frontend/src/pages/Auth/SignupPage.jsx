@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useUser } from '../../contexts/UserContext';
 import { authAPI } from '../../utils/api';
-import logo from '../../assets/logo.png';
 
 const SignupPage = () => {
     const [step, setStep] = useState('details'); // 'details' or 'otp'
@@ -174,7 +173,7 @@ const SignupPage = () => {
                         <div className="flex justify-center mb-8">
                             <div className="w-20 h-20 md:w-24 md:h-24 bg-orange-100 rounded-full flex items-center justify-center">
                                 <div className="w-16 h-16 md:w-20 md:h-20 bg-orange-500 rounded-full flex items-center justify-center">
-                                    <img src={logo} alt="CreateBharat" className="w-12 h-12 md:w-16 md:h-16 object-contain" />
+                                    <img src="/logo.png" alt="CreateBharat" className="w-12 h-12 md:w-16 md:h-16 object-contain" />
                                 </div>
                             </div>
                         </div>

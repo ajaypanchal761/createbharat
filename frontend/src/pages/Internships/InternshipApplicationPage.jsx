@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import logo from '../../assets/logo.png';
 import { applicationAPI, internshipAPI } from '../../utils/api';
 
 // Bottom Nav Icons
@@ -304,7 +303,7 @@ const InternshipApplicationPage = () => {
           <h1 className="text-sm font-medium text-gray-800">Apply for {internshipData.title}</h1>
         </div>
         <Link to="/">
-          <img src={logo} alt="CreateBharat Logo" className="w-8 h-8 object-contain" />
+          <img src="/logo.png" alt="CreateBharat Logo" className="w-8 h-8 object-contain" />
         </Link>
       </motion.header>
 

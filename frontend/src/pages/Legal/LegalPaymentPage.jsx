@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ServiceNotification from '../../components/common/ServiceNotification';
-import logo from '../../assets/logo.png';
 
 // Icons
 const ArrowLeftIcon = () => (

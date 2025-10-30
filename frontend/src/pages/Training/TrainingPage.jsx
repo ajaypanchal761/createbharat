@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import logo from '../../assets/logo.png';
 
 const TrainingPage = () => {
   return (
@@ -15,14 +14,9 @@ const TrainingPage = () => {
       >
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link to="/" className="flex items-center">
-              <motion.img 
-                whileHover={{ scale: 1.1 }}
-                transition={{ type: "spring", stiffness: 300 }}
-                src={logo} 
-                alt="CreateBharat Logo" 
-                className="h-12 w-auto object-contain" 
-              />
+            <Link to="/" className="flex items-center gap-2">
+              <img src="/logo.png" alt="CreateBharat Logo" className="h-10 w-10 object-contain" />
+              <span className="text-white font-bold text-xl">CreateBharat</span>
             </Link>
           </div>
         </div>

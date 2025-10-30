@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import logo from '../../assets/logo.png';
 import { companyAPI } from '../../utils/api';
 
 const CompanySignupPage = () => {
@@ -166,7 +165,7 @@ const CompanySignupPage = () => {
                 transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
                 className="bg-white rounded-xl p-2 shadow"
               >
-                <img src={logo} alt="CreateBharat" className="w-10 h-10 md:w-12 md:h-12" />
+                <img src="/logo.png" alt="CreateBharat" className="w-10 h-10 md:w-12 md:h-12" />
               </motion.div>
             </div>
 
