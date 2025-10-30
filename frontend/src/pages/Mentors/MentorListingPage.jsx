@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { mentorAPI } from '../../utils/api';
 
 // Icons
@@ -218,7 +218,7 @@ const MentorListingPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
       {/* Header */}
-      <motion.header
+      <Motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -251,14 +251,14 @@ const MentorListingPage = () => {
             </div>
           </div>
         </div>
-      </motion.header>
+      </Motion.header>
 
       {/* Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <div className="fixed inset-0 bg-black/50 z-50 flex">
             <div className="flex-1" onClick={() => setIsMobileMenuOpen(false)} />
-            <motion.div
+            <Motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
@@ -283,7 +283,7 @@ const MentorListingPage = () => {
                   <Link to="/profile" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Profile</Link>
                 </div>
               </div>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -291,7 +291,7 @@ const MentorListingPage = () => {
       {/* Main Content */}
       <div className="px-4 pt-6 pb-4">
         {/* Search and Filters */}
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
@@ -337,7 +337,7 @@ const MentorListingPage = () => {
               </select>
             </div>
           </div>
-        </motion.div>
+        </Motion.div>
 
         {/* Loading State */}
         {isLoading && (
@@ -355,19 +355,19 @@ const MentorListingPage = () => {
 
         {/* Mentors Grid */}
         {!isLoading && !error && (
-          <motion.div
+          <Motion.div
             initial="hidden"
             animate="visible"
             variants={staggerContainer}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto"
           >
             {filteredMentors.map((mentor) => (
-              <motion.div
+              <Motion.div
                 key={mentor.id}
                 variants={scaleIn}
               >
                 <Link to={`/mentors/${mentor.id}`} className="group">
-                  <motion.div
+                  <Motion.div
                     whileHover={{ y: -8, scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ type: "spring", stiffness: 300 }}
@@ -429,23 +429,23 @@ const MentorListingPage = () => {
                         <div className="text-xs text-gray-500">per session</div>
                       </div>
                     </div>
-                  </motion.div>
+                  </Motion.div>
                 </Link>
-              </motion.div>
+              </Motion.div>
             ))}
-          </motion.div>
+          </Motion.div>
         )}
 
         {/* No Results */}
         {!isLoading && !error && filteredMentors.length === 0 && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-center py-12"
           >
             <div className="text-gray-500 text-lg">No mentors found matching your criteria</div>
             <p className="text-gray-400 mt-2">Try adjusting your search or filters</p>
-          </motion.div>
+          </Motion.div>
         )}
       </div>
     </div>
