@@ -156,7 +156,9 @@ const MentorDetailPage = () => {
       alert('Please select a time slot');
       return;
     }
-    setShowBookingModal(true);
+    // Navigate directly to payment page, skip booking modal
+    setIsBooking(true);
+    navigate(`/mentors/${mentorId}/book/${selectedSlot}`);
   };
 
   const handleConfirmBooking = () => {
@@ -172,8 +174,8 @@ const MentorDetailPage = () => {
   // Animation variants
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
+    visible: { 
+      opacity: 1, 
       y: 0,
       transition: { duration: 0.6, ease: "easeOut" }
     }
@@ -191,8 +193,8 @@ const MentorDetailPage = () => {
 
   const scaleIn = {
     hidden: { opacity: 0, scale: 0.8 },
-    visible: {
-      opacity: 1,
+    visible: { 
+      opacity: 1, 
       scale: 1,
       transition: { duration: 0.5, ease: "easeOut" }
     }
@@ -269,9 +271,9 @@ const MentorDetailPage = () => {
                     className={`p-3 rounded-lg border-2 transition-all ${selectedDate === date.date
                         ? 'border-orange-500 bg-orange-50 text-orange-700'
                         : date.available
-                          ? 'border-gray-200 hover:border-orange-300 text-gray-700'
-                          : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
-                      }`}
+                        ? 'border-gray-200 hover:border-orange-300 text-gray-700'
+                        : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
+                    }`}
                   >
                     <div className="text-center">
                       <div className="text-sm font-medium">{date.day}</div>
@@ -296,9 +298,9 @@ const MentorDetailPage = () => {
                     className={`p-3 rounded-lg border-2 transition-all ${selectedTime === timeSlot.time
                         ? 'border-orange-500 bg-orange-50 text-orange-700'
                         : timeSlot.available
-                          ? 'border-gray-200 hover:border-orange-300 text-gray-700'
-                          : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
-                      }`}
+                        ? 'border-gray-200 hover:border-orange-300 text-gray-700'
+                        : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
+                    }`}
                   >
                     {timeSlot.time}
                   </motion.button>
@@ -322,7 +324,7 @@ const MentorDetailPage = () => {
                 className={`flex-1 py-3 px-4 font-medium rounded-lg transition-all ${selectedDate && selectedTime
                     ? 'bg-orange-600 text-white hover:bg-orange-700'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
+                }`}
               >
                 Confirm Booking
               </motion.button>
@@ -377,7 +379,7 @@ const MentorDetailPage = () => {
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">{mentor.name}</h1>
                 <p className="text-lg text-gray-600 mb-1">{mentor.title}</p>
                 <p className="text-sm text-gray-500 mb-4">{mentor.company}</p>
-
+                
                 <div className="flex items-center space-x-4 mb-4">
                   <div className="flex items-center space-x-1">
                     <StarIcon />
@@ -466,7 +468,7 @@ const MentorDetailPage = () => {
                 className="bg-white rounded-xl p-6 shadow-lg border-2 border-gray-100 sticky top-24"
               >
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Book a Session</h3>
-
+                
                 {/* Time Slots */}
                 <div className="space-y-3 mb-6">
                   {timeSlots.map((slot) => (
@@ -477,7 +479,7 @@ const MentorDetailPage = () => {
                       className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedSlot === slot.id
                           ? 'border-orange-500 bg-orange-50'
                           : 'border-gray-200 hover:border-orange-300'
-                        }`}
+                      }`}
                       onClick={() => setSelectedSlot(slot.id)}
                     >
                       <div className="flex items-center justify-between mb-2">
@@ -501,7 +503,7 @@ const MentorDetailPage = () => {
                   className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${selectedSlot && !isBooking
                       ? 'bg-orange-600 text-white hover:bg-orange-700'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
+                  }`}
                 >
                   {isBooking ? 'Processing...' : 'Book Consultant'}
                 </motion.button>

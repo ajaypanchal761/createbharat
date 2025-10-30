@@ -8,9 +8,22 @@ import logo from '../../assets/logo.png';
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeLegalTab, setActiveLegalTab] = useState(() => {
+    // Get saved tab from localStorage, default to 'services'
+    return localStorage.getItem('legalActiveTab') || 'services';
+  });
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useUser();
+
+  // Listen for tab changes from Legal page
+  useEffect(() => {
+    const handleLegalTabChange = (event) => {
+      setActiveLegalTab(event.detail.tab);
+    };
+    window.addEventListener('legalTabChange', handleLegalTabChange);
+    return () => window.removeEventListener('legalTabChange', handleLegalTabChange);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,13 +50,15 @@ const Navbar = () => {
     { name: 'Web Development', path: '/app-development' },
   ];
 
-  // Don't render navbar on homepage, admin routes, company routes, internship login, or mentor category/profile pages
+  // Don't render navbar on homepage, admin routes, company routes, internship login, mentor category/profile pages, or dashboard pages
   if (
     location.pathname === '/' || 
     location.pathname.startsWith('/admin') || 
     location.pathname === '/company/internships' ||
     location.pathname === '/mentors' ||
-    location.pathname === '/mentors/profile'
+    location.pathname === '/mentors/profile' ||
+    location.pathname.startsWith('/mentors/dashboard') ||
+    location.pathname.startsWith('/ca/dashboard')
   ) {
     return null;
   }
@@ -89,19 +104,35 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation (webview) - simplified, no active tab styling */}
-          <div className="hidden md:flex items-center space-x-2">
+          <div className="hidden md:flex items-center space-x-4">
             {navLinks.map((link) => (
               <div key={link.name} className="relative">
-                <Link
-                  to={link.path}
-                  className={`group relative px-6 py-3 rounded-2xl text-sm font-semibold ${
-                    scrolled ? 'text-gray-700' : 'text-white/90'
-                  }`}
-                >
-                  <span className="flex items-center space-x-2">
-                    <span>{link.name}</span>
-                  </span>
-                </Link>
+                {link.path === '/legal' && location.pathname === '/legal' ? (
+                  <button
+                    onClick={() => {
+                      setActiveLegalTab('services');
+                      window.dispatchEvent(new CustomEvent('navbarLegalTabChange', { detail: { tab: 'services' } }));
+                    }}
+                    className={`group relative px-6 py-3 rounded-2xl text-sm font-semibold ${
+                      scrolled ? 'text-gray-700' : 'text-white/90'
+                    }`}
+                  >
+                    <span className="flex items-center space-x-2">
+                      <span>{link.name}</span>
+                    </span>
+                  </button>
+                ) : (
+                  <Link
+                    to={link.path}
+                    className={`group relative px-6 py-3 rounded-2xl text-sm font-semibold ${
+                      scrolled ? 'text-gray-700' : 'text-white/90'
+                    }`}
+                  >
+                    <span className="flex items-center space-x-2">
+                      <span>{link.name}</span>
+                    </span>
+                  </Link>
+                )}
               </div>
             ))}
           </div>
@@ -110,6 +141,26 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-4">
             {/* CTA Buttons */}
             <div className="flex items-center space-x-3">
+              {/* Status Tab - only show on /legal page */}
+              {location.pathname === '/legal' && (
+                <button
+                  onClick={() => {
+                    setActiveLegalTab('status');
+                    window.dispatchEvent(new CustomEvent('navbarLegalTabChange', { detail: { tab: 'status' } }));
+                  }}
+                  className={`px-6 py-3 rounded-2xl font-bold text-sm shadow-lg transition-all ${
+                    activeLegalTab === 'status'
+                      ? scrolled
+                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 hover:shadow-xl'
+                        : 'bg-white text-orange-600 hover:bg-gray-50 hover:shadow-xl'
+                      : scrolled
+                        ? 'bg-white text-orange-600 hover:bg-gray-50 hover:shadow-xl border border-orange-200'
+                        : 'bg-white text-orange-600 hover:bg-gray-50 hover:shadow-xl'
+                  }`}
+                >
+                  Status
+                </button>
+              )}
               {isAuthenticated() ? (
                 <div className="flex items-center space-x-3">
                   <Link
@@ -216,4 +267,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

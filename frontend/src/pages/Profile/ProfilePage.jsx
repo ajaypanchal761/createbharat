@@ -12,8 +12,6 @@ const UserIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" class
 const SearchIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg> );
 const HeartIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg> );
 const ClipboardIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg> );
-const ChatIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> );
-const DocumentIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> );
 
 const ProfilePage = () => {
     const location = useLocation();
@@ -61,15 +59,17 @@ const ProfilePage = () => {
 
     // Determine which page we're coming from to show appropriate bottom navbar
     const getBottomNavbarTabs = () => {
-        if (location.pathname.includes('/loans')) {
+        // Try to get the previous page from localStorage
+        const previousPage = localStorage.getItem('previousPageBeforeProfile');
+        
+        if (previousPage && previousPage.includes('/loans')) {
             return [
                 { name: 'Home', path: '/', icon: <HomeIcon /> },
                 { name: 'Loans', path: '/loans', icon: <BriefcaseIcon /> },
-                { name: 'Apply', path: '/loans/apply', icon: <PlusIcon /> },
                 { name: 'Status', path: '/loans/status', icon: <BarChartIcon /> },
                 { name: 'Profile', path: '/profile', icon: <UserIcon /> }
             ];
-        } else if (location.pathname.includes('/internships')) {
+        } else if (previousPage && previousPage.includes('/internships')) {
             return [
                 { name: 'Home', path: '/', icon: <HomeIcon /> },
                 { name: 'Search', path: '/internships', icon: <SearchIcon /> },
@@ -77,20 +77,25 @@ const ProfilePage = () => {
                 { name: 'Applied', path: '/internships/applied', icon: <ClipboardIcon /> },
                 { name: 'Profile', path: '/profile', icon: <UserIcon /> }
             ];
-        } else if (location.pathname.includes('/legal')) {
+        } else if (previousPage && previousPage.includes('/legal')) {
             return [
                 { name: 'Home', path: '/', icon: <HomeIcon /> },
                 { name: 'Services', path: '/legal', icon: <BriefcaseIcon /> },
-                { name: 'Consult', path: '/legal/consult', icon: <ChatIcon /> },
-                { name: 'Documents', path: '/legal/documents', icon: <DocumentIcon /> },
+                { name: 'Status', path: '/legal', icon: <BarChartIcon /> },
+                { name: 'Profile', path: '/profile', icon: <UserIcon /> }
+            ];
+        } else if (previousPage && previousPage.includes('/mentors')) {
+            return [
+                { name: 'Home', path: '/', icon: <HomeIcon /> },
+                { name: 'Mentors', path: '/mentors', icon: <BriefcaseIcon /> },
+                { name: 'Status', path: '/mentors', icon: <BarChartIcon /> },
                 { name: 'Profile', path: '/profile', icon: <UserIcon /> }
             ];
         } else {
-            // Default navbar
+            // Default navbar (loans)
             return [
                 { name: 'Home', path: '/', icon: <HomeIcon /> },
                 { name: 'Loans', path: '/loans', icon: <BriefcaseIcon /> },
-                { name: 'Apply', path: '/loans/apply', icon: <PlusIcon /> },
                 { name: 'Status', path: '/loans/status', icon: <BarChartIcon /> },
                 { name: 'Profile', path: '/profile', icon: <UserIcon /> }
             ];

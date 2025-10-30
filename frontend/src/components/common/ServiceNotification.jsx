@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ServiceNotification = ({ 
-  type, // 'legal' or 'mentor'
+  type, // 'legal' or 'mentor' or 'refund'
   serviceName,
   mentorName,
+  refundAmount,
   onClose 
 }) => {
   const [isVisible, setIsVisible] = useState(true);
@@ -43,6 +44,15 @@ const ServiceNotification = ({
         iconBg: 'bg-purple-100',
         textColor: 'text-purple-800'
       };
+    } else if (type === 'refund') {
+      return {
+        icon: '💰',
+        title: 'Refund Processed Successfully!',
+        message: `Your refund of ₹${refundAmount} has been processed and will be credited to your account within 3-5 business days.`,
+        bgColor: 'from-green-500 to-emerald-600',
+        iconBg: 'bg-green-100',
+        textColor: 'text-green-800'
+      };
     }
     return null;
   };
@@ -80,7 +90,9 @@ const ServiceNotification = ({
                 </motion.div>
                 <div>
                   <h3 className="text-white font-bold text-lg">{content.title}</h3>
-                  <p className="text-white/90 text-sm">24 Hours Guarantee</p>
+                  <p className="text-white/90 text-sm">
+                    {type === 'refund' ? '3-5 Business Days' : '24 Hours Guarantee'}
+                  </p>
                 </div>
               </div>
               
@@ -119,21 +131,23 @@ const ServiceNotification = ({
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleClose}
-                className="flex-1 py-2 px-4 bg-white/20 text-white text-sm font-medium rounded-lg hover:bg-white/30 transition-colors"
+                className={`py-2 px-4 bg-white/20 text-white text-sm font-medium rounded-lg hover:bg-white/30 transition-colors ${type === 'refund' ? 'w-full' : 'flex-1'}`}
               >
                 Got it!
               </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  // Navigate to contact or support
-                  window.open('tel:+91-1234567890', '_self');
-                }}
-                className="flex-1 py-2 px-4 bg-white text-gray-800 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                Contact Us
-              </motion.button>
+              {type !== 'refund' && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    // Navigate to contact or support
+                    window.open('tel:+91-1234567890', '_self');
+                  }}
+                  className="flex-1 py-2 px-4 bg-white text-gray-800 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  Contact Us
+                </motion.button>
+              )}
             </div>
           </div>
         </motion.div>

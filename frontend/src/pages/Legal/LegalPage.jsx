@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavbar from '../../components/common/BottomNavbar';
@@ -16,9 +16,33 @@ const BriefcaseIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" 
 const ChatIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> );
 const DocumentIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> );
 const UserIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> );
+const StatusIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> );
 
 const LegalPage = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(() => {
+    // Load active tab from localStorage
+    return localStorage.getItem('legalActiveTab') || 'services';
+  });
+
+  // Save active tab to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('legalActiveTab', activeTab);
+  }, [activeTab]);
+
+  // Listen for tab changes from Navbar (webview)
+  useEffect(() => {
+    const handleNavbarTabChange = (event) => {
+      setActiveTab(event.detail.tab);
+    };
+    window.addEventListener('navbarLegalTabChange', handleNavbarTabChange);
+    return () => window.removeEventListener('navbarLegalTabChange', handleNavbarTabChange);
+  }, []);
+
+  // Notify Navbar when tab changes in this page
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('legalTabChange', { detail: { tab: activeTab } }));
+  }, [activeTab]);
   
   const legalServices = [
     { id: 1, name: 'GST Registration', icon: '📋', color: 'from-blue-500 to-cyan-500' },
@@ -36,6 +60,24 @@ const LegalPage = () => {
     { id: 13, name: 'Private Limited/LLP Company Registration', icon: '🏛️', color: 'from-blue-600 to-indigo-600' },
     { id: 14, name: 'NGO Registration', icon: '❤️', color: 'from-green-600 to-emerald-600' },
     { id: 15, name: 'Project Report', icon: '📊', color: 'from-amber-500 to-yellow-500' }
+  ];
+
+  // Mock applied services with status
+  const appliedServices = [
+    {
+      id: 1,
+      serviceName: 'GST Registration',
+      serviceIcon: '📋',
+      appliedDate: '2024-01-15',
+      status: 'pending'
+    },
+    {
+      id: 2,
+      serviceName: 'Income Tax Filing',
+      serviceIcon: '💰',
+      appliedDate: '2024-01-20',
+      status: 'accepted'
+    }
   ];
 
   // Animation variants
@@ -143,6 +185,7 @@ const LegalPage = () => {
         </motion.div>
 
         {/* Services Grid */}
+        {activeTab === 'services' && (
         <motion.div
           initial="hidden"
           animate="visible"
@@ -205,28 +248,60 @@ const LegalPage = () => {
             </motion.div>
           ))}
         </motion.div>
+        )}
 
-        {/* Bottom Info - Desktop Only */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          className="hidden md:block text-center mt-12"
-        >
-          <div className="bg-blue-50 rounded-xl p-6 max-w-2xl mx-auto">
-            <h3 className="text-lg font-semibold text-blue-900 mb-2">Why Choose Our Legal Services?</h3>
-            <p className="text-blue-700 text-sm">
-              Expert guidance, document assistance, and seamless processing for all your legal registration needs.
-            </p>
-          </div>
-        </motion.div>
+        {/* Status Tab Content */}
+        {activeTab === 'status' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-4 max-w-4xl mx-auto"
+          >
+            {appliedServices.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-gray-500 text-lg">No Applied Services</div>
+                <p className="text-gray-400 mt-2">Your applied service status will appear here</p>
+              </div>
+            ) : (
+              appliedServices.map((service) => (
+                <motion.div
+                  key={service.id}
+                  variants={fadeInUp}
+                  className="bg-white rounded-xl p-6 shadow-lg border-2 border-gray-100"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-4">
+                      <div className="text-4xl">{service.serviceIcon}</div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">{service.serviceName}</h3>
+                        <p className="text-sm text-gray-600 mt-1">Applied on: {service.appliedDate}</p>
+                      </div>
+                    </div>
+                    <span className={`px-4 py-2 rounded-full text-sm font-medium ${
+                      service.status === 'pending' 
+                        ? 'bg-yellow-100 text-yellow-800' 
+                        : service.status === 'accepted' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {service.status.charAt(0).toUpperCase() + service.status.slice(1)}
+                    </span>
+                  </div>
+
+                </motion.div>
+              ))
+            )}
+          </motion.div>
+        )}
       </div>
 
       {/* Bottom Navigation - Legal Specific */}
       <BottomNavbar 
         tabs={[
           { name: 'Home', path: '/', icon: <HomeIcon /> },
-          { name: 'Services', path: '/legal', icon: <BriefcaseIcon /> },
+          { name: 'Services', path: '/legal', icon: <BriefcaseIcon />, onClick: () => setActiveTab('services'), isActive: activeTab === 'services' },
+          { name: 'Status', path: '#', icon: <StatusIcon />, onClick: () => setActiveTab('status'), isActive: activeTab === 'status' },
           { name: 'Profile', path: '/profile', icon: <UserIcon /> }
         ]}
       />

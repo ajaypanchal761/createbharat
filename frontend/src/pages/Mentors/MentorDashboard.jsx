@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../../assets/logo.png';
+import ServiceNotification from '../../components/common/ServiceNotification';
 
 // Icons
 const MenuIcon = () => (
@@ -30,7 +31,17 @@ const ClockIcon = () => (
 
 const MentorDashboard = () => {
   const [activeTab, setActiveTab] = useState('pending');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showAcceptModal, setShowAcceptModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [newSchedule, setNewSchedule] = useState({
+    date: '',
+    time: '',
+    meetingLink: ''
+  });
+  const [rejectReason, setRejectReason] = useState('');
+  const [showRefundNotification, setShowRefundNotification] = useState(false);
+  const [refundAmount, setRefundAmount] = useState(0);
 
   const bookings = [
     {
@@ -148,14 +159,45 @@ const MentorDashboard = () => {
     return booking.status === activeTab;
   });
 
-  const handleAcceptBooking = (bookingId) => {
-    // In a real app, this would make an API call
-    alert(`Booking ${bookingId} accepted!`);
+  const handleAcceptBooking = (booking) => {
+    setSelectedBooking(booking);
+    setShowAcceptModal(true);
+    // Set default new schedule to current booking details
+    setNewSchedule({
+      date: booking.date,
+      time: booking.time,
+      meetingLink: ''
+    });
   };
 
-  const handleRejectBooking = (bookingId) => {
-    // In a real app, this would make an API call
-    alert(`Booking ${bookingId} rejected!`);
+  const handleConfirmAccept = () => {
+    // In a real app, this would make an API call with newSchedule
+    console.log('Accepting booking:', selectedBooking.id);
+    console.log('New schedule:', newSchedule);
+    alert(`Booking accepted with new schedule!`);
+    setShowAcceptModal(false);
+    setSelectedBooking(null);
+    setNewSchedule({ date: '', time: '', meetingLink: '' });
+  };
+
+  const handleRejectBooking = (booking) => {
+    setSelectedBooking(booking);
+    setShowRejectModal(true);
+    setRejectReason('');
+  };
+
+  const handleConfirmReject = () => {
+    // In a real app, this would make an API call to process refund
+    console.log('Rejecting booking:', selectedBooking.id);
+    console.log('Refund amount:', `₹${selectedBooking.amount}`);
+    console.log('Reason:', rejectReason);
+    
+    // Show refund notification
+    setRefundAmount(selectedBooking.amount);
+    setShowRejectModal(false);
+    setSelectedBooking(null);
+    setRejectReason('');
+    setShowRefundNotification(true);
   };
 
   const getStatusIcon = (status) => {
@@ -219,83 +261,18 @@ const MentorDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
-      {/* Header */}
-      <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <img src={logo} alt="Logo" className="h-8 w-auto" />
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                to="/mentors/profile"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-              >
-                Edit Profile
-              </Link>
-              <button 
-                onClick={() => setIsMobileMenuOpen(true)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <MenuIcon />
-              </button>
-            </div>
-          </div>
-        </div>
-      </motion.header>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex">
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              className="w-64 bg-white h-full shadow-xl"
-            >
-            <div className="p-6">
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="mb-6 p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="space-y-2">
-                <Link to="/" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Home</Link>
-                <Link to="/loans" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Loans</Link>
-                <Link to="/internships" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Internships</Link>
-                <Link to="/mentors" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Mentors</Link>
-                <Link to="/legal" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Legal Services</Link>
-                <Link to="/training" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Training</Link>
-                <Link to="/profile" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Profile</Link>
-                <Link to="/mentors/profile" className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">Edit Profile</Link>
-              </div>
-            </div>
-          </motion.div>
-          <div className="flex-1" onClick={() => setIsMobileMenuOpen(false)} />
-        </div>
-        )}
-      </AnimatePresence>
 
       {/* Main Content */}
-      <div className="px-4 pt-6 pb-4">
+      <div className="px-3 md:px-4 pt-4 md:pt-6 pb-4">
         {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-center mb-8"
+          className="text-center mb-4 md:mb-8"
         >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Mentor Dashboard</h1>
-          <p className="text-gray-600">Manage your bookings and mentor sessions</p>
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">Mentor Dashboard</h1>
+          <p className="text-xs md:text-base text-gray-600">Manage your bookings and mentor sessions</p>
         </motion.div>
 
         {/* Stats Cards */}
@@ -303,7 +280,7 @@ const MentorDashboard = () => {
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
+          className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-8"
         >
           {[
             { label: 'Total Bookings', value: bookings.length, color: 'blue' },
@@ -314,10 +291,10 @@ const MentorDashboard = () => {
             <motion.div
               key={index}
               variants={scaleIn}
-              className={`bg-white rounded-xl p-4 shadow-lg border-2 border-gray-100 text-center`}
+              className={`bg-white rounded-lg md:rounded-xl p-2 md:p-4 shadow-lg border-2 border-gray-100 text-center`}
             >
-              <div className={`text-2xl font-bold text-${stat.color}-600 mb-1`}>{stat.value}</div>
-              <div className="text-sm text-gray-600">{stat.label}</div>
+              <div className={`text-lg md:text-2xl font-bold text-${stat.color}-600 mb-0.5 md:mb-1`}>{stat.value}</div>
+              <div className="text-xs md:text-sm text-gray-600">{stat.label}</div>
             </motion.div>
           ))}
         </motion.div>
@@ -327,19 +304,20 @@ const MentorDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="bg-white rounded-xl p-6 shadow-lg border-2 border-gray-100 mb-6"
+          className="bg-white rounded-lg md:rounded-xl p-3 md:p-6 shadow-lg border-2 border-gray-100 mb-4 md:mb-6"
         >
-          <div className="flex flex-wrap gap-2 mb-6">
+          <div className="flex gap-1 md:gap-2 mb-3 md:mb-6 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
             {[
               { id: 'all', label: 'All Bookings' },
               { id: 'pending', label: 'Pending' },
               { id: 'accepted', label: 'Accepted' },
-              { id: 'completed', label: 'Completed' }
+              { id: 'completed', label: 'Completed' },
+              { id: 'profile', label: 'Profile' }
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                className={`px-2 md:px-4 py-1 md:py-2 rounded-md md:rounded-lg font-medium transition-all whitespace-nowrap flex-shrink-0 text-xs md:text-base ${
                   activeTab === tab.id
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -351,24 +329,32 @@ const MentorDashboard = () => {
           </div>
 
           {/* Bookings List */}
+          {(activeTab === 'all' || activeTab === 'pending' || activeTab === 'accepted' || activeTab === 'completed') && (
           <motion.div
+              key={activeTab}
             initial="hidden"
             animate="visible"
             variants={staggerContainer}
-            className="space-y-4"
-          >
-            {filteredBookings.map((booking, index) => (
+              className="space-y-2 md:space-y-4"
+            >
+              {filteredBookings.length === 0 ? (
+                <div className="text-center py-8 md:py-12">
+                  <div className="text-gray-500 text-base md:text-lg mb-1 md:mb-2">No bookings found</div>
+                  <p className="text-gray-400 text-xs md:text-sm">Bookings will appear here when students book sessions with you</p>
+                </div>
+              ) : (
+                filteredBookings.map((booking, index) => (
               <motion.div
                 key={booking.id}
                 variants={scaleIn}
-                className="bg-gray-50 rounded-xl p-6 border-2 border-gray-100"
+                    className="bg-gray-50 rounded-lg md:rounded-xl p-3 md:p-6 border-2 border-gray-100"
               >
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
                   {/* Booking Info */}
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{booking.studentName}</h3>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(booking.status)}`}>
+                        <div className="flex items-center space-x-2 md:space-x-3 mb-2">
+                          <h3 className="text-base md:text-lg font-semibold text-gray-900">{booking.studentName}</h3>
+                          <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs md:text-sm font-medium border ${getStatusColor(booking.status)}`}>
                         <span className="flex items-center space-x-1">
                           {getStatusIcon(booking.status)}
                           <span className="capitalize">{booking.status}</span>
@@ -376,7 +362,7 @@ const MentorDashboard = () => {
                       </span>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm text-gray-600">
                       <div>
                         <span className="font-medium">Email:</span> {booking.studentEmail}
                       </div>
@@ -391,18 +377,18 @@ const MentorDashboard = () => {
                       </div>
                     </div>
 
-                    <div className="mt-3">
-                      <span className="font-medium text-gray-900">Message:</span>
-                      <p className="text-gray-600 mt-1">{booking.message}</p>
+                        <div className="mt-2 md:mt-3">
+                          <span className="font-medium text-gray-900 text-xs md:text-sm">Message:</span>
+                          <p className="text-gray-600 mt-0.5 md:mt-1 text-xs md:text-sm">{booking.message}</p>
                     </div>
 
-                    <div className="mt-3">
-                      <span className="font-medium text-gray-900">Specialties:</span>
-                      <div className="flex flex-wrap gap-2 mt-1">
+                        <div className="mt-2 md:mt-3">
+                          <span className="font-medium text-gray-900 text-xs md:text-sm">Specialties:</span>
+                          <div className="flex flex-wrap gap-1 md:gap-2 mt-0.5 md:mt-1">
                         {booking.specialties.map((specialty, idx) => (
                           <span
                             key={idx}
-                            className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
+                                className="px-1.5 md:px-2 py-0.5 md:py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
                           >
                             {specialty}
                           </span>
@@ -413,20 +399,20 @@ const MentorDashboard = () => {
 
                   {/* Actions */}
                   {booking.status === 'pending' && (
-                    <div className="flex flex-col space-y-2 md:ml-4">
+                        <div className="flex flex-row md:flex-col space-x-2 md:space-x-0 md:space-y-2 md:ml-4">
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => handleAcceptBooking(booking.id)}
-                        className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+                            onClick={() => handleAcceptBooking(booking)}
+                            className="flex-1 md:flex-none px-3 md:px-4 py-1.5 md:py-2 bg-green-600 text-white font-medium rounded-md md:rounded-lg hover:bg-green-700 transition-colors text-xs md:text-base"
                       >
                         Accept
                       </motion.button>
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => handleRejectBooking(booking.id)}
-                        className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+                            onClick={() => handleRejectBooking(booking)}
+                            className="flex-1 md:flex-none px-3 md:px-4 py-1.5 md:py-2 bg-red-600 text-white font-medium rounded-md md:rounded-lg hover:bg-red-700 transition-colors text-xs md:text-base"
                       >
                         Reject
                       </motion.button>
@@ -434,17 +420,271 @@ const MentorDashboard = () => {
                   )}
                 </div>
               </motion.div>
-            ))}
-          </motion.div>
-
-          {filteredBookings.length === 0 && (
-            <div className="text-center py-8">
-              <div className="text-gray-500 text-lg">No bookings found</div>
-              <p className="text-gray-400 mt-2">Bookings will appear here when students book sessions with you</p>
-            </div>
+                ))
+              )}
+            </motion.div>
           )}
+
+        {/* Profile Tab */}
+        {activeTab === 'profile' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-lg md:rounded-xl shadow-lg border-2 border-gray-100 mb-4 md:mb-6 overflow-hidden"
+            style={{ height: 'calc(100vh - 300px)' }}
+          >
+            <iframe
+              src="/mentors/profile"
+              className="w-full h-full border-0"
+              title="Mentor Profile"
+            />
+          </motion.div>
+        )}
         </motion.div>
       </div>
+
+      {/* Accept Modal */}
+      <AnimatePresence>
+        {showAcceptModal && selectedBooking && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAcceptModal(false)}
+              className="fixed inset-0 bg-black/50 z-50"
+            />
+
+            {/* Modal */}
+            <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-4 md:mb-6">
+                  <h2 className="text-lg md:text-2xl font-bold text-gray-900">Accept Booking & Set Schedule</h2>
+                  <button
+                    onClick={() => setShowAcceptModal(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Current Booking Details */}
+                <div className="bg-gray-50 rounded-xl p-3 md:p-4 mb-4 md:mb-6">
+                  <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Current Booking Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                    <div>
+                      <span className="text-xs md:text-sm text-gray-600">Student Name:</span>
+                      <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking.studentName}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs md:text-sm text-gray-600">Email:</span>
+                      <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking.studentEmail}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs md:text-sm text-gray-600">Session Type:</span>
+                      <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking.sessionType}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs md:text-sm text-gray-600">Amount:</span>
+                      <p className="text-sm md:text-base text-gray-900 font-medium">₹{selectedBooking.amount}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs md:text-sm text-gray-600">Current Date:</span>
+                      <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking.date}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs md:text-sm text-gray-600">Current Time:</span>
+                      <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking.time}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 md:mt-4">
+                    <span className="text-xs md:text-sm text-gray-600">Message:</span>
+                    <p className="text-sm md:text-base text-gray-900 mt-1">{selectedBooking.message}</p>
+                  </div>
+                </div>
+
+                {/* New Schedule Form */}
+                <div className="mb-4 md:mb-6">
+                  <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Set New Schedule (Optional)</h3>
+                  <div className="space-y-3 md:space-y-4">
+                    <div>
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                        Meeting Date
+                      </label>
+                      <input
+                        type="date"
+                        value={newSchedule.date}
+                        onChange={(e) => setNewSchedule({ ...newSchedule, date: e.target.value })}
+                        className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                        Meeting Time
+                      </label>
+                      <input
+                        type="time"
+                        value={newSchedule.time}
+                        onChange={(e) => setNewSchedule({ ...newSchedule, time: e.target.value })}
+                        className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                        Meeting Link
+                      </label>
+                      <input
+                        type="url"
+                        value={newSchedule.meetingLink}
+                        onChange={(e) => setNewSchedule({ ...newSchedule, meetingLink: e.target.value })}
+                        placeholder="https://meet.google.com/..."
+                        className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex space-x-2 md:space-x-3">
+                  <button
+                    onClick={() => setShowAcceptModal(false)}
+                    className="flex-1 px-3 md:px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium text-sm md:text-base"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmAccept}
+                    className="flex-1 px-3 md:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm md:text-base"
+                  >
+                    Accept & Confirm
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Reject Modal */}
+      <AnimatePresence>
+        {showRejectModal && selectedBooking && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowRejectModal(false)}
+              className="fixed inset-0 bg-black/50 z-50"
+            />
+
+            {/* Modal */}
+            <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 max-w-lg w-full shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-4 md:mb-6">
+                  <h2 className="text-base md:text-2xl font-bold text-gray-900">Reject Booking & Process Refund</h2>
+                  <button
+                    onClick={() => setShowRejectModal(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Booking Details */}
+                <div className="bg-gray-50 rounded-xl p-3 md:p-4 mb-4 md:mb-6">
+                  <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3">Booking Details</h3>
+                  <div className="space-y-2 text-xs md:text-sm">
+                    <div>
+                      <span className="text-gray-600">Student:</span>
+                      <span className="text-gray-900 font-medium ml-2">{selectedBooking.studentName}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Email:</span>
+                      <span className="text-gray-900 font-medium ml-2">{selectedBooking.studentEmail}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Amount Paid:</span>
+                      <span className="text-gray-900 font-medium ml-2">₹{selectedBooking.amount}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Refund Warning */}
+                <div className="bg-orange-50 border-l-4 border-orange-500 p-3 md:p-4 mb-4 md:mb-6 rounded-r-lg">
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 md:w-6 md:h-6 text-orange-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                      <h4 className="text-orange-800 font-semibold mb-1 text-xs md:text-sm">Refund Information</h4>
+                      <p className="text-orange-700 text-xs md:text-sm">
+                        Rejecting this booking will automatically process a refund of <span className="font-semibold">₹{selectedBooking.amount}</span> to the student's account.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reason for Rejection */}
+                <div className="mb-4 md:mb-6">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                    Reason for Rejection (Optional)
+                  </label>
+                  <textarea
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                    rows="3"
+                    placeholder="Enter reason for rejection..."
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none text-sm md:text-base"
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="flex space-x-2 md:space-x-3">
+                  <button
+                    onClick={() => setShowRejectModal(false)}
+                    className="flex-1 px-3 md:px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium text-sm md:text-base"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmReject}
+                    className="flex-1 px-3 md:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm md:text-base"
+                  >
+                    Reject & Refund
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Refund Notification */}
+      {showRefundNotification && (
+        <ServiceNotification
+          type="refund"
+          refundAmount={refundAmount}
+          onClose={() => setShowRefundNotification(false)}
+        />
+      )}
     </div>
   );
 };
