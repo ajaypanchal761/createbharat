@@ -9,7 +9,7 @@ import {
   FaPlus,
   FaEdit,
   FaTrash,
-  FaSearch,
+  FaSearch, 
   FaUserCircle
 } from 'react-icons/fa';
 import { caAPI, caLegalServiceAPI } from '../../utils/api';
