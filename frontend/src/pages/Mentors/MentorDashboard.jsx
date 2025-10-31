@@ -130,12 +130,20 @@ const MentorDashboard = () => {
   };
 
   const handleMarkCompleted = async (booking) => {
+    if (!booking) return;
     try {
       const token = localStorage.getItem('mentorToken');
       await mentorAPI.updateBookingStatus(token, booking._id, 'completed');
+      // Optimistic update
       setBookings(prev => prev.map(b => b._id === booking._id ? { ...b, status: 'completed', completedAt: new Date().toISOString() } : b));
-    } catch {
-      alert('Failed to mark as completed. Backend may not support this yet.');
+      // Refresh bookings to get latest data
+      const response = await mentorAPI.getMentorBookings(token);
+      if (response.success && Array.isArray(response.data)) {
+        setBookings(response.data);
+      }
+    } catch (error) {
+      console.error('Mark completed error:', error);
+      alert('Failed to mark as completed. Please try again.');
     }
   };
 

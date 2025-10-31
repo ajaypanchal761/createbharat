@@ -621,17 +621,17 @@ const getMentorBookings = async (req, res) => {
   }
 };
 
-// @desc    Accept or reject booking
+// @desc    Accept, reject, or complete booking
 // @route   PUT /api/mentors/bookings/:id/status
 // @access  Private (Mentor)
 const updateBookingStatus = async (req, res) => {
   try {
     const { status, date, time, sessionLink, reason, message } = req.body;
 
-    if (!['accepted', 'rejected'].includes(status)) {
+    if (!['accepted', 'rejected', 'completed'].includes(status)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid status. Must be "accepted" or "rejected"'
+        message: 'Invalid status. Must be "accepted", "rejected", or "completed"'
       });
     }
 
@@ -647,11 +647,23 @@ const updateBookingStatus = async (req, res) => {
       });
     }
 
-    if (booking.status !== 'pending') {
-      return res.status(400).json({
-        success: false,
-        message: `Booking is already ${booking.status}`
-      });
+    // Validate status transitions
+    if (status === 'accepted' || status === 'rejected') {
+      // Can only accept or reject from pending
+      if (booking.status !== 'pending') {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot ${status} booking. Booking is already ${booking.status}`
+        });
+      }
+    } else if (status === 'completed') {
+      // Can only complete from accepted
+      if (booking.status !== 'accepted') {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot complete booking. Booking must be accepted first. Current status: ${booking.status}`
+        });
+      }
     }
 
     booking.status = status;
@@ -660,10 +672,12 @@ const updateBookingStatus = async (req, res) => {
       if (date) booking.date = date;
       if (time) booking.time = time;
       if (sessionLink) booking.sessionLink = sessionLink;
-    } else {
+    } else if (status === 'rejected') {
       booking.rejectedAt = new Date();
       const rejectReason = reason || message;
       if (rejectReason) booking.cancellationReason = rejectReason;
+    } else if (status === 'completed') {
+      booking.completedAt = new Date();
     }
     await booking.save();
 
