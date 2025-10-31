@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { loansAPI } from '../../utils/api';
+import { loansAPI, authAPI } from '../../utils/api';
 import BottomNavbar from '../../components/common/BottomNavbar';
 import govLoanImg from '../../assets/Government-personal-loan-scheme.webp';
 
@@ -11,13 +11,14 @@ const BriefcaseIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" c
 const ChatIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>);
 const PlusIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-white' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>);
 const UserIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>);
-const BarChartIcon = ({ active }) => (<svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>);
 const BellIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>);
 
 const LoansPage = () => {
+  const navigate = useNavigate();
   const [governmentLoans, setGovernmentLoans] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [userLoanApplications, setUserLoanApplications] = useState([]);
 
   useEffect(() => {
     const loadSchemes = async () => {
@@ -41,6 +42,28 @@ const LoansPage = () => {
       }
     };
     loadSchemes();
+  }, []);
+
+  // Load user loan applications
+  useEffect(() => {
+    const loadUserApplications = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token || token === 'null' || token === 'undefined') {
+          return;
+        }
+
+        const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+        const userResponse = await authAPI.getMe(cleanToken);
+        
+        if (userResponse.success && userResponse.data?.user?.applications?.loans) {
+          setUserLoanApplications(userResponse.data.user.applications.loans || []);
+        }
+      } catch (e) {
+        console.error('Error loading user loan applications:', e);
+      }
+    };
+    loadUserApplications();
   }, []);
 
   // Animation variants
@@ -70,6 +93,26 @@ const LoansPage = () => {
       scale: 1,
       transition: { duration: 0.5, ease: "easeOut" }
     }
+  };
+
+  // Get status for a loan scheme
+  const getLoanStatus = (schemeId) => {
+    const application = userLoanApplications.find(app => 
+      app.loanId && app.loanId.toString() === schemeId.toString()
+    );
+    
+    if (!application) return null;
+
+    const statusMap = {
+      'applied': { text: 'Applied', color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-300' },
+      'under_review': { text: 'Under Review', color: 'text-yellow-600', bg: 'bg-yellow-100', border: 'border-yellow-300' },
+      'approved': { text: 'Approved', color: 'text-green-600', bg: 'bg-green-100', border: 'border-green-300' },
+      'rejected': { text: 'Rejected', color: 'text-red-600', bg: 'bg-red-100', border: 'border-red-300' },
+      'disbursed': { text: 'Disbursed', color: 'text-purple-600', bg: 'bg-purple-100', border: 'border-purple-300' }
+    };
+
+    const status = application.status || 'applied';
+    return statusMap[status] || statusMap['applied'];
   };
 
   return (
@@ -207,8 +250,34 @@ const LoansPage = () => {
                     {loan.skeleton ? 'Please wait while we load the schemes...' : loan.description}
                   </p>
 
-                  {/* Action Button */}
-                  <div className="flex justify-end">
+                  {/* Action Buttons */}
+                  <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    {/* Status Button */}
+                    {getLoanStatus(loan.id) && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate('/loans/status');
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <div className={`px-2 md:px-3 py-1 md:py-1.5 rounded-full border ${getLoanStatus(loan.id).bg} ${getLoanStatus(loan.id).border} border-2 shadow-sm hover:shadow-md transition-all duration-300`}>
+                          <span className={`text-xs md:text-sm font-semibold ${getLoanStatus(loan.id).color} flex items-center gap-1`}>
+                            <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="hidden sm:inline">{getLoanStatus(loan.id).text}</span>
+                            <span className="sm:hidden">Status</span>
+                          </span>
+                        </div>
+                      </motion.div>
+                    )}
+                    
+                    {/* Action Button */}
                     <motion.div
                       whileHover={{ scale: 1.15, rotate: 8 }}
                       whileTap={{ scale: 0.9 }}
@@ -248,7 +317,6 @@ const LoansPage = () => {
         tabs={[
           { name: 'Home', path: '/', icon: <HomeIcon /> },
           { name: 'Loans', path: '/loans', icon: <BriefcaseIcon /> },
-          { name: 'Status', path: '/loans/status', icon: <BarChartIcon /> },
           { name: 'Profile', path: '/profile', icon: <UserIcon /> }
         ]}
       />
