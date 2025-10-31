@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import logo from '../../assets/logo.png';
 
 // Icons
 const ArrowLeftIcon = () => (

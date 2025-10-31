@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavbar from '../../components/common/BottomNavbar';
-import logo from '../../assets/logo.png';
 
 // Icons
 const MenuIcon = () => (

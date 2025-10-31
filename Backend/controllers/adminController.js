@@ -504,6 +504,175 @@ const adminUpdateMentorBookingStatus = async (req, res) => {
   }
 };
 
+// @desc    Get all users (Admin management)
+// @route   GET /api/admin/users
+// @access  Private/Admin
+const getAllUsersForAdmin = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 100;
+    const skip = (page - 1) * limit;
+
+    const users = await User.find({})
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await User.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      count: users.length,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      data: users
+    });
+
+  } catch (error) {
+    console.error('Admin get all users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Get user by ID (Admin management)
+// @route   GET /api/admin/users/:id
+// @access  Private/Admin
+const getUserByIdForAdmin = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+
+  } catch (error) {
+    console.error('Admin get user by ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Update user (Admin management)
+// @route   PUT /api/admin/users/:id
+// @access  Private/Admin
+const updateUserForAdmin = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update user fields
+    const allowedUpdates = ['firstName', 'lastName', 'email', 'phone', 'gender', 'isActive', 'isBlocked', 'role'];
+    allowedUpdates.forEach(field => {
+      if (req.body[field] !== undefined) {
+        user[field] = req.body[field];
+      }
+    });
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'User updated successfully',
+      data: user
+    });
+
+  } catch (error) {
+    console.error('Admin update user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Delete user (Admin management)
+// @route   DELETE /api/admin/users/:id
+// @access  Private/Admin
+const deleteUserForAdmin = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: 'User deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Admin delete user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Deactivate user (Admin management)
+// @route   PATCH /api/admin/users/:id/deactivate
+// @access  Private/Admin
+const deactivateUserForAdmin = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    user.isActive = !user.isActive;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: `User ${user.isActive ? 'activated' : 'deactivated'} successfully`,
+      data: user
+    });
+
+  } catch (error) {
+    console.error('Admin deactivate user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   loginAdmin,
   getMe,
@@ -514,6 +683,11 @@ module.exports = {
   updateAdmin,
   deleteAdmin,
   adminListMentorBookings,
-  adminUpdateMentorBookingStatus
+  adminUpdateMentorBookingStatus,
+  getAllUsersForAdmin,
+  getUserByIdForAdmin,
+  updateUserForAdmin,
+  deleteUserForAdmin,
+  deactivateUserForAdmin
 };
 

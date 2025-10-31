@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import BottomNavbar from '../../components/common/BottomNavbar';
-import logo from '../../assets/logo.png';
 import { internshipAPI } from '../../utils/api';
 
 // Icon Components
@@ -291,7 +290,7 @@ const InternshipsPage = () => {
             <motion.img
               whileHover={{ scale: 1.1 }}
               transition={{ type: "spring", stiffness: 300 }}
-              src={logo}
+              src="/logo.png"
               alt="CreateBharat Logo"
               className="h-12 w-auto object-contain"
             />

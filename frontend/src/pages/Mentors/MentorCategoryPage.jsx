@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import logo from '../../assets/logo.png';
 
 const MentorCategoryPage = () => {
   const navigate = useNavigate();
@@ -23,7 +22,7 @@ const MentorCategoryPage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link to="/">
-                <img src={logo} alt="CreateBharat Logo" className="h-14 w-auto object-contain" />
+                <img src="/logo.png" alt="CreateBharat Logo" className="h-14 w-auto object-contain" />
               </Link>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">Mentors</h1>
@@ -85,7 +84,7 @@ const MentorCategoryPage = () => {
         <div className="bg-gradient-to-r from-orange-400 to-orange-500 shadow-lg sticky top-0 z-50">
           <div className="flex items-center justify-between px-4 py-3">
             <Link to="/" className="flex items-center">
-              <img src={logo} alt="CreateBharat Logo" className="h-12 w-auto object-contain" />
+              <img src="/logo.png" alt="CreateBharat Logo" className="h-12 w-auto object-contain" />
             </Link>
             
             {/* Admin Button - Mobile */}
