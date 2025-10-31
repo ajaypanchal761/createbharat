@@ -132,10 +132,11 @@ const MyBookingsPage = () => {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <div className="fixed inset-0 bg-black/50 z-50 flex">
+            <div className="flex-1" onClick={() => setIsMobileMenuOpen(false)} />
             <motion.div
-              initial={{ x: '-100%' }}
+              initial={{ x: '100%' }}
               animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
+              exit={{ x: '100%' }}
               className="w-64 bg-white h-full shadow-xl"
             >
               <div className="p-6">
@@ -159,7 +160,6 @@ const MyBookingsPage = () => {
                 </div>
               </div>
             </motion.div>
-            <div className="flex-1" onClick={() => setIsMobileMenuOpen(false)} />
           </div>
         )}
       </AnimatePresence>

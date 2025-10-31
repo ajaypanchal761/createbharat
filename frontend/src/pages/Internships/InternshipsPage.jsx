@@ -1232,13 +1232,13 @@ const InternshipsPage = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 z-50 flex items-start justify-end"
+          className="fixed inset-0 bg-black/50 z-50 flex items-start justify-start"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <motion.div
-            initial={{ x: '100%' }}
+            initial={{ x: '-100%' }}
             animate={{ x: 0 }}
-            exit={{ x: '100%' }}
+            exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 20, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
             className="bg-white w-80 h-full shadow-2xl p-6"
