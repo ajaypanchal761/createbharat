@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { adminTrainingAPI } from '../../utils/api';
 import { FaSpinner, FaTrash, FaEdit, FaPlus, FaCheck, FaTimes } from 'react-icons/fa';
 
@@ -63,6 +63,7 @@ const STEP = {
 const VIEW = {
     LIST: 'LIST',
     CREATE: 'CREATE',
+    USER_PROGRESS: 'USER_PROGRESS',
 };
 
 const AdminTrainingPage = () => {
@@ -89,21 +90,19 @@ const AdminTrainingPage = () => {
     const [viewingCourse, setViewingCourse] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
 
-    // Fetch courses on mount
-    useEffect(() => {
-        if (view === VIEW.LIST) {
-            fetchCourses();
-        }
-    }, [view]);
+    // Image file state
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState('');
+    
+    // User progress state
+    const [userProgress, setUserProgress] = useState([]);
+    const [filterCourseId, setFilterCourseId] = useState('');
+    const [filterCertificateOnly, setFilterCertificateOnly] = useState(false);
+    const [filterCompletedOnly, setFilterCompletedOnly] = useState(false);
+    const [filterPaymentStatus, setFilterPaymentStatus] = useState('');
 
-    // Fetch course details when editing
-    useEffect(() => {
-        if (currentCourseId && view === VIEW.CREATE && isEditMode) {
-            fetchCourseDetails();
-        }
-    }, [currentCourseId, view, isEditMode]);
-
-    const fetchCourses = async () => {
+    // Define fetchCourses with useCallback
+    const fetchCourses = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -118,7 +117,52 @@ const AdminTrainingPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    // Define fetchUserProgress with useCallback
+    const fetchUserProgress = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const token = localStorage.getItem('adminToken');
+            const params = {};
+            if (filterCourseId) params.courseId = filterCourseId;
+            if (filterCertificateOnly) params.certificateOnly = 'true';
+            if (filterCompletedOnly) params.completedOnly = 'true';
+            if (filterPaymentStatus) params.paymentStatus = filterPaymentStatus;
+            
+            const response = await adminTrainingAPI.getUserProgress(token, params);
+            if (response.success) {
+                setUserProgress(response.data || []);
+            }
+        } catch (err) {
+            console.error('Error fetching user progress:', err);
+            setError(err.message || 'Failed to fetch user progress');
+        } finally {
+            setLoading(false);
+        }
+    }, [filterCourseId, filterCertificateOnly, filterCompletedOnly, filterPaymentStatus]);
+
+    // Fetch courses on mount
+    useEffect(() => {
+        if (view === VIEW.LIST || view === VIEW.USER_PROGRESS) {
+            fetchCourses();
+        }
+    }, [view, fetchCourses]);
+
+    // Fetch user progress when filters change
+    useEffect(() => {
+        if (view === VIEW.USER_PROGRESS) {
+            fetchUserProgress();
+        }
+    }, [view, fetchUserProgress]);
+
+    // Fetch course details when editing
+    useEffect(() => {
+        if (currentCourseId && view === VIEW.CREATE && isEditMode) {
+            fetchCourseDetails();
+        }
+    }, [currentCourseId, view, isEditMode]);
 
     const fetchCourseDetails = async () => {
         try {
@@ -129,6 +173,7 @@ const AdminTrainingPage = () => {
                 setCourseDetails(response.data);
                 // Populate course form
                 const course = response.data.course;
+                const existingImageUrl = course.imageUrl || '';
                 setCourseForm({
                     title: course.title || '',
                     subtitle: course.subtitle || '',
@@ -149,7 +194,12 @@ const AdminTrainingPage = () => {
                     autoGenerateCert: course.autoGenerateCert !== undefined ? course.autoGenerateCert : true,
                     color: course.color || 'from-indigo-500 to-purple-600',
                     icon: course.icon || '📚',
+                    imageUrl: existingImageUrl,
                 });
+                // Reset image selection
+                setSelectedImage(null);
+                // Set preview to existing image URL if available
+                setImagePreview(existingImageUrl);
             }
         } catch (err) {
             console.error('Error fetching course details:', err);
@@ -185,17 +235,24 @@ const AdminTrainingPage = () => {
                 language: courseForm.language || 'English',
             };
 
+            // Remove imageUrl from payload if we're uploading a file
+            if (selectedImage) {
+                delete courseData.imageUrl;
+            }
+
             let response;
             if (isEditMode && currentCourseId) {
-                response = await adminTrainingAPI.updateCourse(token, currentCourseId, courseData);
+                response = await adminTrainingAPI.updateCourse(token, currentCourseId, courseData, selectedImage);
             } else {
-                response = await adminTrainingAPI.createCourse(token, courseData);
+                response = await adminTrainingAPI.createCourse(token, courseData, selectedImage);
             }
 
             if (response.success) {
                 setCurrentCourseId(response.data.course._id || response.data.course.id);
                 await fetchCourseDetails();
         setStep(STEP.MODULES);
+                // Reset image selection after successful save
+                setSelectedImage(null);
                 alert(isEditMode ? 'Course updated successfully!' : 'Course created successfully!');
             }
         } catch (err) {
@@ -486,6 +543,24 @@ const AdminTrainingPage = () => {
         setIsEditMode(true);
         setView(VIEW.CREATE);
         setStep(STEP.COURSE);
+        // Reset image selection when starting to edit
+        setSelectedImage(null);
+        setImagePreview(course.imageUrl || '');
+    };
+
+    // Handle image upload
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setSelectedImage(file);
+
+            // Create preview
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     const handleDeleteCourse = async (courseId) => {
@@ -546,12 +621,30 @@ const AdminTrainingPage = () => {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col items-center py-4 md:py-8 px-2 md:px-6">
             {/* Header */}
-            <div className="w-full max-w-6xl flex items-center justify-between mb-3 md:mb-6">
+            <div className="w-full max-w-6xl mb-3 md:mb-6">
+                <div className="flex items-center justify-between mb-4">
                 <div>
                     <h1 className="text-xl md:text-3xl font-bold text-gray-900">Training Management</h1>
                     <p className="text-xs md:text-sm text-gray-600 mt-0.5 md:mt-1">Manage courses, modules, topics, and quizzes</p>
                 </div>
-                {view === VIEW.LIST ? (
+                    <div className="flex gap-2">
+                        {view === VIEW.USER_PROGRESS ? (
+                            <button
+                                type="button"
+                                onClick={() => setView(VIEW.LIST)}
+                                className="shrink-0 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs md:text-sm font-semibold px-3 py-2 md:px-4 md:py-2 rounded-lg border"
+                            >
+                                ← Back to Courses
+                            </button>
+                        ) : view === VIEW.LIST ? (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => setView(VIEW.USER_PROGRESS)}
+                                    className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-semibold px-3 py-2 md:px-4 md:py-2 rounded-lg shadow"
+                                >
+                                    📊 User Progress
+                                </button>
                     <button
                         type="button"
                         onClick={() => {
@@ -559,6 +652,8 @@ const AdminTrainingPage = () => {
                             setCourseForm(initialCourseForm);
                             setCurrentCourseId(null);
                             setCourseDetails(null);
+                                        setSelectedImage(null);
+                                        setImagePreview('');
                             setView(VIEW.CREATE);
                             setStep(STEP.COURSE);
                         }}
@@ -566,6 +661,7 @@ const AdminTrainingPage = () => {
                     >
                         + Create Course
                     </button>
+                            </>
                 ) : (
                     <button
                         type="button"
@@ -579,11 +675,204 @@ const AdminTrainingPage = () => {
                         ← Back to Courses
                     </button>
                 )}
+                    </div>
+                </div>
             </div>
 
             {error && (
                 <div className="w-full max-w-6xl mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
                     {error}
+                </div>
+            )}
+
+            {/* USER PROGRESS VIEW */}
+            {view === VIEW.USER_PROGRESS && (
+                <div className="w-full max-w-6xl">
+                    {/* Filters */}
+                    <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6">
+                        <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4">Filters</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Course</label>
+                                <select
+                                    value={filterCourseId}
+                                    onChange={(e) => setFilterCourseId(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                >
+                                    <option value="">All Courses</option>
+                                    {courses.map(course => (
+                                        <option key={course._id} value={course._id}>{course.title}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Payment Status</label>
+                                <select
+                                    value={filterPaymentStatus}
+                                    onChange={(e) => setFilterPaymentStatus(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                >
+                                    <option value="">All Payments</option>
+                                    <option value="completed">Paid</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="failed">Failed</option>
+                                </select>
+                            </div>
+                            <div className="flex items-center">
+                                <label className="flex items-center space-x-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={filterCertificateOnly}
+                                        onChange={(e) => setFilterCertificateOnly(e.target.checked)}
+                                        className="form-checkbox h-4 w-4 text-orange-600"
+                                    />
+                                    <span className="text-sm text-gray-700">Certificate Only</span>
+                                </label>
+                            </div>
+                            <div className="flex items-center">
+                                <label className="flex items-center space-x-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={filterCompletedOnly}
+                                        onChange={(e) => setFilterCompletedOnly(e.target.checked)}
+                                        className="form-checkbox h-4 w-4 text-orange-600"
+                                    />
+                                    <span className="text-sm text-gray-700">Completed Only</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* User Progress Table */}
+                    {loading ? (
+                        <div className="flex items-center justify-center py-12">
+                            <FaSpinner className="animate-spin text-4xl text-orange-600" />
+                        </div>
+                    ) : (
+                        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quizzes</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Certificate</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {userProgress.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="7" className="px-4 py-8 text-center text-gray-500">
+                                                    No user progress found
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            userProgress.map((progress) => {
+                                                const userName = progress.user
+                                                    ? `${progress.user.firstName || ''} ${progress.user.lastName || ''}`.trim() || progress.user.email
+                                                    : 'Unknown User';
+                                                const userEmail = progress.user?.email || 'N/A';
+                                                const courseTitle = progress.courseTitle || progress.course?.title || 'Unknown Course';
+                                                
+                                                return (
+                                                    <tr key={progress._id} className="hover:bg-gray-50">
+                                                        <td className="px-4 py-3 whitespace-nowrap">
+                                                            <div className="text-sm font-medium text-gray-900">{userName}</div>
+                                                            <div className="text-xs text-gray-500">{userEmail}</div>
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <div className="text-sm text-gray-900">{courseTitle}</div>
+                                                        </td>
+                                                        <td className="px-4 py-3 whitespace-nowrap">
+                                                            <div className="text-sm text-gray-900">{progress.overallProgress || 0}%</div>
+                                                            <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                                                <div
+                                                                    className="bg-orange-600 h-2 rounded-full"
+                                                                    style={{ width: `${progress.overallProgress || 0}%` }}
+                                                                ></div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-3 whitespace-nowrap">
+                                                            <div className="text-sm text-gray-900">
+                                                                {progress.completedQuizzes || 0} / {progress.totalQuizzes || 0}
+                                                            </div>
+                                                            {progress.allQuizzesCompleted && (
+                                                                <span className="text-xs text-green-600 font-medium">✓ All Clear</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-4 py-3 whitespace-nowrap">
+                                                            {progress.certificateGenerated ? (
+                                                                <div>
+                                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                                        ✓ Generated
+                                                                    </span>
+                                                                    {progress.certificateGeneratedAt && (
+                                                                        <div className="text-xs text-gray-500 mt-1">
+                                                                            {new Date(progress.certificateGeneratedAt).toLocaleDateString()}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                                    Not Generated
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-4 py-3 whitespace-nowrap">
+                                                            {progress.certificatePaymentStatus ? (
+                                                                <div>
+                                                                    <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                                        progress.certificatePaymentStatus === 'completed'
+                                                                            ? 'bg-green-100 text-green-800'
+                                                                            : progress.certificatePaymentStatus === 'pending'
+                                                                            ? 'bg-yellow-100 text-yellow-800'
+                                                                            : 'bg-red-100 text-red-800'
+                                                                    }`}>
+                                                                        {progress.certificatePaymentStatus === 'completed' ? '✓ Paid' : 
+                                                                         progress.certificatePaymentStatus === 'pending' ? '⏳ Pending' : 
+                                                                         progress.certificatePaymentStatus}
+                                                                    </div>
+                                                                    {progress.certificateAmount && (
+                                                                        <div className="text-sm font-semibold text-gray-900 mt-1">
+                                                                            ₹{progress.certificateAmount}
+                                                                        </div>
+                                                                    )}
+                                                                    {progress.certificatePaidAt && (
+                                                                        <div className="text-xs text-gray-500 mt-1">
+                                                                            {new Date(progress.certificatePaidAt).toLocaleDateString()}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                                    No Payment
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-4 py-3 whitespace-nowrap">
+                                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                                progress.enrollmentStatus === 'completed' 
+                                                                    ? 'bg-green-100 text-green-800'
+                                                                    : progress.enrollmentStatus === 'in_progress'
+                                                                    ? 'bg-yellow-100 text-yellow-800'
+                                                                    : 'bg-blue-100 text-blue-800'
+                                                            }`}>
+                                                                {progress.enrollmentStatus || 'enrolled'}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -867,6 +1156,21 @@ const AdminTrainingPage = () => {
                                         <span className="text-xs md:text-sm text-gray-700">Auto-generate Certificate</span>
                                     </label>
                                 </>
+                            )}
+                        </div>
+                        <div>
+                            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Course Image</label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="w-full px-3 md:px-4 py-1.5 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm md:text-base"
+                            />
+                            {imagePreview && (
+                                <div className="mt-2">
+                                    <p className="text-xs text-gray-500 mb-1">Image Preview:</p>
+                                    <img src={imagePreview} alt="Preview" className="h-32 w-32 object-cover rounded-lg border border-gray-200" />
+                                </div>
                             )}
                         </div>
                         <div>

@@ -25,6 +25,13 @@ const caRoutes = require('./routes/caRoutes');
 const legalServiceRoutes = require('./routes/legalServiceRoutes');
 const legalSubmissionRoutes = require('./routes/legalSubmissionRoutes');
 const caSubmissionRoutes = require('./routes/caSubmissionRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const bannerRoutes = require('./routes/bannerRoutes');
+const adminBannerRoutes = require('./routes/adminBannerRoutes');
+const webDevelopmentRoutes = require('./routes/webDevelopmentRoutes');
+const adminWebDevelopmentRoutes = require('./routes/adminWebDevelopmentRoutes');
+const bankAccountRoutes = require('./routes/bankAccountRoutes');
+const adminBankAccountRoutes = require('./routes/adminBankAccountRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -116,6 +123,13 @@ app.use('/api/ca', caRoutes);
 app.use('/api/legal', legalServiceRoutes);
 app.use('/api/legal', legalSubmissionRoutes);
 app.use('/api/ca', caSubmissionRoutes);
+app.use('/api/admin', paymentRoutes);
+app.use('/api/banners', bannerRoutes);
+app.use('/api/admin/banners', adminBannerRoutes);
+app.use('/api/web-development', webDevelopmentRoutes);
+app.use('/api/admin', adminWebDevelopmentRoutes);
+app.use('/api/bank-account', bankAccountRoutes);
+app.use('/api/admin', adminBankAccountRoutes);
 app.use('/api/test', testRoutes);
 
 // Root endpoint

@@ -134,8 +134,18 @@ const ModulesListPage = () => {
       </div>
 
       {/* Course Title */}
-      <div className={`bg-gradient-to-r ${course.color || 'from-indigo-600 via-purple-600 to-pink-600'} text-white py-8 md:py-12`}>
-        <div className="max-w-5xl mx-auto px-4 md:px-8 text-center">
+      <div className={`relative bg-gradient-to-r ${course.color || 'from-indigo-600 via-purple-600 to-pink-600'} text-white py-8 md:py-12 overflow-hidden`}>
+        {course.imageUrl && (
+          <>
+            <img 
+              src={course.imageUrl} 
+              alt={course.title}
+              className="absolute inset-0 w-full h-full object-cover opacity-30"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/80 via-purple-600/80 to-pink-600/80" />
+          </>
+        )}
+        <div className="relative max-w-5xl mx-auto px-4 md:px-8 text-center">
           <h1 className="text-2xl md:text-3xl font-bold mb-2">{course.title}</h1>
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm md:text-base mt-4">
             <span>{course.totalModules} Modules</span>

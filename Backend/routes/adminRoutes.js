@@ -15,7 +15,8 @@ const {
   getUserByIdForAdmin,
   updateUserForAdmin,
   deleteUserForAdmin,
-  deactivateUserForAdmin
+  deactivateUserForAdmin,
+  getDashboardStats
 } = require('../controllers/adminController');
 const { getAdminPaymentHistory } = require('../controllers/legalSubmissionController');
 const { protect, authorize, protect: adminProtect } = require('../middleware/adminAuth');
@@ -67,6 +68,9 @@ router.patch('/users/:id/deactivate', adminProtect, deactivateUserForAdmin);
 
 // Legal Service Payment History (Admin access)
 router.get('/legal-payments', adminProtect, getAdminPaymentHistory);
+
+// Dashboard Statistics (Admin access)
+router.get('/dashboard/stats', adminProtect, getDashboardStats);
 
 module.exports = router;
 

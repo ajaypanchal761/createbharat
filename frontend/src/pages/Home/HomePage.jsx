@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavbar from '../../components/common/BottomNavbar';
 import { useUser } from '../../contexts/UserContext';
 import LoginPage from '../Auth/LoginPage';
+import { bannerAPI, bankAccountAPI } from '../../utils/api';
 import techImage from '../../assets/techImage.webp';
 import mentorImage from '../../assets/mentor.png';
 import legalImage from '../../assets/legal.png';
@@ -38,6 +39,113 @@ const HomePage = () => {
     const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
     const [touchStart, setTouchStart] = useState(null);
     const [touchEnd, setTouchEnd] = useState(null);
+    const [banners, setBanners] = useState([]);
+    const [bannersLoading, setBannersLoading] = useState(true);
+    
+    // Bank Account Opening Form State
+    const [showBankAccountForm, setShowBankAccountForm] = useState(false);
+    const [bankAccountFormData, setBankAccountFormData] = useState({
+        fullName: '',
+        email: '',
+        phone: '',
+        dateOfBirth: '',
+        address: '',
+        city: '',
+        state: '',
+        pincode: ''
+    });
+    const [submitting, setSubmitting] = useState(false);
+
+    // Bank Account Form Handlers
+    const handleBankAccountFormChange = (e) => {
+        setBankAccountFormData({
+            ...bankAccountFormData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleBankAccountFormSubmit = async (e) => {
+        e.preventDefault();
+        setSubmitting(true);
+        
+        try {
+            const response = await bankAccountAPI.submitForm(bankAccountFormData);
+            
+            if (response.success) {
+                alert('Form submitted successfully! We will contact you soon.');
+                setShowBankAccountForm(false);
+                setBankAccountFormData({
+                    fullName: '',
+                    email: '',
+                    phone: '',
+                    dateOfBirth: '',
+                    address: '',
+                    city: '',
+                    state: '',
+                    pincode: ''
+                });
+            } else {
+                alert(response.message || 'Failed to submit form. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            alert(error.message || 'Failed to submit form. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    // Fetch banners from backend
+    useEffect(() => {
+        const fetchBanners = async () => {
+            try {
+                setBannersLoading(true);
+                const response = await bannerAPI.getAllBanners();
+                console.log('Banners response:', response);
+                if (response.success && response.data) {
+                    // Always use banners from backend if available
+                    if (response.data.length > 0) {
+                        setBanners(response.data);
+                    } else {
+                        // Empty array - no banners from backend
+                        setBanners([]);
+                    }
+                } else {
+                    // If response is not successful, use empty array
+                    setBanners([]);
+                }
+            } catch (error) {
+                console.error('Error fetching banners:', error);
+                // On error, set empty array instead of defaults
+                setBanners([]);
+            } finally {
+                setBannersLoading(false);
+            }
+        };
+
+        fetchBanners();
+
+        // Refetch banners when window gains focus (user might have added banner in another tab)
+        const handleFocus = () => {
+            fetchBanners();
+        };
+        window.addEventListener('focus', handleFocus);
+        
+        return () => {
+            window.removeEventListener('focus', handleFocus);
+        };
+    }, []);
+
+    // Auto-scroll banners
+    useEffect(() => {
+        if (banners.length <= 1) return; // Don't auto-scroll if there's only one banner
+
+        const interval = setInterval(() => {
+            setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
+        }, 5000); // Change banner every 5 seconds
+
+        return () => clearInterval(interval);
+    }, [banners.length]);
 
     // Mobile detection and first visit check
     useEffect(() => {
@@ -60,11 +168,15 @@ const HomePage = () => {
 
     // Banner navigation functions
     const goToNextBanner = () => {
-        setCurrentBannerIndex((prev) => (prev + 1) % 5);
+        if (banners.length > 0) {
+            setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
+        }
     };
     
     const goToPrevBanner = () => {
-        setCurrentBannerIndex((prev) => (prev - 1 + 5) % 5);
+        if (banners.length > 0) {
+            setCurrentBannerIndex((prev) => (prev - 1 + banners.length) % banners.length);
+        }
     };
 
     // Touch handlers for swipeable banner
@@ -80,17 +192,17 @@ const HomePage = () => {
     };
     
     const onTouchEnd = () => {
-        if (!touchStart || !touchEnd) return;
+        if (!touchStart || !touchEnd || banners.length === 0) return;
         
         const distance = touchStart - touchEnd;
         const isLeftSwipe = distance > minSwipeDistance;
         const isRightSwipe = distance < -minSwipeDistance;
         
         if (isLeftSwipe) {
-            setCurrentBannerIndex((prev) => (prev + 1) % 5);
+            setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
         }
         if (isRightSwipe) {
-            setCurrentBannerIndex((prev) => (prev - 1 + 5) % 5);
+            setCurrentBannerIndex((prev) => (prev - 1 + banners.length) % banners.length);
         }
     };
 
@@ -481,51 +593,14 @@ const HomePage = () => {
                     className="mx-4 mt-4 mb-6"
                 >
                     <div className="relative h-32 overflow-hidden rounded-2xl shadow-2xl">
-                        {(() => {
-                            const banners = [
-                                {
-                                    id: 1,
-                                    title: "Loans",
-                                    subtitle: "Access financial support",
-                                    image: bankBanner,
-                                    color: "from-orange-600 to-cyan-600"
-                                },
-                                {
-                                    id: 2,
-                                    title: "Internships",
-                                    subtitle: "Start your career",
-                                    image: internshipBanner,
-                                    color: "from-green-600 to-emerald-600"
-                                },
-                                {
-                                    id: 3,
-                                    title: "Legal Services",
-                                    subtitle: "Professional support",
-                                    image: legalBanner,
-                                    color: "from-purple-600 to-violet-600"
-                                },
-                                {
-                                    id: 4,
-                                    title: "Mentorship",
-                                    subtitle: "Expert guidance",
-                                    image: mentorBanner,
-                                    color: "from-orange-600 to-red-600"
-                                },
-                                {
-                                    id: 5,
-                                    title: "Training",
-                                    subtitle: "Skill development",
-                                    image: trainingImg,
-                                    color: "from-pink-600 to-rose-600"
-                                }
-                            ];
-
-                            const currentBanner = banners[currentBannerIndex];
-
-                            return (
+                        {bannersLoading ? (
+                            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+                            </div>
+                        ) : banners.length > 0 ? (
                             <AnimatePresence mode="wait">
                                         <motion.div 
-                                        key={currentBannerIndex}
+                                    key={banners[currentBannerIndex]?._id || currentBannerIndex}
                                             initial={{ opacity: 0, x: 100 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: -100 }}
@@ -536,21 +611,25 @@ const HomePage = () => {
                                         onTouchEnd={onTouchEnd}
                                     >
                                         <img 
-                                            src={currentBanner.image} 
-                                            alt={currentBanner.title}
+                                        src={banners[currentBannerIndex]?.imageUrl || banners[currentBannerIndex]?.image} 
+                                        alt={banners[currentBannerIndex]?.title || 'Banner'}
                                             className="absolute inset-0 w-full h-full object-cover"
                                         />
                                         </motion.div>
                             </AnimatePresence>
-                            );
-                        })()}
+                        ) : (
+                            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                                <p className="text-gray-500 text-sm">No banners available</p>
+                            </div>
+                        )}
                         
                         
                         {/* Banner Indicators */}
+                        {banners.length > 0 && (
                         <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
-                            {[0, 1, 2, 3, 4].map((index) => (
+                                {banners.map((banner, index) => (
                                 <button
-                                        key={index} 
+                                        key={banner._id || index}
                                     className={`w-2 h-2 rounded-full transition-all duration-300 ${
                                         currentBannerIndex === index ? 'bg-white' : 'bg-white/50'
                                     }`}
@@ -558,6 +637,7 @@ const HomePage = () => {
                                     />
                                 ))}
                             </div>
+                        )}
                     </div>
                 </motion.section>
 
@@ -646,16 +726,15 @@ const HomePage = () => {
                                         <span className="text-4xl md:text-3xl">🏦</span>
                                         <div className="flex-1">
                                             <h3 className="font-bold text-white text-lg md:text-base">Bank Account Opening</h3>
-                                            <p className="text-sm md:text-xs text-blue-100">Coming Soon</p>
                                         </div>
                                     </div>
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
+                                        onClick={() => setShowBankAccountForm(true)}
                                         className="px-5 py-2.5 md:px-4 md:py-2 bg-white text-blue-600 font-semibold rounded-lg text-sm whitespace-nowrap flex-shrink-0"
-                                        disabled
                                     >
-                                        Coming Soon
+                                        Fill Form
                                     </motion.button>
                                 </div>
                             </motion.div>
@@ -948,28 +1027,9 @@ const HomePage = () => {
                                         <span className="bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent"> Dreams</span>
                                     </h1>
                                     <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                                        Access government loans, find internships, get legal support, and connect with mentors - all in one platform designed for your success.
+                                        Discover government loan schemes, explore career opportunities through internships, access expert legal services, and connect with experienced mentors. Your one-stop platform for career growth and business success in India.
                                     </p>
                                 </div>
-                                
-                                <div className="flex flex-col sm:flex-row gap-4">
-                  <motion.button
-                                        whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                                        onClick={(e) => handleServiceClick(e, '/training')}
-                                        className="px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                                    >
-                                        Get Started
-                  </motion.button>
-                                    <motion.button
-                                        whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                                        onClick={(e) => handleServiceClick(e, '/mentors')}
-                                        className="px-8 py-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 transition-all duration-300"
-                                    >
-                                        Learn More
-                                    </motion.button>
-                    </div>
                                 
                                 <div className="flex items-center gap-8 pt-8">
                       <div className="text-center">
@@ -993,6 +1053,69 @@ const HomePage = () => {
                                 transition={{ duration: 0.8, delay: 0.2 }}
                                 className="relative"
                             >
+                                <div className="relative w-full rounded-2xl shadow-2xl">
+                                    {bannersLoading ? (
+                                        <div className="flex items-center justify-center bg-gray-100 min-h-[400px] rounded-2xl">
+                                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+                                        </div>
+                                    ) : banners.length > 0 ? (
+                                        <>
+                                            <AnimatePresence mode="wait">
+                                                <motion.div 
+                                                    key={banners[currentBannerIndex]?._id || currentBannerIndex}
+                                                    initial={{ opacity: 0, x: 100 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    exit={{ opacity: 0, x: -100 }}
+                                                    transition={{ duration: 0.5 }}
+                                                    className="relative w-full"
+                                                >
+                                                    <img 
+                                                        src={banners[currentBannerIndex]?.imageUrl || banners[currentBannerIndex]?.image} 
+                                                        alt={banners[currentBannerIndex]?.title || 'Banner'}
+                                                        className="w-full h-auto rounded-2xl"
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-blue-600/10 to-transparent rounded-2xl pointer-events-none"></div>
+                                                </motion.div>
+                                            </AnimatePresence>
+                                            
+                                            {/* Banner Indicators */}
+                                            {banners.length > 1 && (
+                                                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+                                                    {banners.map((banner, index) => (
+                                                        <button
+                                                            key={banner._id || index}
+                                                            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                                                                currentBannerIndex === index ? 'bg-white' : 'bg-white/50'
+                                                            }`}
+                                                            onClick={() => setCurrentBannerIndex(index)}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            )}
+                                            
+                                            {/* Navigation Arrows */}
+                                            {banners.length > 1 && (
+                                                <>
+                                                    <button
+                                                        onClick={goToPrevBanner}
+                                                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all duration-300 z-10"
+                                                    >
+                                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={goToNextBanner}
+                                                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all duration-300 z-10"
+                                                    >
+                                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                        </svg>
+                                                    </button>
+                                                </>
+                                            )}
+                                        </>
+                                    ) : (
                                 <div className="relative">
                                     <img
                                         src={techImage}
@@ -1000,6 +1123,8 @@ const HomePage = () => {
                                         className="w-full h-auto rounded-2xl shadow-2xl"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-blue-600/20 to-transparent rounded-2xl"></div>
+                                        </div>
+                                    )}
                 </div>
               </motion.div>
             </div>
@@ -1022,16 +1147,15 @@ const HomePage = () => {
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold text-white mb-1">Bank Account Opening</h3>
-                    <p className="text-blue-100 text-sm">Coming Soon - Zero paperwork, instant account opening</p>
                   </div>
                 </div>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  disabled
-                  className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-xl shadow-lg disabled:opacity-75 disabled:cursor-not-allowed"
+                  onClick={() => setShowBankAccountForm(true)}
+                  className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-xl shadow-lg"
                 >
-                  Coming Soon
+                  Fill Form
                 </motion.button>
               </div>
             </motion.div>
@@ -1392,6 +1516,193 @@ const HomePage = () => {
                     </div>
                 </footer>
             </div>
+
+            {/* Bank Account Opening Form Modal */}
+            {showBankAccountForm && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50"
+                    onClick={() => setShowBankAccountForm(false)}
+                >
+                    <motion.div
+                        initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.95, opacity: 0 }}
+                        className="bg-white w-full h-full md:rounded-none overflow-y-auto shadow-2xl flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Modal Header */}
+                        <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4 md:rounded-t-2xl flex items-center justify-between z-10">
+                            <div>
+                                <h3 className="text-2xl font-bold">Bank Account Opening</h3>
+                                <p className="text-blue-100 text-sm mt-1">Fill in your details</p>
+                            </div>
+                            <button
+                                onClick={() => setShowBankAccountForm(false)}
+                                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Modal Content */}
+                        <form onSubmit={handleBankAccountFormSubmit} className="p-6 space-y-4 flex-1">
+                            {/* Personal Information */}
+                            <div>
+                                <h4 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Full Name *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="fullName"
+                                            value={bankAccountFormData.fullName}
+                                            onChange={handleBankAccountFormChange}
+                                            required
+                                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            placeholder="Enter your full name"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Email *
+                                        </label>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={bankAccountFormData.email}
+                                            onChange={handleBankAccountFormChange}
+                                            required
+                                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            placeholder="your@email.com"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Phone Number *
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            name="phone"
+                                            value={bankAccountFormData.phone}
+                                            onChange={handleBankAccountFormChange}
+                                            required
+                                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            placeholder="+91 9876543210"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Date of Birth *
+                                        </label>
+                                        <input
+                                            type="date"
+                                            name="dateOfBirth"
+                                            value={bankAccountFormData.dateOfBirth}
+                                            onChange={handleBankAccountFormChange}
+                                            required
+                                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Address Information */}
+                            <div>
+                                <h4 className="text-lg font-semibold text-gray-900 mb-4">Address Information</h4>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Address *
+                                        </label>
+                                        <textarea
+                                            name="address"
+                                            value={bankAccountFormData.address}
+                                            onChange={handleBankAccountFormChange}
+                                            required
+                                            rows={3}
+                                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            placeholder="Enter your complete address"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                City *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="city"
+                                                value={bankAccountFormData.city}
+                                                onChange={handleBankAccountFormChange}
+                                                required
+                                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                placeholder="City"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                State *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="state"
+                                                value={bankAccountFormData.state}
+                                                onChange={handleBankAccountFormChange}
+                                                required
+                                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                placeholder="State"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Pincode *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="pincode"
+                                                value={bankAccountFormData.pincode}
+                                                onChange={handleBankAccountFormChange}
+                                                required
+                                                pattern="[0-9]{6}"
+                                                maxLength="6"
+                                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                placeholder="123456"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowBankAccountForm(false)}
+                                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-all duration-300"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={submitting}
+                                    className={`flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ${
+                                        submitting ? 'opacity-50 cursor-not-allowed' : ''
+                                    }`}
+                                >
+                                    {submitting ? '⏳ Submitting...' : 'Submit'}
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </motion.div>
+            )}
     </>
   );
 };

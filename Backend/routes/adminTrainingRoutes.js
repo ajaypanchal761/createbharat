@@ -6,6 +6,7 @@ const {
   updateCourse,
   deleteCourse,
   toggleCoursePublishStatus,
+  getAllUserProgress,
   createModule,
   updateModule,
   deleteModule,
@@ -17,19 +18,44 @@ const {
   deleteQuiz
 } = require('../controllers/trainingController');
 const { protect: adminProtect } = require('../middleware/adminAuth');
+const upload = require('../utils/multer');
 
 const router = express.Router();
 
 // All routes require admin authentication
 router.use(adminProtect);
 
+// Custom middleware to handle both FormData and JSON
+const handleMultipartOrJson = (req, res, next) => {
+  const contentType = req.get('content-type') || '';
+
+  if (contentType.includes('multipart/form-data')) {
+    // Multer will handle the multipart/form-data
+    return upload.fields([{ name: 'image', maxCount: 1 }])(req, res, (err) => {
+      if (err && err.code !== 'LIMIT_UNEXPECTED_FILE') {
+        return next(err);
+      }
+      next();
+    });
+  } else {
+    // For JSON/other requests, body is already parsed by express.json/urlencoded
+    if (req.body) {
+      return next();
+    }
+    next();
+  }
+};
+
 // Course routes
-router.post('/training/courses', createCourse);
+router.post('/training/courses', handleMultipartOrJson, createCourse);
 router.get('/training/courses', getAllCourses);
 router.get('/training/courses/:id', getCourseById);
-router.put('/training/courses/:id', updateCourse);
+router.put('/training/courses/:id', handleMultipartOrJson, updateCourse);
 router.delete('/training/courses/:id', deleteCourse);
 router.patch('/training/courses/:id/publish', toggleCoursePublishStatus);
+
+// User Progress routes
+router.get('/training/user-progress', getAllUserProgress);
 
 // Module routes
 router.post('/training/courses/:courseId/modules', createModule);

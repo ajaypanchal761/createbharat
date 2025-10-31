@@ -6,15 +6,22 @@ import {
     FaMoneyBillWave, 
     FaGraduationCap, 
     FaUsers, 
-    FaChartBar, 
-    FaCog,
+    FaImage, 
+    FaCreditCard,
     FaChevronLeft,
     FaChevronRight,
-    FaBalanceScale
+    FaBalanceScale,
+    FaEnvelope,
+    FaUniversity
 } from 'react-icons/fa';
 
 const AdminSidebar = ({ isOpen, isMobile, onClose }) => {
     const location = useLocation();
+
+    // Get admin role from localStorage
+    const adminDataString = localStorage.getItem('adminData');
+    const adminData = adminDataString ? JSON.parse(adminDataString) : null;
+    const isMasterAdmin = adminData?.role === 'super_admin';
 
     const menuItems = [
         {
@@ -48,17 +55,30 @@ const AdminSidebar = ({ isOpen, isMobile, onClose }) => {
             description: 'CA Management'
         },
         {
-            name: 'Analytics',
-            path: '/admin/analytics',
-            icon: FaChartBar,
-            description: 'Reports & Insights'
+            name: 'Add Banner',
+            path: '/admin/banners',
+            icon: FaImage,
+            description: 'Banner Management'
         },
         {
-            name: 'Settings',
-            path: '/admin/settings',
-            icon: FaCog,
-            description: 'System Settings'
-        }
+            name: 'Payments',
+            path: '/admin/payments',
+            icon: FaCreditCard,
+            description: 'All Payments & Transactions'
+        },
+        {
+            name: 'Leads Request',
+            path: '/admin/leads',
+            icon: FaEnvelope,
+            description: 'Web Development Leads'
+        },
+        // Bank Leads - Only visible to Master Admin
+        ...(isMasterAdmin ? [{
+            name: 'Bank Leads',
+            path: '/admin/bank-leads',
+            icon: FaUniversity,
+            description: 'Bank Account Leads'
+        }] : [])
     ];
 
     const isActive = (path) => {
@@ -155,25 +175,6 @@ const AdminSidebar = ({ isOpen, isMobile, onClose }) => {
                         );
                     })}
                 </nav>
-
-                {/* Sidebar Footer */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
-                    <div className={`transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
-                            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white text-sm font-medium">A</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="text-sm font-medium text-gray-900 truncate">
-                                    Admin User
-                                </div>
-                                <div className="text-xs text-gray-500 truncate">
-                                    Super Admin
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </motion.aside>
 
             {/* Mobile Sidebar Overlay */}

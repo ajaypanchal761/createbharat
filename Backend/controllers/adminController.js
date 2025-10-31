@@ -3,6 +3,12 @@ const jwt = require('jsonwebtoken');
 const MentorBooking = require('../models/mentorBooking');
 const Mentor = require('../models/mentor');
 const User = require('../models/user');
+const LoanScheme = require('../models/loanScheme');
+const TrainingCourse = require('../models/trainingCourse');
+const UserTrainingProgress = require('../models/userTrainingProgress');
+const LegalService = require('../models/legalService');
+const LegalSubmission = require('../models/legalSubmission');
+const Application = require('../models/application');
 
 // Generate JWT Token
 const generateToken = (adminId) => {
@@ -441,10 +447,7 @@ const deleteAdmin = async (req, res) => {
 // @access  Private (Admin)
 const adminListMentorBookings = async (req, res) => {
   try {
-    if (!req.user || !req.user.isAdmin) {
-      return res.status(403).json({ success: false, message: 'Admins only' });
-    }
-    const { page = 1, limit = 20, status } = req.query;
+    const { page = 1, limit = 100, status } = req.query;
     const query = {};
     if (status) query.status = status;
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -455,11 +458,21 @@ const adminListMentorBookings = async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
     const total = await MentorBooking.countDocuments(query);
+    
+    // Format bookings for frontend
+    const formattedBookings = bookings.map(booking => ({
+      mentor: booking.mentor ? `${booking.mentor.firstName} ${booking.mentor.lastName}` : 'Unknown Mentor',
+      student: booking.user ? `${booking.user.firstName} ${booking.user.lastName}` : booking.user?.email || 'Unknown',
+      date: new Date(booking.createdAt).toISOString().split('T')[0],
+      status: booking.status,
+      amount: `₹${booking.amount || 0}`
+    }));
+    
     res.status(200).json({
       success: true,
       count: bookings.length,
       total,
-      bookings
+      bookings: formattedBookings
     });
   } catch (err) {
     console.error('Admin get mentor bookings error:', err);
@@ -673,6 +686,311 @@ const deactivateUserForAdmin = async (req, res) => {
   }
 };
 
+// @desc    Get dashboard statistics (Admin)
+// @route   GET /api/admin/dashboard/stats
+// @access  Private/Admin
+const getDashboardStats = async (req, res) => {
+  try {
+    // Get counts in parallel
+    const [
+      totalUsers,
+      activeLoans,
+      legalServices,
+      trainingModules,
+      activeMentors,
+      totalBookings,
+      pendingBookings,
+      activeBookings,
+      completedBookings,
+      certificatePayments,
+      mentorPayments
+    ] = await Promise.all([
+      User.countDocuments({ isActive: true }),
+      LoanScheme.countDocuments({ isActive: true }),
+      LegalService.countDocuments({ isActive: true }),
+      TrainingCourse.countDocuments({ isActive: true, isPublished: true }),
+      Mentor.countDocuments({ isActive: true, isVerified: true }),
+      MentorBooking.countDocuments(),
+      MentorBooking.countDocuments({ status: 'pending' }),
+      MentorBooking.countDocuments({ status: 'accepted' }),
+      MentorBooking.countDocuments({ status: 'completed' }),
+      UserTrainingProgress.aggregate([
+        { $match: { certificatePaymentStatus: 'completed', certificateAmount: { $exists: true } } },
+        { $group: { _id: null, total: { $sum: '$certificateAmount' } } }
+      ]),
+      MentorBooking.aggregate([
+        { $match: { paymentStatus: 'completed', amount: { $exists: true } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ])
+    ]);
+
+    // Calculate total revenue
+    const certificateRevenue = certificatePayments[0]?.total || 0;
+    const mentorRevenue = mentorPayments[0]?.total || 0;
+    const totalRevenue = certificateRevenue + mentorRevenue;
+
+    // Get recent mentor bookings
+    const recentBookings = await MentorBooking.find({})
+      .populate('mentor', 'firstName lastName')
+      .populate('user', 'firstName lastName email')
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean();
+
+    const formattedBookings = recentBookings.map(booking => ({
+      mentor: booking.mentor ? `${booking.mentor.firstName} ${booking.mentor.lastName}` : 'Unknown Mentor',
+      student: booking.user ? `${booking.user.firstName} ${booking.user.lastName}` : booking.user?.email || 'Unknown',
+      date: new Date(booking.createdAt).toISOString().split('T')[0],
+      status: booking.status,
+      amount: `₹${booking.amount || 0}`
+    }));
+
+    // Helper function to calculate time ago
+    function getTimeAgo(date) {
+      if (!date) return 'Just now';
+      const now = new Date();
+      const diffMs = now - new Date(date);
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+      if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+      if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+      return new Date(date).toLocaleDateString();
+    }
+
+    // Get recent activity
+    const recentActivityList = [];
+
+    // Recent user registrations (last 10)
+    const recentUsers = await User.find({})
+      .select('firstName lastName email createdAt')
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean();
+
+    recentUsers.forEach(user => {
+      const timeAgo = getTimeAgo(user.createdAt);
+      recentActivityList.push({
+        type: 'user',
+        message: `New user registered: ${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+        time: timeAgo,
+        createdAt: user.createdAt
+      });
+    });
+
+    // Recent payments (certificate + mentor)
+    const recentCertificatePayments = await UserTrainingProgress.find({
+      certificatePaymentStatus: 'completed',
+      certificateAmount: { $exists: true }
+    })
+      .populate('user', 'firstName lastName email')
+      .populate('course', 'title')
+      .sort({ certificatePaidAt: -1 })
+      .limit(3)
+      .lean();
+
+    recentCertificatePayments.forEach(payment => {
+      if (payment.certificatePaidAt) {
+        const timeAgo = getTimeAgo(payment.certificatePaidAt);
+        recentActivityList.push({
+          type: 'payment',
+          message: `Certificate payment received: ₹${payment.certificateAmount} for ${payment.course?.title || 'Course'}`,
+          time: timeAgo,
+          createdAt: payment.certificatePaidAt
+        });
+      }
+    });
+
+    const recentMentorPayments = await MentorBooking.find({
+      paymentStatus: 'completed',
+      amount: { $exists: true }
+    })
+      .populate('user', 'firstName lastName email')
+      .populate('mentor', 'firstName lastName')
+      .sort({ paidAt: -1 })
+      .limit(3)
+      .lean();
+
+    recentMentorPayments.forEach(booking => {
+      if (booking.paidAt) {
+        const timeAgo = getTimeAgo(booking.paidAt);
+        recentActivityList.push({
+          type: 'payment',
+          message: `Mentor session payment: ₹${booking.amount} from ${booking.user?.firstName || booking.user?.email || 'User'}`,
+          time: timeAgo,
+          createdAt: booking.paidAt
+        });
+      }
+    });
+
+    // Recent training enrollments
+    const recentEnrollments = await UserTrainingProgress.find({})
+      .populate('user', 'firstName lastName email')
+      .populate('course', 'title')
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .lean();
+
+    recentEnrollments.forEach(progress => {
+      const timeAgo = getTimeAgo(progress.createdAt);
+      recentActivityList.push({
+        type: 'training',
+        message: `${progress.user?.firstName || 'User'} enrolled in ${progress.course?.title || 'course'}`,
+        time: timeAgo,
+        createdAt: progress.createdAt
+      });
+    });
+
+    // Recent legal service submissions
+    const recentLegalSubmissions = await LegalSubmission.find({})
+      .populate('user', 'firstName lastName email')
+      .populate('service', 'title')
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .lean();
+
+    recentLegalSubmissions.forEach(submission => {
+      const timeAgo = getTimeAgo(submission.createdAt);
+      recentActivityList.push({
+        type: 'legal',
+        message: `Legal service submission: ${submission.service?.title || 'Service'} by ${submission.user?.firstName || 'User'}`,
+        time: timeAgo,
+        createdAt: submission.createdAt
+      });
+    });
+
+    // Recent internship applications
+    const recentApplications = await Application.find({})
+      .populate('user', 'firstName lastName email')
+      .populate('internship', 'title')
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .lean();
+
+    recentApplications.forEach(application => {
+      const timeAgo = getTimeAgo(application.createdAt);
+      recentActivityList.push({
+        type: 'application',
+        message: `New internship application: ${application.user?.firstName || 'User'} applied for ${application.internship?.title || 'position'}`,
+        time: timeAgo,
+        createdAt: application.createdAt
+      });
+    });
+
+    // Sort all activities by date and take top 10
+    recentActivityList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const topActivities = recentActivityList.slice(0, 10);
+
+    // Get revenue trend (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // Certificate payments by day
+    const certificateRevenueTrend = await UserTrainingProgress.aggregate([
+      {
+        $match: {
+          certificatePaymentStatus: 'completed',
+          certificateAmount: { $exists: true },
+          certificatePaidAt: { $gte: thirtyDaysAgo }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: '%Y-%m-%d', date: '$certificatePaidAt' }
+          },
+          revenue: { $sum: '$certificateAmount' }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Mentor payments by day
+    const mentorRevenueTrend = await MentorBooking.aggregate([
+      {
+        $match: {
+          paymentStatus: 'completed',
+          amount: { $exists: true },
+          paidAt: { $gte: thirtyDaysAgo }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: '%Y-%m-%d', date: '$paidAt' }
+          },
+          revenue: { $sum: '$amount' }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Combine revenue trends
+    const revenueMap = new Map();
+    
+    certificateRevenueTrend.forEach(item => {
+      const date = item._id;
+      revenueMap.set(date, (revenueMap.get(date) || 0) + item.revenue);
+    });
+    
+    mentorRevenueTrend.forEach(item => {
+      const date = item._id;
+      revenueMap.set(date, (revenueMap.get(date) || 0) + item.revenue);
+    });
+
+    // Convert to array and fill missing days with 0
+    const revenueTrend = [];
+    const startDate = new Date(thirtyDaysAgo);
+    const endDate = new Date();
+    
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split('T')[0];
+      revenueTrend.push({
+        date: dateStr,
+        revenue: revenueMap.get(dateStr) || 0
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        stats: {
+          totalUsers,
+          totalRevenue,
+          activeLoans,
+          legalServices,
+          trainingModules,
+          mentors: activeMentors
+        },
+        mentorBookings: {
+          total: totalBookings,
+          pending: pendingBookings,
+          active: activeBookings,
+          completed: completedBookings
+        },
+        recentBookings: formattedBookings,
+        recentActivity: topActivities.map(activity => ({
+          type: activity.type,
+          message: activity.message,
+          time: activity.time
+        })),
+        revenueTrend: revenueTrend.slice(-30) // Last 30 days
+      }
+    });
+
+  } catch (error) {
+    console.error('Get dashboard stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   loginAdmin,
   getMe,
@@ -688,6 +1006,7 @@ module.exports = {
   getUserByIdForAdmin,
   updateUserForAdmin,
   deleteUserForAdmin,
-  deactivateUserForAdmin
+  deactivateUserForAdmin,
+  getDashboardStats
 };
 

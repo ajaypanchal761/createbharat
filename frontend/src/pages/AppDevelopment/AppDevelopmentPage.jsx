@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
+import { webDevelopmentAPI } from '../../utils/api';
 
 const AppDevelopmentPage = () => {
     const navigate = useNavigate();
@@ -56,22 +57,39 @@ const AppDevelopmentPage = () => {
         });
     };
 
-    const handleProjectSubmit = (e) => {
+    const [submitting, setSubmitting] = useState(false);
+
+    const handleProjectSubmit = async (e) => {
         e.preventDefault();
-        alert('Project submitted successfully! We will contact you soon.');
-        setShowProjectForm(false);
-        setProjectFormData({
-            projectName: '',
-            description: '',
-            platform: '',
-            features: '',
-            budget: '',
-            timeline: '',
-            clientName: '',
-            email: '',
-            phone: '',
-            company: ''
-        });
+        setSubmitting(true);
+        
+        try {
+            const response = await webDevelopmentAPI.submitProject(projectFormData);
+            
+            if (response.success) {
+                alert('Project submitted successfully! We will contact you soon.');
+                setShowProjectForm(false);
+                setProjectFormData({
+                    projectName: '',
+                    description: '',
+                    platform: '',
+                    features: '',
+                    budget: '',
+                    timeline: '',
+                    clientName: '',
+                    email: '',
+                    phone: '',
+                    company: ''
+                });
+            } else {
+                alert(response.message || 'Failed to submit project. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error submitting project:', error);
+            alert(error.message || 'Failed to submit project. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const handleLogout = () => {
@@ -297,12 +315,6 @@ const AppDevelopmentPage = () => {
                             Powerful Applications
                         </span>
                     </motion.h2>
-                    <motion.p
-                        variants={fadeInUp}
-                        className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto mb-4 md:mb-6 lg:mb-8 px-2 leading-relaxed"
-                    >
-                        We build cutting-edge mobile and web applications that drive business growth and deliver exceptional user experiences
-                    </motion.p>
                     <motion.div variants={fadeInUp}>
                         <motion.button
                             whileHover={{ scale: 1.03 }}
@@ -606,11 +618,14 @@ const AppDevelopmentPage = () => {
                                 </motion.button>
                                 <motion.button
                                     type="submit"
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    className="flex-1 px-6 py-3 sm:py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 text-sm sm:text-base"
+                                    disabled={submitting}
+                                    whileHover={{ scale: submitting ? 1 : 1.02 }}
+                                    whileTap={{ scale: submitting ? 1 : 0.98 }}
+                                    className={`flex-1 px-6 py-3 sm:py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 text-sm sm:text-base ${
+                                        submitting ? 'opacity-50 cursor-not-allowed' : ''
+                                    }`}
                                 >
-                                    🚀 Submit Project
+                                    {submitting ? '⏳ Submitting...' : '🚀 Submit Project'}
                                 </motion.button>
                             </div>
                         </form>

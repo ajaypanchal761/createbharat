@@ -11,61 +11,157 @@ import {
     FaEye,
     FaClock,
     FaCheckCircle,
-    FaExclamationTriangle
+    FaExclamationTriangle,
+    FaSpinner
 } from 'react-icons/fa';
+import { adminAPI } from '../../utils/api';
+
+// Simple Revenue Chart Component
+const RevenueChart = ({ data }) => {
+    const maxRevenue = Math.max(...data.map(d => d.revenue), 1);
+    const chartHeight = 240; // h-60 = 240px
+    
+    // Get last 7 days for better visualization
+    const last7Days = data.slice(-7);
+    
+    return (
+        <div className="h-full flex flex-col">
+            <div className="flex-1 relative">
+                <div className="absolute inset-0 flex items-end justify-between gap-1 md:gap-2 pb-8">
+                    {last7Days.map((item, index) => {
+                        const height = (item.revenue / maxRevenue) * chartHeight;
+                        const date = new Date(item.date);
+                        const dayLabel = date.toLocaleDateString('en-US', { weekday: 'short' });
+                        
+                        return (
+                            <div key={index} className="flex-1 flex flex-col items-center group">
+                                <div 
+                                    className="w-full bg-gradient-to-t from-green-500 to-green-600 rounded-t-lg transition-all duration-300 hover:from-green-600 hover:to-green-700 relative"
+                                    style={{ height: `${Math.max(height, 4)}px` }}
+                                >
+                                    {item.revenue > 0 && (
+                                        <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                                                ₹{item.revenue.toLocaleString()}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="mt-2 text-[10px] md:text-xs text-gray-600 font-medium">
+                                    {dayLabel}
+                                </div>
+                                <div className="text-[9px] md:text-xs text-gray-500">
+                                    {date.getDate()}/{date.getMonth() + 1}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+                {/* Y-axis labels */}
+                <div className="absolute left-0 top-0 bottom-8 flex flex-col justify-between text-xs text-gray-500 pr-2">
+                    <span>₹{maxRevenue.toLocaleString()}</span>
+                    <span>₹{Math.floor(maxRevenue / 2).toLocaleString()}</span>
+                    <span>₹0</span>
+                </div>
+            </div>
+            <div className="text-center text-xs text-gray-500 mt-2">
+                Last 7 Days Revenue
+            </div>
+        </div>
+    );
+};
 
 const AdminDashboard = () => {
+    const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
-        totalUsers: 15247,
-        totalRevenue: 2500000,
-        activeLoans: 342,
-        legalServices: 156,
-        trainingModules: 28,
-        mentors: 45
+        totalUsers: 0,
+        totalRevenue: 0,
+        activeLoans: 0,
+        legalServices: 0,
+        trainingModules: 0,
+        mentors: 0
     });
+    const [mentorBookings, setMentorBookings] = useState({
+        total: 0,
+        pending: 0,
+        active: 0,
+        completed: 0
+    });
+    const [recentBookings, setRecentBookings] = useState([]);
+    const [allBookings, setAllBookings] = useState([]);
+    const [showAllBookings, setShowAllBookings] = useState(false);
+    const [loadingBookings, setLoadingBookings] = useState(false);
+    const [recentActivity, setRecentActivity] = useState([]);
+    const [revenueTrend, setRevenueTrend] = useState([]);
 
-    const [recentActivity, setRecentActivity] = useState([
-        {
-            id: 1,
-            type: 'user',
-            message: 'New user registered',
-            time: '2 minutes ago',
-            icon: FaUsers,
-            color: 'text-blue-600'
-        },
-        {
-            id: 2,
-            type: 'loan',
-            message: 'Loan application submitted',
-            time: '5 minutes ago',
-            icon: FaMoneyBillWave,
-            color: 'text-green-600'
-        },
-        {
-            id: 3,
-            type: 'legal',
-            message: 'Legal service completed',
-            time: '10 minutes ago',
-            icon: FaGavel,
-            color: 'text-purple-600'
-        },
-        {
-            id: 4,
-            type: 'training',
-            message: 'New training module added',
-            time: '15 minutes ago',
-            icon: FaGraduationCap,
-            color: 'text-orange-600'
-        },
-        {
-            id: 5,
-            type: 'system',
-            message: 'System backup completed',
-            time: '1 hour ago',
-            icon: FaCheckCircle,
-            color: 'text-gray-600'
+    useEffect(() => {
+        const fetchDashboardStats = async () => {
+            try {
+                setLoading(true);
+                const token = localStorage.getItem('adminToken');
+                if (!token) {
+                    console.error('Admin token not found');
+                    return;
+                }
+                const response = await adminAPI.getDashboardStats(token);
+                
+                if (response.success) {
+                    setStats({
+                        totalUsers: response.data.stats.totalUsers || 0,
+                        totalRevenue: response.data.stats.totalRevenue || 0,
+                        activeLoans: response.data.stats.activeLoans || 0,
+                        legalServices: response.data.stats.legalServices || 0,
+                        trainingModules: response.data.stats.trainingModules || 0,
+                        mentors: response.data.stats.mentors || 0
+                    });
+                    
+                    setMentorBookings({
+                        total: response.data.mentorBookings.total || 0,
+                        pending: response.data.mentorBookings.pending || 0,
+                        active: response.data.mentorBookings.active || 0,
+                        completed: response.data.mentorBookings.completed || 0
+                    });
+                    
+                    setRecentBookings(response.data.recentBookings || []);
+                    setRecentActivity(response.data.recentActivity || []);
+                    setRevenueTrend(response.data.revenueTrend || []);
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard stats:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchDashboardStats();
+    }, []);
+
+    const handleViewAllBookings = async () => {
+        if (showAllBookings) {
+            setShowAllBookings(false);
+        } else {
+            try {
+                setLoadingBookings(true);
+                const token = localStorage.getItem('adminToken');
+                if (!token) {
+                    console.error('Admin token not found');
+                    return;
+                }
+                const response = await adminAPI.getAllMentorBookings(token);
+                
+                if (response.success) {
+                    setAllBookings(response.data || []);
+                    setShowAllBookings(true);
+                }
+            } catch (error) {
+                console.error('Error fetching all bookings:', error);
+            } finally {
+                setLoadingBookings(false);
+            }
         }
-    ]);
+    };
+
+    const displayedBookings = showAllBookings ? allBookings : recentBookings;
 
     const kpiCards = [
         {
@@ -80,8 +176,8 @@ const AdminDashboard = () => {
         },
         {
             title: 'Total Revenue',
-            value: `₹${(stats.totalRevenue / 1000000).toFixed(1)}M`,
-            change: '+18%',
+            value: `₹${stats.totalRevenue.toLocaleString()}`,
+            change: '+25%',
             trend: 'up',
             icon: FaMoneyBillWave,
             color: 'from-green-500 to-green-600',
@@ -89,7 +185,7 @@ const AdminDashboard = () => {
             textColor: 'text-green-600'
         },
         {
-            title: 'Active Loans',
+            title: 'Loans Schemes',
             value: stats.activeLoans.toLocaleString(),
             change: '+8%',
             trend: 'up',
@@ -130,37 +226,6 @@ const AdminDashboard = () => {
         }
     ];
 
-    const quickActions = [
-        {
-            title: 'Add New Loan Scheme',
-            description: 'Create a new loan scheme',
-            icon: FaMoneyBillWave,
-            color: 'from-green-500 to-green-600',
-            path: '/admin/loans'
-        },
-        {
-            title: 'Add Legal Service',
-            description: 'Add new legal service',
-            icon: FaGavel,
-            color: 'from-purple-500 to-purple-600',
-            path: '/admin/legal'
-        },
-        {
-            title: 'Create Training Module',
-            description: 'Add new training content',
-            icon: FaGraduationCap,
-            color: 'from-orange-500 to-orange-600',
-            path: '/admin/training'
-        },
-        {
-            title: 'View Analytics',
-            description: 'Check detailed reports',
-            icon: FaChartLine,
-            color: 'from-blue-500 to-blue-600',
-            path: '/admin/analytics'
-        }
-    ];
-
     return (
         <div className="space-y-3 md:space-y-6">
             {/* Welcome Section */}
@@ -188,6 +253,11 @@ const AdminDashboard = () => {
             </motion.div>
 
             {/* KPI Cards */}
+            {loading ? (
+                <div className="flex items-center justify-center py-12">
+                    <FaSpinner className="animate-spin text-4xl text-orange-600" />
+                </div>
+            ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
                 {kpiCards.map((card, index) => {
                     const Icon = card.icon;
@@ -226,34 +296,35 @@ const AdminDashboard = () => {
                     );
                 })}
             </div>
+            )}
 
             {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
+            <div className="grid grid-cols-1 gap-3 md:gap-6">
                 {/* Recent Activity */}
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
-                    className="lg:col-span-2 bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200"
+                    className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200"
                 >
                     <div className="flex items-center justify-between mb-4 md:mb-6">
                         <h2 className="text-lg md:text-xl font-bold text-gray-900">Recent Activity</h2>
-                        <button className="text-orange-600 hover:text-orange-700 text-xs md:text-sm font-medium">
-                            View all
-                        </button>
                     </div>
                     <div className="space-y-2 md:space-y-4">
-                        {recentActivity.map((activity, index) => {
-                            const Icon = activity.icon;
+                        {recentActivity.length === 0 ? (
+                            <div className="text-center text-gray-500 py-4">No recent activity</div>
+                        ) : (
+                            recentActivity.map((activity, index) => {
+                            const Icon = activity.icon || FaClock;
                             return (
                                 <motion.div
-                                    key={activity.id}
+                                        key={index}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ duration: 0.3, delay: index * 0.1 }}
                                     className="flex items-center space-x-3 md:space-x-4 p-3 md:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
                                 >
-                                    <div className={`w-8 h-8 md:w-10 md:h-10 ${activity.color} bg-gray-100 rounded-lg flex items-center justify-center`}>
+                                    <div className={`w-8 h-8 md:w-10 md:h-10 ${activity.color || 'bg-gray-200'} bg-gray-100 rounded-lg flex items-center justify-center`}>
                                         <Icon className="w-4 h-4 md:w-5 md:h-5" />
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -267,45 +338,8 @@ const AdminDashboard = () => {
                                     </div>
                                 </motion.div>
                             );
-                        })}
-                    </div>
-                </motion.div>
-
-                {/* Quick Actions */}
-                <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: 0.4 }}
-                    className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200"
-                >
-                    <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6">Quick Actions</h2>
-                    <div className="space-y-2 md:space-y-4">
-                        {quickActions.map((action, index) => {
-                            const Icon = action.icon;
-                            return (
-                                <motion.button
-                                    key={action.title}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                                    className="w-full p-3 md:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-left group"
-                                >
-                                    <div className="flex items-center space-x-2 md:space-x-3">
-                                        <div className={`w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r ${action.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                                            <Icon className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-xs md:text-sm font-medium text-gray-900 truncate">
-                                                {action.title}
-                                            </p>
-                                            <p className="text-[10px] md:text-xs text-gray-500 truncate">
-                                                {action.description}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </motion.button>
-                            );
-                        })}
+                            })
+                        )}
                     </div>
                 </motion.div>
             </div>
@@ -322,17 +356,20 @@ const AdminDashboard = () => {
                         <FaUsers className="text-orange-600 text-base md:text-lg" />
                         <span className="truncate">Mentor Bookings Overview</span>
                     </h3>
-                    <button className="text-orange-600 hover:text-orange-700 font-semibold text-sm md:text-base">
-                        View All
+                    <button 
+                        onClick={handleViewAllBookings}
+                        disabled={loadingBookings}
+                        className="text-orange-600 hover:text-orange-700 font-semibold text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {loadingBookings ? 'Loading...' : showAllBookings ? 'Show Less' : 'View All'}
                     </button>
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
                     {[
-                        { label: 'Total Bookings', value: '124', color: 'blue' },
-                        { label: 'Pending', value: '32', color: 'yellow' },
-                        { label: 'Active', value: '45', color: 'green' },
-                        { label: 'Completed', value: '47', color: 'purple' }
+                        { label: 'Total Bookings', value: mentorBookings.total, color: 'blue' },
+                        { label: 'Active', value: mentorBookings.active, color: 'green' },
+                        { label: 'Completed', value: mentorBookings.completed, color: 'purple' }
                     ].map((stat, idx) => (
                         <div key={idx} className={`bg-${stat.color}-50 rounded-lg md:rounded-xl p-3 md:p-4 border border-${stat.color}-100`}>
                             <div className="text-xl md:text-2xl font-bold mb-1">{stat.value}</div>
@@ -342,11 +379,10 @@ const AdminDashboard = () => {
                 </div>
                 
                 <div className="space-y-2 md:space-y-3">
-                    {[
-                        { mentor: 'Dr. Sarah Johnson', student: 'John Doe', date: '2024-01-20', status: 'pending', amount: '₹300' },
-                        { mentor: 'Prof. Michael Chen', student: 'Jane Smith', date: '2024-01-19', status: 'active', amount: '₹450' },
-                        { mentor: 'Dr. Emily Rodriguez', student: 'Mike Johnson', date: '2024-01-18', status: 'completed', amount: '₹300' }
-                    ].map((booking, idx) => (
+                    {displayedBookings.length === 0 ? (
+                        <div className="text-center text-gray-500 py-4">No bookings found</div>
+                    ) : (
+                    displayedBookings.map((booking, idx) => (
                         <div key={idx} className="flex items-center justify-between p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
                             <div className="flex-1 min-w-0">
                                 <div className="font-semibold text-xs md:text-sm text-gray-900 truncate">{booking.mentor}</div>
@@ -363,39 +399,33 @@ const AdminDashboard = () => {
                                 </span>
                             </div>
                         </div>
-                    ))}
+                    ))
+                    )}
                 </div>
             </motion.div>
 
-            {/* Charts Section */}
+            {/* Revenue Chart Section */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
-                className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6"
+                className="grid grid-cols-1 gap-3 md:gap-6"
             >
                 {/* Revenue Chart */}
                 <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200">
                     <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Revenue Trend</h3>
+                    {revenueTrend.length === 0 ? (
                     <div className="h-48 md:h-64 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl flex items-center justify-center">
                         <div className="text-center">
                             <div className="text-3xl md:text-4xl mb-2">📈</div>
-                            <p className="text-sm md:text-base text-gray-600">Revenue chart visualization</p>
-                            <p className="text-xs md:text-sm text-gray-500">Interactive charts coming soon</p>
+                                <p className="text-sm md:text-base text-gray-600">No revenue data available</p>
                         </div>
                     </div>
+                    ) : (
+                        <div className="h-48 md:h-64">
+                            <RevenueChart data={revenueTrend} />
                 </div>
-
-                {/* User Growth Chart */}
-                <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200">
-                    <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">User Growth</h3>
-                    <div className="h-48 md:h-64 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl flex items-center justify-center">
-                        <div className="text-center">
-                            <div className="text-3xl md:text-4xl mb-2">👥</div>
-                            <p className="text-sm md:text-base text-gray-600">User growth visualization</p>
-                            <p className="text-xs md:text-sm text-gray-500">Interactive charts coming soon</p>
-                        </div>
-                    </div>
+                    )}
                 </div>
             </motion.div>
         </div>

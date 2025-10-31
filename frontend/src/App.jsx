@@ -53,6 +53,10 @@ import AdminLoginPage from './pages/Admin/AdminLoginPage';
 import AdminUsersPage from './pages/Admin/AdminUsersPage';
 import AdminTrainingPage from './pages/Admin/AdminTrainingPage';
 import AdminCAPage from './pages/Admin/AdminCAPage';
+import AdminPaymentsPage from './pages/Admin/AdminPaymentsPage';
+import AdminBannerPage from './pages/Admin/AdminBannerPage';
+import AdminLeadsPage from './pages/Admin/AdminLeadsPage';
+import AdminBankLeadsPage from './pages/Admin/AdminBankLeadsPage';
 import ProfilePage from './pages/Profile/ProfilePage';
 import CompanyInternshipsPage from './pages/Company/CompanyInternshipsPage';
 import CompanyLoginPage from './pages/Company/CompanyLoginPage';
@@ -123,6 +127,10 @@ function App() {
                       <Route path="training" element={<AdminTrainingPage />} />
                       <Route path="users" element={<AdminUsersPage />} />
                       <Route path="ca" element={<AdminCAPage />} />
+                      <Route path="payments" element={<AdminPaymentsPage />} />
+                      <Route path="banners" element={<AdminBannerPage />} />
+                      <Route path="leads" element={<AdminLeadsPage />} />
+                      <Route path="bank-leads" element={<AdminBankLeadsPage />} />
                     </Route>
                     <Route path="/ca/dashboard" element={<CADashboard />} />
                     <Route path="/profile" element={<ProfilePage />} />

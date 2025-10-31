@@ -192,16 +192,29 @@ const TrainingPage = () => {
                 >
                   {/* Course Image */}
                   <div className={`relative h-32 md:h-48 bg-gradient-to-br ${course.color || 'from-indigo-500 via-purple-600 to-pink-600'} overflow-hidden`}>
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <motion.div
-                        animate={{ rotate: [0, 360] }}
-                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                        className="text-4xl md:text-8xl opacity-20"
-                      >
-                        {course.icon || '📚'}
-                      </motion.div>
-                    </div>
+                    {course.imageUrl ? (
+                      <>
+                        <img 
+                          src={course.imageUrl} 
+                          alt={course.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                      </>
+                    ) : (
+                      <>
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <motion.div
+                            animate={{ rotate: [0, 360] }}
+                            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                            className="text-4xl md:text-8xl opacity-20"
+                          >
+                            {course.icon || '📚'}
+                          </motion.div>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* Course Content */}

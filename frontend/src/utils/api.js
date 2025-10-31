@@ -188,6 +188,35 @@ export const adminAPI = {
     });
   },
 
+  // Get dashboard statistics
+  getDashboardStats: async (token) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/admin/dashboard/stats', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Get all mentor bookings (admin)
+  getAllMentorBookings: async (token, params = {}) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/admin/mentor-bookings${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
   // Get all users (Admin management)
   getAllUsers: async (token, params = {}) => {
     const queryString = new URLSearchParams(params).toString();
@@ -1289,12 +1318,41 @@ export const adminTrainingAPI = {
     });
   },
 
-  // Create course (admin)
-  createCourse: async (token, courseData) => {
+  // Create course (admin) - supports file upload
+  createCourse: async (token, courseData, imageFile = null) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    
+    // If image file is provided, use FormData
+    if (imageFile) {
+      const formData = new FormData();
+
+      // Append all fields to formData
+      Object.keys(courseData).forEach(key => {
+        if (key === 'certificate' || key === 'autoGenerateCert' || key === 'isActive' || key === 'isPublished') {
+          // Handle booleans
+          formData.append(key, courseData[key]);
+        } else {
+          // Always append value, even if empty string
+          formData.append(key, courseData[key] ?? '');
+        }
+      });
+
+      // Append the image file
+      formData.append('image', imageFile);
+
+      return apiCall('/admin/training/courses', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${cleanToken}`,
+          // Don't set Content-Type for FormData - browser will set it with boundary
+        },
+        body: formData,
+      });
+    } else {
+      // No image file, send as JSON
     return apiCall('/admin/training/courses', {
       method: 'POST',
       headers: {
@@ -1302,14 +1360,44 @@ export const adminTrainingAPI = {
       },
       body: JSON.stringify(courseData),
     });
+    }
   },
 
-  // Update course (admin)
-  updateCourse: async (token, courseId, courseData) => {
+  // Update course (admin) - supports file upload
+  updateCourse: async (token, courseId, courseData, imageFile = null) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    
+    // If image file is provided, use FormData
+    if (imageFile) {
+      const formData = new FormData();
+
+      // Append all fields to formData
+      Object.keys(courseData).forEach(key => {
+        if (key === 'certificate' || key === 'autoGenerateCert' || key === 'isActive' || key === 'isPublished') {
+          // Handle booleans
+          formData.append(key, courseData[key]);
+        } else {
+          // Always append value, even if empty string
+          formData.append(key, courseData[key] ?? '');
+        }
+      });
+
+      // Append the image file
+      formData.append('image', imageFile);
+
+      return apiCall(`/admin/training/courses/${courseId}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${cleanToken}`,
+          // Don't set Content-Type for FormData - browser will set it with boundary
+        },
+        body: formData,
+      });
+    } else {
+      // No image file, send as JSON
     return apiCall(`/admin/training/courses/${courseId}`, {
       method: 'PUT',
       headers: {
@@ -1317,6 +1405,7 @@ export const adminTrainingAPI = {
       },
       body: JSON.stringify(courseData),
     });
+    }
   },
 
   // Delete course (admin)
@@ -1341,6 +1430,21 @@ export const adminTrainingAPI = {
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
     return apiCall(`/admin/training/courses/${courseId}/publish`, {
       method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Get all user progress with certificates and quiz completion (admin)
+  getUserProgress: async (token, params = {}) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/admin/training/user-progress${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
       headers: {
         Authorization: `Bearer ${cleanToken}`,
       },
@@ -1477,8 +1581,243 @@ export const adminTrainingAPI = {
         Authorization: `Bearer ${cleanToken}`,
       },
     });
-  }
+  },
 };
 
-export default { authAPI, adminAPI, companyAPI, internshipAPI, applicationAPI, loansAPI, adminLoansAPI, mentorAPI, mentorBookingAPI, caAPI, adminCAAPI, legalServiceAPI, caLegalServiceAPI, legalSubmissionAPI, caLegalSubmissionAPI, trainingAPI, adminTrainingAPI };
+// Admin Payments API calls
+export const adminPaymentsAPI = {
+  // Get all payments (admin)
+  getAllPayments: async (token, params = {}) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/admin/payments${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+};
+
+// Banner API calls (public)
+export const bannerAPI = {
+  // Get all banners
+  getAllBanners: async () => {
+    return apiCall('/banners', {
+      method: 'GET',
+    });
+  },
+};
+
+// Admin Banner API calls
+export const adminBannerAPI = {
+  // Get all banners (admin)
+  getAllBanners: async (token) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/admin/banners', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Create banner (admin)
+  createBanner: async (token, formData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/admin/banners', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: formData,
+      skipJsonHeaders: true,
+    });
+  },
+
+  // Update banner (admin)
+  updateBanner: async (token, bannerId, formData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/banners/${bannerId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: formData,
+      skipJsonHeaders: true,
+    });
+  },
+
+  // Delete banner (admin)
+  deleteBanner: async (token, bannerId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/banners/${bannerId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+};
+
+// Web Development API calls (public)
+export const webDevelopmentAPI = {
+  // Submit project request
+  submitProject: async (projectData) => {
+    return apiCall('/web-development/submit', {
+      method: 'POST',
+      body: JSON.stringify(projectData),
+    });
+  },
+};
+
+// Bank Account API calls (public)
+export const bankAccountAPI = {
+  // Submit bank account opening form
+  submitForm: async (formData) => {
+    return apiCall('/bank-account/submit', {
+      method: 'POST',
+      body: JSON.stringify(formData),
+    });
+  },
+};
+
+// Admin Web Development API calls
+export const adminWebDevelopmentAPI = {
+  // Get all leads (admin)
+  getAllLeads: async (token, params = {}) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/admin/web-development/leads${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Get lead by ID (admin)
+  getLeadById: async (token, leadId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/web-development/leads/${leadId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Update lead status (admin)
+  updateLeadStatus: async (token, leadId, statusData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/web-development/leads/${leadId}/status`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(statusData),
+    });
+  },
+
+  // Delete lead (admin)
+  deleteLead: async (token, leadId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/web-development/leads/${leadId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+};
+
+// Admin Bank Account API calls (Master Admin only)
+export const adminBankAccountAPI = {
+  // Get all bank leads (master admin only)
+  getAllLeads: async (token, params = {}) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/admin/bank-account/leads${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Get bank lead by ID (master admin only)
+  getLeadById: async (token, leadId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/bank-account/leads/${leadId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Update bank lead status (master admin only)
+  updateLeadStatus: async (token, leadId, statusData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/bank-account/leads/${leadId}/status`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(statusData),
+    });
+  },
+
+  // Delete bank lead (master admin only)
+  deleteLead: async (token, leadId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/bank-account/leads/${leadId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+};
+
+export default { authAPI, adminAPI, companyAPI, internshipAPI, applicationAPI, loansAPI, adminLoansAPI, mentorAPI, mentorBookingAPI, caAPI, adminCAAPI, legalServiceAPI, caLegalServiceAPI, legalSubmissionAPI, caLegalSubmissionAPI, trainingAPI, adminTrainingAPI, adminPaymentsAPI, bannerAPI, adminBannerAPI, webDevelopmentAPI, adminWebDevelopmentAPI, bankAccountAPI, adminBankAccountAPI };
 

@@ -5,6 +5,7 @@ const TrainingTopic = require('../models/trainingTopic');
 const TrainingQuiz = require('../models/trainingQuiz');
 const UserTrainingProgress = require('../models/userTrainingProgress');
 const User = require('../models/user');
+const { uploadToCloudinary } = require('../utils/cloudinary');
 
 // ========================================
 // ADMIN CONTROLLERS
@@ -70,6 +71,17 @@ const createCourse = async (req, res) => {
         });
       }
     }
+    
+    // Check if request has a file (FormData) or is pure JSON
+    let courseData = {};
+    if (req.files && req.files.image && req.files.image[0]) {
+      // File upload via FormData - data should be in req.body
+      courseData = { ...req.body };
+    } else {
+      // No file - JSON request, data should already be in req.body
+      courseData = req.body || {};
+    }
+
     const {
       title,
       subtitle,
@@ -88,16 +100,31 @@ const createCourse = async (req, res) => {
       certificateAmount,
       minPassScore,
       autoGenerateCert,
-      imageUrl,
       color,
       icon
-    } = req.body;
+    } = courseData;
 
     if (!title || !description || !provider || !instructor) {
       return res.status(400).json({
         success: false,
         message: 'Title, description, provider, and instructor are required'
       });
+    }
+
+    // Handle image upload if present
+    let imageUrl = '';
+    if (req.files && req.files.image && req.files.image[0]) {
+      try {
+        const uploadResult = await uploadToCloudinary(req.files.image[0].path, 'training-courses');
+        imageUrl = uploadResult.url;
+      } catch (uploadError) {
+        console.error('Image upload failed:', uploadError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to upload image',
+          error: uploadError.message
+        });
+      }
     }
 
     // Ensure totalModules is at least 1 (required by model)
@@ -129,7 +156,7 @@ const createCourse = async (req, res) => {
       certificateAmount: certificateAmount || 199,
       minPassScore: minPassScore || 70,
       autoGenerateCert: autoGenerateCert !== undefined ? autoGenerateCert : true,
-      imageUrl,
+      imageUrl: imageUrl || '',
       color: color || 'from-indigo-500 to-purple-600',
       icon: icon || '📚',
       isActive: true,
@@ -305,6 +332,36 @@ const updateCourse = async (req, res) => {
       });
     }
 
+    // Check if request has a file (FormData) or is pure JSON
+    let updateData = {};
+    if (req.files && req.files.image && req.files.image[0]) {
+      // File upload via FormData - data should be in req.body
+      updateData = { ...req.body };
+    } else {
+      // No file - JSON request, data should already be in req.body
+      updateData = req.body || {};
+    }
+
+    // Handle image upload if present
+    if (req.files && req.files.image && req.files.image[0]) {
+      try {
+        const uploadResult = await uploadToCloudinary(req.files.image[0].path, 'training-courses');
+        updateData.imageUrl = uploadResult.url;
+        
+        // TODO: Delete old image from Cloudinary if exists
+        // if (course.imageUrl) {
+        //   await deleteFromCloudinary(course.public_id);
+        // }
+      } catch (uploadError) {
+        console.error('Image upload failed:', uploadError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to upload image',
+          error: uploadError.message
+        });
+      }
+    }
+
     const allowedUpdates = [
       'title', 'subtitle', 'description', 'provider', 'instructor',
       'instructorEmail', 'instructorWebsite', 'minimumDuration',
@@ -314,8 +371,8 @@ const updateCourse = async (req, res) => {
     ];
 
     allowedUpdates.forEach(field => {
-      if (req.body[field] !== undefined) {
-        course[field] = req.body[field];
+      if (updateData[field] !== undefined) {
+        course[field] = updateData[field];
       }
     });
 
@@ -1469,6 +1526,114 @@ const updateCertificatePayment = async (req, res) => {
   }
 };
 
+// @desc    Get all user progress with certificates and quiz completion (Admin)
+// @route   GET /api/admin/training/user-progress
+// @access  Private/Admin
+const getAllUserProgress = async (req, res) => {
+  try {
+    const { courseId, certificateOnly, completedOnly, paymentStatus } = req.query;
+
+    // Build query
+    const query = {};
+    if (courseId) {
+      query.course = courseId;
+    }
+    if (certificateOnly === 'true') {
+      query.certificateGenerated = true;
+    }
+    if (completedOnly === 'true') {
+      query.enrollmentStatus = 'completed';
+    }
+    if (paymentStatus) {
+      query.certificatePaymentStatus = paymentStatus;
+    }
+
+    // Get all progress with populated user and course details
+    const progressList = await UserTrainingProgress.find(query)
+      .populate('user', 'firstName lastName email phone')
+      .populate('course', 'title provider instructor minimumDuration totalModules')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Get quiz details for each progress
+    const progressWithQuizDetails = await Promise.all(
+      progressList.map(async (progress) => {
+        // Get course modules and topics
+        const course = await TrainingCourse.findById(progress.course._id || progress.course);
+        if (!course) return null;
+
+        const modules = await TrainingModule.find({ course: course._id, isActive: true })
+          .sort({ number: 1 });
+        
+        // Get all topics for these modules
+        const moduleIds = modules.map(m => m._id);
+        const topics = await TrainingTopic.find({ module: { $in: moduleIds }, isActive: true })
+          .sort({ number: 1 });
+        
+        // Get all quizzes for these topics
+        const topicIds = topics.map(t => t._id);
+        const quizzes = await TrainingQuiz.find({ topic: { $in: topicIds }, isActive: true });
+
+        // Count total quizzes
+        let totalQuizzes = quizzes.length;
+        let completedQuizzes = 0;
+        const quizDetails = [];
+
+        quizzes.forEach(quiz => {
+          // Find the topic for this quiz
+          const topic = topics.find(t => t._id.toString() === quiz.topic.toString());
+          const module = modules.find(m => topic && m._id.toString() === topic.module.toString());
+          
+          // Check if this quiz was attempted and answered correctly
+          const quizAttempt = progress.quizAttempts?.find(
+            att => att.quiz?.toString() === quiz._id.toString()
+          );
+          if (quizAttempt && quizAttempt.isCorrect) {
+            completedQuizzes++;
+          }
+          quizDetails.push({
+            quizId: quiz._id,
+            question: quiz.question,
+            topicId: topic?._id || null,
+            topicTitle: topic?.title || 'Unknown Topic',
+            moduleId: module?._id || null,
+            moduleTitle: module?.title || 'Unknown Module',
+            attempted: !!quizAttempt,
+            isCorrect: quizAttempt?.isCorrect || false,
+            attemptedAt: quizAttempt?.attemptedAt || null
+          });
+        });
+
+        return {
+          ...progress,
+          totalQuizzes,
+          completedQuizzes,
+          allQuizzesCompleted: totalQuizzes > 0 && completedQuizzes === totalQuizzes,
+          quizDetails,
+          courseTitle: course.title,
+          courseProvider: course.provider
+        };
+      })
+    );
+
+    // Filter out null values
+    const filteredProgress = progressWithQuizDetails.filter(p => p !== null);
+
+    res.status(200).json({
+      success: true,
+      count: filteredProgress.length,
+      data: filteredProgress
+    });
+  } catch (error) {
+    console.error('Get all user progress error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   // Admin
   createCourse,
@@ -1477,6 +1642,7 @@ module.exports = {
   updateCourse,
   deleteCourse,
   toggleCoursePublishStatus,
+  getAllUserProgress,
   createModule,
   updateModule,
   deleteModule,
