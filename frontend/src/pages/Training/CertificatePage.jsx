@@ -38,9 +38,7 @@ const CertificatePage = () => {
             </svg>
             Back to Course
           </button>
-          <Link to="/" className="flex items-center">
-            <img src="/logo.png" alt="CreateBharat Logo" className="h-8 w-auto object-contain" />
-          </Link>
+          <div className="flex-1" />
         </div>
       </motion.header>
 

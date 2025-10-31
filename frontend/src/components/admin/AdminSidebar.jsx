@@ -9,7 +9,8 @@ import {
     FaChartBar, 
     FaCog,
     FaChevronLeft,
-    FaChevronRight
+    FaChevronRight,
+    FaBalanceScale
 } from 'react-icons/fa';
 
 const AdminSidebar = ({ isOpen, isMobile, onClose }) => {
@@ -39,6 +40,12 @@ const AdminSidebar = ({ isOpen, isMobile, onClose }) => {
             path: '/admin/users',
             icon: FaUsers,
             description: 'User Management'
+        },
+        {
+            name: 'CA Management',
+            path: '/admin/ca',
+            icon: FaBalanceScale,
+            description: 'CA Management'
         },
         {
             name: 'Analytics',

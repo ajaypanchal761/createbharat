@@ -124,30 +124,26 @@ const CALoginPage = () => {
           </motion.button>
         </form>
 
-        {/* Signup Link */}
+        {/* Information Message */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
-          className="mt-6 space-y-4"
+          className="mt-6"
         >
-          {/* Divider */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-gray-300"></div>
-            <span className="text-sm text-gray-500 font-medium">Or</span>
-            <div className="flex-1 h-px bg-gray-300"></div>
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <p className="text-sm text-blue-800 font-semibold">Contact Administrator</p>
+                <p className="text-xs text-blue-600 mt-1">
+                  To get CA account access, please contact the administrator.
+                </p>
+              </div>
+            </div>
           </div>
-
-          {/* Signup Button */}
-          <Link to="/ca/signup">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg bg-gradient-to-r from-indigo-500 to-indigo-600 text-white hover:from-indigo-600 hover:to-indigo-700 hover:shadow-xl"
-            >
-              Create CA Account
-            </motion.button>
-          </Link>
         </motion.div>
       </motion.div>
     </div>

@@ -302,9 +302,7 @@ const InternshipApplicationPage = () => {
           </button>
           <h1 className="text-sm font-medium text-gray-800">Apply for {internshipData.title}</h1>
         </div>
-        <Link to="/">
-          <img src="/logo.png" alt="CreateBharat Logo" className="w-8 h-8 object-contain" />
-        </Link>
+        <div className="w-8" />
       </motion.header>
 
       {/* Desktop Header - Removed to avoid duplication with main Navbar */}

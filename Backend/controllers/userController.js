@@ -2,6 +2,7 @@ const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const { sendOTP, sendWelcomeSMS } = require('../utils/notifications');
+const { uploadToCloudinary } = require('../utils/cloudinary');
 
 // Helper: bypass OTP sending for specific test numbers
 const isBypassOtpNumber = (phone) => {
@@ -407,7 +408,8 @@ const verifyOTP = async (req, res) => {
         phone: user.phone,
         role: user.role,
         isPhoneVerified: user.isPhoneVerified,
-        referralCode: user.platformData?.referralCode
+        referralCode: user.platformData?.referralCode,
+        profileImage: user.profileImage
       };
     }
 
@@ -781,6 +783,28 @@ const changePassword = async (req, res) => {
   }
 };
 
+// @desc    Upload user profile image
+// @route   PUT /api/auth/profile/image
+// @access  Private
+const uploadProfileImage = async (req, res) => {
+  try {
+    if (!req.file || !req.file.path) {
+      return res.status(400).json({ success: false, message: 'No image file provided' });
+    }
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    const result = await uploadToCloudinary(req.file.path, 'users/profile', `user_${user._id}`);
+    user.profileImage = result.url;
+    await user.save();
+    return res.status(200).json({ success: true, message: 'Profile image updated', data: { url: result.url, profileImage: result.url } });
+  } catch (err) {
+    console.error('Upload profile image error:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
 // @desc    Get all users (Admin only)
 // @route   GET /api/users
 // @access  Private/Admin
@@ -960,6 +984,7 @@ module.exports = {
   getMe,
   updateProfile,
   changePassword,
+  uploadProfileImage,
   getAllUsers,
   getUserById,
   updateUser,

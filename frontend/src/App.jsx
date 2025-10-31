@@ -52,6 +52,7 @@ import AdminLegalPage from './pages/Admin/AdminLegalPage';
 import AdminLoginPage from './pages/Admin/AdminLoginPage';
 import AdminUsersPage from './pages/Admin/AdminUsersPage';
 import AdminTrainingPage from './pages/Admin/AdminTrainingPage';
+import AdminCAPage from './pages/Admin/AdminCAPage';
 import ProfilePage from './pages/Profile/ProfilePage';
 import CompanyInternshipsPage from './pages/Company/CompanyInternshipsPage';
 import CompanyLoginPage from './pages/Company/CompanyLoginPage';
@@ -121,6 +122,7 @@ function App() {
                       <Route path="loans" element={<AdminLoansPage />} />
                       <Route path="training" element={<AdminTrainingPage />} />
                       <Route path="users" element={<AdminUsersPage />} />
+                      <Route path="ca" element={<AdminCAPage />} />
                     </Route>
                     <Route path="/ca/dashboard" element={<CADashboard />} />
                     <Route path="/profile" element={<ProfilePage />} />

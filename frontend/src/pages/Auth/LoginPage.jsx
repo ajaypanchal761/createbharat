@@ -123,6 +123,7 @@ const LoginPage = () => {
                         role: userData.role,
                         isPhoneVerified: userData.isPhoneVerified,
                         referralCode: userData.referralCode,
+                        profileImage: userData.profileImage,
                         token: token
                     };
 

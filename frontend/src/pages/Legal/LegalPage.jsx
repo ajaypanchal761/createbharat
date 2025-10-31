@@ -110,7 +110,7 @@ const LegalPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
+      {/* Mobile Header */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -129,11 +129,20 @@ const LegalPage = () => {
             </svg>
           </motion.button>
           
-          <h1 className="text-xl font-bold text-white">Legal Services</h1>
+          <h1 className="text-lg font-bold text-white">Legal Services</h1>
           
-          <div className="w-10"></div>
+          <Link to="/ca/login">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold rounded-lg border border-white/30 hover:bg-white/30 transition-all"
+            >
+              CA Login
+            </motion.button>
+          </Link>
         </div>
       </motion.header>
+
 
       {/* Mobile Menu */}
       <AnimatePresence>
@@ -171,16 +180,16 @@ const LegalPage = () => {
       </AnimatePresence>
 
       {/* Main Content */}
-      <div className="px-4 pt-6 pb-4">
+      <div className="px-4 md:px-6 lg:px-8 pt-4 md:pt-8 pb-4">
         {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-center mb-8"
+          className="text-center mb-6 md:mb-8"
         >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Legal Services</h1>
-          <p className="text-gray-600">Professional legal registration and compliance services</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Legal Services</h1>
+          <p className="text-sm md:text-base text-gray-600">Professional legal registration and compliance services</p>
         </motion.div>
 
         {/* Services Grid */}

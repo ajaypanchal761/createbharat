@@ -52,9 +52,7 @@ const ModulesListPage = () => {
             </svg>
           </button>
 
-          <Link to="/" className="flex items-center">
-            <img src="/logo.png" alt="CreateBharat Logo" className="h-12 w-auto object-contain" />
-          </Link>
+          <div className="flex-1" />
 
           <div className="w-10" />
         </div>

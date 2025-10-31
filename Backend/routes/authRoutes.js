@@ -1,7 +1,8 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { registerUser, loginUser, sendLoginOTP, verifyOTP, resendOTP, getMe, updateProfile, changePassword } = require('../controllers/userController');
+const { registerUser, loginUser, sendLoginOTP, verifyOTP, resendOTP, getMe, updateProfile, changePassword, uploadProfileImage } = require('../controllers/userController');
 const { protect } = require('../middleware/auth');
+const upload = require('../utils/multer');
 
 const router = express.Router();
 
@@ -60,6 +61,7 @@ router.post('/resend-otp', resendOtpValidation, resendOTP);
 // Protected routes
 router.get('/me', protect, getMe);
 router.put('/profile', protect, updateProfileValidation, updateProfile);
+router.put('/profile/image', protect, upload.single('image'), uploadProfileImage);
 router.put('/change-password', protect, changePasswordValidation, changePassword);
 
 module.exports = router;

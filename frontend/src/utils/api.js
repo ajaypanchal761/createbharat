@@ -149,6 +149,19 @@ export const authAPI = {
       },
     });
   },
+
+  // Upload profile image
+  uploadProfileImage: async (token, file) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    return apiCall('/auth/profile/image', {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+  },
 };
 
 // Admin API calls

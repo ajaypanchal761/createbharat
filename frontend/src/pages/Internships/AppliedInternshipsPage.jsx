@@ -398,7 +398,6 @@ const AppliedInternshipsPage = () => {
         tabs={[
           { name: 'Home', path: '/', icon: <HomeIcon /> },
           { name: 'Search', path: '/internships', icon: <SearchIcon /> },
-          { name: 'Saved', path: '/internships/saved', icon: <HeartIcon /> },
           { name: 'Applied', path: '/internships/applied', icon: <ClipboardIcon /> },
           { name: 'Profile', path: '/profile', icon: <UserIcon /> }
         ]}

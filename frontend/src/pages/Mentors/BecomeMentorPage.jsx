@@ -116,9 +116,7 @@ const BecomeMentorPage = () => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <img src="/logo.png" alt="Logo" className="h-8 w-auto" />
-            </div>
+            <div className="flex-1" />
             <div className="flex items-center space-x-4">
               <Link
                 to="/mentors/login"

@@ -286,15 +286,7 @@ const InternshipsPage = () => {
             </svg>
           </motion.button>
 
-          <Link to="/" className="flex items-center">
-            <motion.img
-              whileHover={{ scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 300 }}
-              src="/logo.png"
-              alt="CreateBharat Logo"
-              className="h-12 w-auto object-contain"
-            />
-          </Link>
+          <div className="flex-1" />
 
           <div className="flex items-center gap-2">
             {/* Filter Button */}

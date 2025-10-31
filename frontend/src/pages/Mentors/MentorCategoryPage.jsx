@@ -83,9 +83,7 @@ const MentorCategoryPage = () => {
         {/* Mobile Header */}
         <div className="bg-gradient-to-r from-orange-400 to-orange-500 shadow-lg sticky top-0 z-50">
           <div className="flex items-center justify-between px-4 py-3">
-            <Link to="/" className="flex items-center">
-              <img src="/logo.png" alt="CreateBharat Logo" className="h-12 w-auto object-contain" />
-            </Link>
+            <div className="flex-1" />
             
             {/* Admin Button - Mobile */}
             <button
