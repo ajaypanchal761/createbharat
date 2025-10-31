@@ -602,10 +602,10 @@ const HomePage = () => {
                                 path: '/app-development'
                             }
                         ].map((service, index) => (
-                            <motion.div 
+                                            <motion.div 
                                 key={service.name}
                                 variants={bounceIn}
-                                whileHover={{ 
+                                                whileHover={{ 
                                     scale: 1.05,
                                     y: -5,
                                     transition: { duration: 0.2 }
@@ -620,15 +620,15 @@ const HomePage = () => {
                                 {/* Image with hover effect */}
                                 <div className="w-full h-20 mb-3 rounded-xl overflow-hidden">
                                     <motion.img 
-                                        src={service.image} 
-                                        alt={service.name} 
+                                                                    src={service.image} 
+                                                                    alt={service.name} 
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                     />
                                 </div>
 
                                 {/* Service name */}
                                 <h3 className="text-sm font-bold text-gray-800 text-center leading-tight group-hover:text-blue-600 transition-colors duration-200">
-                                    {service.name}
+                                                                {service.name}
                                 </h3>
                             </motion.div>
                         ))}
@@ -680,7 +680,7 @@ const HomePage = () => {
                                         disabled
                                     >
                                         Coming Soon
-                                    </motion.button>
+                            </motion.button>
                                 </div>
                             </motion.div>
 
@@ -923,6 +923,7 @@ const HomePage = () => {
                                 <Link to="/legal" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Legal</Link>
                                 <Link to="/mentors" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Mentors</Link>
                                 <Link to="/training" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Training</Link>
+                                <Link to="/app-development" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Web Development</Link>
                             </nav>
                             
                             <div className="flex items-center gap-4">

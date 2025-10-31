@@ -1,6 +1,7 @@
 const Company = require('../models/company');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
+const { uploadResumeToCloudinary } = require('../utils/cloudinary');
 
 // Generate JWT Token
 const generateToken = (companyId) => {
@@ -236,6 +237,10 @@ const getMe = async (req, res) => {
           isVerified: company.isVerified,
           stats: company.stats,
           socialLinks: company.socialLinks,
+          documents: company.documents || {
+            registrationCertificate: { url: null, verified: false },
+            gstCertificate: { url: null, verified: false }
+          },
           createdAt: company.createdAt,
           lastLogin: company.lastLogin
         }
@@ -257,15 +262,6 @@ const getMe = async (req, res) => {
 // @access  Private
 const updateProfile = async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
     const {
       companyName,
       industry,
@@ -275,7 +271,8 @@ const updateProfile = async (req, res) => {
       address,
       socialLinks,
       location,
-      gstNumber
+      gstNumber,
+      documents
     } = req.body;
 
     const company = await Company.findById(req.company.id);
@@ -287,6 +284,52 @@ const updateProfile = async (req, res) => {
       });
     }
 
+    // Initialize documents object if not exists
+    if (!company.documents) {
+      company.documents = {
+        registrationCertificate: { url: null, verified: false },
+        gstCertificate: { url: null, verified: false }
+      };
+    }
+
+    // Handle file uploads
+    const uploadPromises = [];
+
+    // Handle registration certificate upload
+    if (req.files && req.files.registrationCertificate) {
+      const regFile = req.files.registrationCertificate[0];
+      const uploadPromise = uploadResumeToCloudinary(
+        regFile.path,
+        'company-documents',
+        `company-${company._id}-registration`
+      ).then(result => {
+        company.documents.registrationCertificate.url = result.url;
+      }).catch(error => {
+        console.error('Registration certificate upload error:', error);
+        throw new Error('Failed to upload registration certificate');
+      });
+      uploadPromises.push(uploadPromise);
+    }
+
+    // Handle GST certificate upload
+    if (req.files && req.files.gstCertificate) {
+      const gstFile = req.files.gstCertificate[0];
+      const uploadPromise = uploadResumeToCloudinary(
+        gstFile.path,
+        'company-documents',
+        `company-${company._id}-gst`
+      ).then(result => {
+        company.documents.gstCertificate.url = result.url;
+      }).catch(error => {
+        console.error('GST certificate upload error:', error);
+        throw new Error('Failed to upload GST certificate');
+      });
+      uploadPromises.push(uploadPromise);
+    }
+
+    // Wait for all uploads to complete
+    await Promise.all(uploadPromises);
+
     // Update company fields
     if (companyName) company.companyName = companyName;
     if (industry) company.industry = industry;
@@ -297,6 +340,7 @@ const updateProfile = async (req, res) => {
     if (gstNumber !== undefined) company.gstNumber = gstNumber;
     if (address) company.address = { ...company.address, ...address };
     if (socialLinks) company.socialLinks = { ...company.socialLinks, ...socialLinks };
+    if (documents) company.documents = { ...company.documents, ...documents };
 
     await company.save();
 
@@ -315,7 +359,8 @@ const updateProfile = async (req, res) => {
           location: company.location,
           gstNumber: company.gstNumber,
           address: company.address,
-          socialLinks: company.socialLinks
+          socialLinks: company.socialLinks,
+          documents: company.documents
         }
       }
     });
@@ -330,10 +375,94 @@ const updateProfile = async (req, res) => {
   }
 };
 
+// @desc    Upload company documents (Registration & GST)
+// @route   POST /api/company/documents
+// @access  Private
+const uploadDocuments = async (req, res) => {
+  try {
+    const company = await Company.findById(req.company.id);
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found'
+      });
+    }
+
+    // Initialize documents object if not exists
+    if (!company.documents) {
+      company.documents = {
+        registrationCertificate: { url: null, verified: false },
+        gstCertificate: { url: null, verified: false }
+      };
+    }
+
+    const uploadPromises = [];
+
+    // Handle registration certificate upload
+    if (req.files && req.files.registrationCertificate) {
+      const regFile = req.files.registrationCertificate[0];
+      const regFilePath = regFile.path;
+      const uploadPromise = uploadResumeToCloudinary(
+        regFilePath,
+        'company-documents',
+        `company-${company._id}-registration`
+      ).then(result => {
+        company.documents.registrationCertificate.url = result.url;
+        return { type: 'registrationCertificate', url: result.url };
+      });
+      uploadPromises.push(uploadPromise);
+    }
+
+    // Handle GST certificate upload
+    if (req.files && req.files.gstCertificate) {
+      const gstFile = req.files.gstCertificate[0];
+      const gstFilePath = gstFile.path;
+      const uploadPromise = uploadResumeToCloudinary(
+        gstFilePath,
+        'company-documents',
+        `company-${company._id}-gst`
+      ).then(result => {
+        company.documents.gstCertificate.url = result.url;
+        return { type: 'gstCertificate', url: result.url };
+      });
+      uploadPromises.push(uploadPromise);
+    }
+
+    if (uploadPromises.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No files uploaded'
+      });
+    }
+
+    // Wait for all uploads to complete
+    await Promise.all(uploadPromises);
+    await company.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Documents uploaded successfully',
+      data: {
+        documents: company.documents
+      }
+    });
+
+  } catch (error) {
+    console.error('Upload documents error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   registerCompany,
   loginCompany,
   getMe,
-  updateProfile
+  updateProfile,
+  uploadDocuments
 };
 

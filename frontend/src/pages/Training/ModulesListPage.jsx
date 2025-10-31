@@ -170,28 +170,49 @@ const ModulesListPage = () => {
           </div>
         </div>
 
-        {/* Certificate Section */}
-        {progress === 100 && (
+        {/* Certificate Banner */}
+        {progress >= 70 && progress < 100 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg shadow-lg p-6 text-white"
+            className="mt-4 md:mt-6 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow-md p-4 md:p-5 text-white"
           >
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-3xl">
+            <div className="flex items-start md:items-center gap-3 md:gap-4">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-white/20 rounded-full flex items-center justify-center text-xl md:text-2xl flex-shrink-0">
+                🎓
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base md:text-lg font-bold mb-1">Get Your Certificate!</h3>
+                <p className="text-xs md:text-sm text-orange-100">
+                  Complete 70% of the course to unlock your certificate. You're at {progress}% - just a few more modules to go!
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Certificate Section */}
+        {progress >= 100 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 md:mt-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg shadow-lg p-4 md:p-6 text-white"
+          >
+            <div className="flex items-center gap-3 md:gap-4 mb-3 md:mb-4">
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-white/20 rounded-full flex items-center justify-center text-2xl md:text-3xl">
                 🎓
               </div>
               <div>
-                <h3 className="text-xl font-bold">Congratulations!</h3>
-                <p className="text-green-100">You've completed all modules</p>
+                <h3 className="text-lg md:text-xl font-bold">Congratulations!</h3>
+                <p className="text-xs md:text-sm text-green-100">You've completed all modules</p>
               </div>
             </div>
-            <p className="text-green-50 mb-4">
+            <p className="text-xs md:text-sm text-green-50 mb-3 md:mb-4">
               You are now eligible to receive your certificate. Complete the payment to download your verified certificate.
             </p>
             <button
               onClick={() => navigate('/training/certificate')}
-              className="bg-white text-green-600 font-bold py-3 px-8 rounded-xl hover:bg-green-50 transition-colors"
+              className="w-full md:w-auto bg-white text-green-600 font-bold py-2 md:py-3 px-6 md:px-8 rounded-xl hover:bg-green-50 transition-colors text-sm md:text-base"
             >
               Get Your Certificate
             </button>

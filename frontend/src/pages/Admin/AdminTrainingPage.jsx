@@ -705,15 +705,15 @@ const AdminTrainingPage = () => {
                                 <>
                                     <div className="flex items-center space-x-2">
                                         <span className="text-xs md:text-sm text-gray-600">Min Passing Score:</span>
-                                        <input
-                                            type="number"
-                                            name="minPassScore"
-                                            value={courseForm.minPassScore}
-                                            onChange={handleCourseChange}
-                                            min={0}
-                                            max={100}
+                                    <input
+                                        type="number"
+                                        name="minPassScore"
+                                        value={courseForm.minPassScore}
+                                        onChange={handleCourseChange}
+                                        min={0}
+                                        max={100}
                                             className="w-16 md:w-20 px-2 py-1 border border-gray-300 rounded focus:ring-orange-500 text-xs md:text-sm"
-                                        />
+                                    />
                                     </div>
                                     <label className="flex items-center space-x-2 cursor-pointer">
                                         <input
