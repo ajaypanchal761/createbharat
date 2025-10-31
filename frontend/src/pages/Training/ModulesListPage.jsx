@@ -1,37 +1,101 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { entrepreneurshipCourse, allModules, modules as detailedModules } from '../../data/entrepreneurshipTraining';
+import { trainingAPI } from '../../utils/api';
+import { FaSpinner } from 'react-icons/fa';
 
 const ModulesListPage = () => {
+  const { courseId } = useParams();
   const navigate = useNavigate();
-  const [completedTopics, setCompletedTopics] = useState([]);
-  const [progress, setProgress] = useState(0);
+  const [course, setCourse] = useState(null);
+  const [modules, setModules] = useState([]);
+  const [progress, setProgress] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('completedTopics');
-    if (saved) {
-      setCompletedTopics(JSON.parse(saved));
+    fetchCourseDetails();
+    fetchUserProgress();
+  }, [courseId]);
+
+  const fetchCourseDetails = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await trainingAPI.getCourseById(courseId);
+      if (response.success) {
+        setCourse(response.data.course);
+        setModules(response.data.modules || []);
+      }
+    } catch (err) {
+      console.error('Error fetching course:', err);
+      setError(err.message || 'Failed to fetch course');
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    // Calculate total topics
-    let totalTopics = 0;
-    let completedCount = 0;
+  const fetchUserProgress = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
 
-    detailedModules.forEach(module => {
-      module.topics.forEach(topic => {
-        totalTopics++;
-        if (completedTopics.includes(`${module.id}-${topic.id}`)) {
-          completedCount++;
+      const response = await trainingAPI.getMyProgress(token);
+      if (response.success) {
+        const courseProgress = response.data.find(p => p.course._id === courseId || p.course === courseId);
+        if (courseProgress) {
+          setProgress(courseProgress);
         }
-      });
-    });
+      }
+    } catch (err) {
+      console.error('Error fetching progress:', err);
+      // Not critical, continue without progress
+    }
+  };
 
-    const progressPercent = totalTopics > 0 ? Math.round((completedCount / totalTopics) * 100) : 0;
-    setProgress(progressPercent);
-  }, [completedTopics]);
+  const handleEnroll = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await trainingAPI.enroll(token, courseId);
+      if (response.success) {
+        alert('Successfully enrolled in course!');
+        await fetchUserProgress();
+      }
+    } catch (err) {
+      console.error('Error enrolling:', err);
+      alert(err.message || 'Failed to enroll in course');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-4xl text-orange-600" />
+      </div>
+    );
+  }
+
+  if (error || !course) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Course not found</h1>
+          <p className="text-gray-600 mb-4">{error || 'Course not available'}</p>
+          <Link to="/training" className="text-blue-600 hover:text-blue-800">
+            Back to Training
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const progressPercent = progress?.overallProgress || 0;
+  const completedTopicIds = progress?.completedTopics?.map(id => id.toString()) || [];
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -51,84 +115,97 @@ const ModulesListPage = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-
           <div className="flex-1" />
-
           <div className="w-10" />
         </div>
       </motion.header>
 
-      {/* Desktop Header - Removed to avoid duplication with main Navbar */}
+      {/* Desktop Back Button */}
+      <div className="hidden md:block max-w-5xl mx-auto px-4 md:px-8 pt-6">
+        <button
+          onClick={() => navigate('/training')}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>Back to Training</span>
+        </button>
+      </div>
 
       {/* Course Title */}
-      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white py-8 md:py-12">
+      <div className={`bg-gradient-to-r ${course.color || 'from-indigo-600 via-purple-600 to-pink-600'} text-white py-8 md:py-12`}>
         <div className="max-w-5xl mx-auto px-4 md:px-8 text-center">
-          <h1 className="text-2xl md:text-3xl font-bold mb-2">{entrepreneurshipCourse.title}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">{course.title}</h1>
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm md:text-base mt-4">
-            <span>{entrepreneurshipCourse.totalModules} Modules</span>
+            <span>{course.totalModules} Modules</span>
             <span>•</span>
-            <span>{entrepreneurshipCourse.minimumDuration}</span>
+            <span>{course.minimumDuration}</span>
             <span>•</span>
-            <span>⭐ {entrepreneurshipCourse.rating}/5.0</span>
+            <span>⭐ {course.rating}/5.0</span>
           </div>
-          <p className="mt-3 text-white/90 text-sm">By {entrepreneurshipCourse.provider}</p>
+          <p className="mt-3 text-white/90 text-sm">By {course.provider}</p>
+          {!progress && (
+            <button
+              onClick={handleEnroll}
+              className="mt-4 px-6 py-2 bg-white text-orange-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+            >
+              Enroll Now
+            </button>
+          )}
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="max-w-5xl mx-auto px-4 md:px-8 py-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-gray-900">Your Progress</h3>
-            <span className="text-sm font-medium text-gray-600">{progress}% Complete</span>
+      {progress && (
+        <div className="max-w-5xl mx-auto px-4 md:px-8 py-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-gray-900">Your Progress</h3>
+              <span className="text-sm font-medium text-gray-600">{progressPercent}% Complete</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPercent}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className={`h-3 bg-gradient-to-r ${course.color || 'from-indigo-600 via-purple-600 to-pink-600'} rounded-full`}
+              />
+            </div>
+            <p className="text-sm text-gray-600 mt-3">
+              Complete all modules and pass the quizzes to receive your certificate
+            </p>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="h-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-full"
-            />
-          </div>
-          <p className="text-sm text-gray-600 mt-3">
-            Complete all modules and pass the quizzes to receive your certificate
-          </p>
         </div>
-      </div>
+      )}
 
-      {/* Modules List - Simple Design */}
+      {/* Modules List */}
       <div className="max-w-5xl mx-auto px-4 md:px-8 py-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="divide-y divide-gray-200">
-            {allModules.map((module, index) => {
-              // Check if module is completed
-              const detailedModule = detailedModules.find(m => m.id === module.id);
-              const allTopicsCompleted = detailedModule?.topics.every(topic =>
-                completedTopics.includes(`${module.id}-${topic.id}`)
-              );
+            {modules.map((module, index) => {
+              const moduleTopics = module.topics || [];
+              const allTopicsCompleted = moduleTopics.length > 0 && 
+                moduleTopics.every(topic => completedTopicIds.includes(topic._id.toString()));
 
               return (
                 <motion.div
-                  key={module.id}
+                  key={module._id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  onClick={() => navigate(`/training/module/${module.id}`)}
+                  onClick={() => navigate(`/training/module/${courseId}/${module._id}`)}
                   className="flex items-center justify-between p-4 md:p-6 hover:bg-gray-50 cursor-pointer transition-colors group"
                 >
-                  {/* Left: Module Number and Title */}
                   <div className="flex items-center gap-4 flex-1">
-                    {/* Module Icon/Number or Completed Check */}
                     <div className={`text-3xl ${allTopicsCompleted ? 'text-green-600' : ''}`}>
-                      {allTopicsCompleted ? '✓' : module.icon}
+                      {allTopicsCompleted ? '✓' : (module.icon || '💼')}
                     </div>
-
-                    {/* Module Title */}
                     <div className="flex-1">
                       <h3 className="text-base md:text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                        {module.title}
+                        Module {module.number}: {module.title}
                       </h3>
-                      <p className="text-sm text-gray-600 mt-1">{module.subtitle}</p>
+                      <p className="text-sm text-gray-600 mt-1">{module.subtitle || module.description}</p>
                       {allTopicsCompleted && (
                         <span className="inline-block mt-1 text-xs text-green-600 font-medium">
                           ✓ Completed
@@ -136,8 +213,6 @@ const ModulesListPage = () => {
                       )}
                     </div>
                   </div>
-
-                  {/* Right: Arrow Icon */}
                   <div className="flex items-center">
                     <svg className="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -153,23 +228,29 @@ const ModulesListPage = () => {
         <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-3">Course Requirements</h3>
           <div className="space-y-2 text-sm">
-            <div className="flex items-start gap-2">
-              <span className="text-green-600">✓</span>
-              <p className="text-gray-700"><strong>Minimum passing score:</strong> 70% in each module</p>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-green-600">✓</span>
-              <p className="text-gray-700"><strong>Certificate:</strong> Automatically generated after all 9 modules</p>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-green-600">✓</span>
-              <p className="text-gray-700"><strong>Eligibility:</strong> {entrepreneurshipCourse.eligibility}</p>
-            </div>
+            {course.minPassScore && (
+              <div className="flex items-start gap-2">
+                <span className="text-green-600">✓</span>
+                <p className="text-gray-700"><strong>Minimum passing score:</strong> {course.minPassScore}% in each module</p>
+              </div>
+            )}
+            {course.certificate && (
+              <div className="flex items-start gap-2">
+                <span className="text-green-600">✓</span>
+                <p className="text-gray-700"><strong>Certificate:</strong> {course.autoGenerateCert ? 'Automatically generated' : 'Available'} after completion</p>
+              </div>
+            )}
+            {course.eligibility && (
+              <div className="flex items-start gap-2">
+                <span className="text-green-600">✓</span>
+                <p className="text-gray-700"><strong>Eligibility:</strong> {course.eligibility}</p>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Certificate Banner */}
-        {progress >= 70 && progress < 100 && (
+        {progressPercent >= 70 && progressPercent < 100 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -182,7 +263,7 @@ const ModulesListPage = () => {
               <div className="flex-1 min-w-0">
                 <h3 className="text-base md:text-lg font-bold mb-1">Get Your Certificate!</h3>
                 <p className="text-xs md:text-sm text-orange-100">
-                  Complete 70% of the course to unlock your certificate. You're at {progress}% - just a few more modules to go!
+                  Complete 70% of the course to unlock your certificate. You're at {progressPercent}% - just a few more modules to go!
                 </p>
               </div>
             </div>
@@ -190,7 +271,7 @@ const ModulesListPage = () => {
         )}
 
         {/* Certificate Section */}
-        {progress >= 100 && (
+        {progressPercent >= 100 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -206,10 +287,10 @@ const ModulesListPage = () => {
               </div>
             </div>
             <p className="text-xs md:text-sm text-green-50 mb-3 md:mb-4">
-              You are now eligible to receive your certificate. Complete the payment to download your verified certificate.
+              You are now eligible to receive your certificate.
             </p>
             <button
-              onClick={() => navigate('/training/certificate')}
+              onClick={() => navigate(`/training/certificate/${courseId}`)}
               className="w-full md:w-auto bg-white text-green-600 font-bold py-2 md:py-3 px-6 md:px-8 rounded-xl hover:bg-green-50 transition-colors text-sm md:text-base"
             >
               Get Your Certificate

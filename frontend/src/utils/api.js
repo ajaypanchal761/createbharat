@@ -77,11 +77,15 @@ const apiCall = async (endpoint, options = {}) => {
 
       // Handle validation errors specifically
       if (data.errors && Array.isArray(data.errors)) {
-        const errorMessages = data.errors.map(err => err.msg || err.message).join(', ');
-        throw new Error(errorMessages || data.message || 'Validation failed');
+        const errorMessages = data.errors.map(err => err.msg || err.message || err).join(', ');
+        const error = new Error(errorMessages || data.message || 'Validation failed');
+        error.errors = data.errors.map(err => err.msg || err.message || err);
+        throw error;
       }
 
-      throw new Error(data.message || data.error || 'Something went wrong');
+      const error = new Error(data.message || data.error || 'Something went wrong');
+      if (data.error) error.error = data.error;
+      throw error;
     }
 
     return data;
@@ -178,6 +182,58 @@ export const adminAPI = {
   getMe: async (token) => {
     return apiCall('/admin/me', {
       method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Get all users (Admin management)
+  getAllUsers: async (token, params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/admin/users${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Get user by ID (Admin management)
+  getUserById: async (token, userId) => {
+    return apiCall(`/admin/users/${userId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Update user (Admin management)
+  updateUser: async (token, userId, updateData) => {
+    return apiCall(`/admin/users/${userId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(updateData),
+    });
+  },
+
+  // Delete user (Admin management)
+  deleteUser: async (token, userId) => {
+    return apiCall(`/admin/users/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Deactivate/activate user (Admin management)
+  deactivateUser: async (token, userId) => {
+    return apiCall(`/admin/users/${userId}/deactivate`, {
+      method: 'PATCH',
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -769,184 +825,5 @@ export const mentorBookingAPI = {
   },
 };
 
-// CA API calls
-export const caAPI = {
-  // CA Login
-  login: async (credentials) => {
-    return apiCall('/ca/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
-    });
-  },
-
-  // Get CA Profile
-  getProfile: async (token) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/ca/profile', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  },
-
-  // Update CA Profile
-  updateProfile: async (token, profileData) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/ca/profile', {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-      body: JSON.stringify(profileData),
-    });
-  }
-};
-
-// Admin CA API calls
-export const adminCAAPI = {
-  // Register CA (Admin only - only one CA can exist)
-  register: async (token, caData) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/ca/admin/register', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-      body: JSON.stringify(caData),
-    });
-  },
-
-  // Get CA (Admin)
-  getCA: async (token) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/ca/admin', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  },
-
-  // Update CA (Admin)
-  updateCA: async (token, caData) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/ca/admin', {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-      body: JSON.stringify(caData),
-    });
-  },
-
-  // Delete CA (Admin)
-  deleteCA: async (token) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/ca/admin', {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  }
-};
-
-// Legal Service API calls (for users)
-export const legalServiceAPI = {
-  // Get all legal services
-  getAll: async () => {
-    return apiCall('/legal/services', {
-      method: 'GET',
-    });
-  },
-
-  // Get legal service by ID
-  getById: async (serviceId) => {
-    return apiCall(`/legal/services/${serviceId}`, {
-      method: 'GET',
-    });
-  }
-};
-
-// CA Legal Service API calls
-export const caLegalServiceAPI = {
-  // Get all services (CA)
-  getAll: async (token) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/ca/legal-services', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  },
-
-  // Create service
-  create: async (token, serviceData) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/ca/legal-services', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-      body: JSON.stringify(serviceData),
-    });
-  },
-
-  // Update service
-  update: async (token, serviceId, serviceData) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/ca/legal-services/${serviceId}`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-      body: JSON.stringify(serviceData),
-    });
-  },
-
-  // Delete service
-  delete: async (token, serviceId) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/ca/legal-services/${serviceId}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  }
-};
-
-export default { authAPI, adminAPI, companyAPI, internshipAPI, applicationAPI, loansAPI, adminLoansAPI, mentorAPI, mentorBookingAPI, caAPI, adminCAAPI, legalServiceAPI, caLegalServiceAPI };
+export default { authAPI, adminAPI, companyAPI, internshipAPI, applicationAPI, loansAPI, adminLoansAPI, mentorAPI, mentorBookingAPI };
 
