@@ -19,8 +19,12 @@ const testRoutes = require('./routes/testRoutes');
 const loanSchemeRoutes = require('./routes/loanSchemeRoutes');
 const adminLoanSchemeRoutes = require('./routes/loanSchemeRoutes').adminLoanSchemeRoutes;
 const mentorRoutes = require('./routes/mentorRoutes');
+const trainingRoutes = require('./routes/trainingRoutes');
+const adminTrainingRoutes = require('./routes/adminTrainingRoutes');
 const caRoutes = require('./routes/caRoutes');
 const legalServiceRoutes = require('./routes/legalServiceRoutes');
+const legalSubmissionRoutes = require('./routes/legalSubmissionRoutes');
+const caSubmissionRoutes = require('./routes/caSubmissionRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -107,9 +111,12 @@ app.use('/api/mentors', mentorRoutes);
 app.use('/api/training', trainingRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin', adminLoanSchemeRoutes);
+app.use('/api/admin', adminTrainingRoutes);
 app.use('/api/ca', caRoutes);
 app.use('/api/legal', legalServiceRoutes);
 app.use('/api/ca', legalServiceRoutes);
+app.use('/api/legal', legalSubmissionRoutes);
+app.use('/api/ca', caSubmissionRoutes);
 app.use('/api/test', testRoutes);
 
 // Root endpoint
@@ -139,7 +146,7 @@ const connectDB = async () => {
   try {
     const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://sarthaknamdev:sarthak123@cluster0.q5dpigj.mongodb.net/createbharat?retryWrites=true&w=majority&appName=Cluster0';
     console.log('🔌 Connecting to MongoDB...');
-    
+
     const conn = await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
@@ -148,23 +155,23 @@ const connectDB = async () => {
       maxPoolSize: 10, // Maintain up to 10 socket connections
       minPoolSize: 5, // Maintain at least 5 socket connections
     });
-    
+
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     console.log(`📊 Database: ${conn.connection.name}`);
-    
+
     // Handle connection events
     mongoose.connection.on('error', (err) => {
       console.error('❌ MongoDB connection error:', err.message);
     });
-    
+
     mongoose.connection.on('disconnected', () => {
       console.warn('⚠️ MongoDB disconnected. Attempting to reconnect...');
     });
-    
+
     mongoose.connection.on('reconnected', () => {
       console.log('✅ MongoDB reconnected successfully');
     });
-    
+
   } catch (error) {
     console.error('❌ Database connection error:', error.message);
     console.error('\n💡 Troubleshooting tips:');

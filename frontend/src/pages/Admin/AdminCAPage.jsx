@@ -90,18 +90,18 @@ const AdminCAPage = () => {
             const response = await adminCAAPI.register(token, formData);
             if (response.success) {
                 setCa(response.data.ca);
-                setFormData({
-                    name: '',
-                    email: '',
-                    password: '',
-                    caNumber: '',
-                    phone: '',
-                    experience: '',
-                    specialization: '',
-                    firmName: ''
-                });
-                setShowRegisterForm(false);
-                alert('CA registered successfully!');
+        setFormData({
+            name: '',
+            email: '',
+            password: '',
+            caNumber: '',
+            phone: '',
+            experience: '',
+            specialization: '',
+            firmName: ''
+        });
+        setShowRegisterForm(false);
+        alert('CA registered successfully!');
             } else {
                 setError(response.message || 'Failed to register CA');
             }
@@ -282,13 +282,13 @@ const AdminCAPage = () => {
                         </div>
                     </div>
                     {!ca ? (
-                        <button
-                            onClick={() => setShowRegisterForm(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                            <FaPlus className="w-4 h-4" />
-                            Register CA
-                        </button>
+                    <button
+                        onClick={() => setShowRegisterForm(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        <FaPlus className="w-4 h-4" />
+                        Register CA
+                    </button>
                     ) : (
                         <div className="flex gap-2">
                             <button
@@ -693,45 +693,45 @@ const AdminCAPage = () => {
                             <p className="text-gray-600">No payment history available. Payments will appear here once users complete legal services.</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {paymentHistory.map((payment) => (
-                                <motion.div
+                            <motion.div
                                     key={payment.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow"
-                                >
-                                    <div className="flex items-start gap-3 mb-3">
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                            >
+                                <div className="flex items-start gap-3 mb-3">
                                         <div className="text-2xl flex-shrink-0">
                                             {payment.serviceIcon}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
+                                    </div>
+                                    <div className="flex-1 min-w-0">
                                             <h3 className="text-sm font-bold text-gray-900 truncate">{payment.userName}</h3>
                                             <p className="text-xs text-gray-600 truncate">{payment.userEmail}</p>
                                             {payment.userPhone && (
                                                 <p className="text-xs text-gray-500 truncate">{payment.userPhone}</p>
                                             )}
-                                        </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs text-gray-600">Service</span>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs text-gray-600">Service</span>
                                             <span className="text-xs font-semibold text-gray-900">{payment.serviceType}</span>
                                         </div>
                                         {payment.serviceCategory && (
                                             <div className="flex items-center justify-between">
                                                 <span className="text-xs text-gray-600">Category</span>
                                                 <span className="text-xs text-gray-700 bg-blue-50 px-2 py-0.5 rounded-full">{payment.serviceCategory}</span>
-                                            </div>
+                                    </div>
                                         )}
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs text-gray-600">Amount</span>
-                                            <span className="text-xs font-bold text-green-600 flex items-center gap-1">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs text-gray-600">Amount</span>
+                                        <span className="text-xs font-bold text-green-600 flex items-center gap-1">
                                                 <FaRupeeSign />{payment.amount.toLocaleString('en-IN')}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs text-gray-600">Payment Date</span>
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs text-gray-600">Payment Date</span>
                                             <span className="text-xs font-semibold text-gray-700 flex items-center gap-1">
                                                 <FaCalendar className="w-3 h-3" />
                                                 {payment.paymentDate}
@@ -746,12 +746,12 @@ const AdminCAPage = () => {
                                                 <p className="text-xs text-gray-500 truncate">
                                                     <span className="font-medium">Txn ID:</span> {payment.transactionId}
                                                 </p>
-                                            </div>
-                                        )}
                                     </div>
-                                </motion.div>
-                            ))}
-                        </div>
+                                        )}
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
                     )}
                 </div>
             </div>

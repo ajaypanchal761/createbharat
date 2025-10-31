@@ -417,7 +417,7 @@ export const companyAPI = {
     // If files are provided, use FormData
     if (registrationFile || gstFile) {
       const formData = new FormData();
-      
+
       // Append all profile fields to formData
       Object.keys(profileData).forEach(key => {
         if (profileData[key] !== null && profileData[key] !== undefined) {
@@ -429,12 +429,12 @@ export const companyAPI = {
           }
         }
       });
-      
+
       // Append files if provided
       if (registrationFile) {
         formData.append('registrationCertificate', registrationFile);
       }
-      
+
       if (gstFile) {
         formData.append('gstCertificate', gstFile);
       }
@@ -738,10 +738,10 @@ export const mentorAPI = {
   // Mentor: Update booking status
   updateBookingStatus: async (token, bookingId, status, date, time, sessionLink, rejectReason) => {
     const body = { status };
-    if(date) body.date = date;
-    if(time) body.time = time;
-    if(sessionLink) body.sessionLink = sessionLink;
-    if(status === 'rejected' && rejectReason) body.reason = rejectReason;
+    if (date) body.date = date;
+    if (time) body.time = time;
+    if (sessionLink) body.sessionLink = sessionLink;
+    if (status === 'rejected' && rejectReason) body.reason = rejectReason;
     return apiCall(`/mentors/bookings/${bookingId}/status`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}` },
@@ -757,7 +757,7 @@ export const mentorBookingAPI = {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
-    const cleanToken = token.trim().replace(/^(["'])|\1$/g, '');
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
     return apiCall(`/mentors/${mentorId}/book`, {
       method: 'POST',
       headers: {
@@ -772,7 +772,7 @@ export const mentorBookingAPI = {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
-    const cleanToken = token.trim().replace(/^(["'])|\1$/g, '');
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
     return apiCall(`/mentors/bookings/${bookingId}/create-order`, {
       method: 'POST',
       headers: {
@@ -786,7 +786,7 @@ export const mentorBookingAPI = {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
-    const cleanToken = token.trim().replace(/^(["'])|\1$/g, '');
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
     return apiCall(`/mentors/bookings/${bookingId}/payment`, {
       method: 'PUT',
       headers: {
@@ -802,7 +802,7 @@ export const mentorBookingAPI = {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
-    const cleanToken = token.trim().replace(/^(["'])|\1$/g, '');
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
     return apiCall(`/mentors/my-bookings${queryString ? `?${queryString}` : ''}`, {
       method: 'GET',
       headers: {
@@ -815,7 +815,7 @@ export const mentorBookingAPI = {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
-    const cleanToken = token.trim().replace(/^(["'])|\1$/g, '');
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
     return apiCall(`/mentors/bookings/${bookingId}`, {
       method: 'GET',
       headers: {
@@ -879,6 +879,20 @@ export const adminCAAPI = {
         Authorization: `Bearer ${cleanToken}`,
       },
       body: JSON.stringify(caData),
+    });
+  },
+
+  // Get payment history for legal services (Admin only - completed submissions)
+  getPaymentHistory: async (token) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/admin/legal-payments', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
     });
   },
 
@@ -1004,5 +1018,464 @@ export const caLegalServiceAPI = {
   }
 };
 
-export default { authAPI, adminAPI, companyAPI, internshipAPI, applicationAPI, loansAPI, adminLoansAPI, mentorAPI, mentorBookingAPI, caAPI, adminCAAPI, legalServiceAPI, caLegalServiceAPI };
+// Legal Submission API calls (for users)
+export const legalSubmissionAPI = {
+  // Create submission with documents
+  create: async (token, serviceId, category, files) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+
+    const formData = new FormData();
+    formData.append('serviceId', serviceId);
+    if (category) {
+      formData.append('category', category);
+    }
+    if (files && files.length > 0) {
+      files.forEach((file) => {
+        formData.append('documents', file);
+      });
+    }
+
+    return apiCall('/legal/submissions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: formData,
+      skipJsonHeaders: true,
+    });
+  },
+
+  // Create Razorpay order
+  createOrder: async (token, submissionId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/legal/submissions/${submissionId}/create-order`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Update payment
+  updatePayment: async (token, submissionId, paymentData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/legal/submissions/${submissionId}/payment`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(paymentData),
+    });
+  },
+
+  // Get user's submissions
+  getUserSubmissions: async (token) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/legal/submissions', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Get submission by ID
+  getById: async (token, submissionId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/legal/submissions/${submissionId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  }
+};
+
+// CA Legal Submission API calls
+export const caLegalSubmissionAPI = {
+  // Get all submissions (CA)
+  getAll: async (token, status = null) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    const url = status ? `/ca/submissions?status=${status}` : '/ca/submissions';
+    return apiCall(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Get submission by ID (CA)
+  getById: async (token, submissionId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/ca/submissions/${submissionId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Update submission status (CA)
+  updateStatus: async (token, submissionId, statusData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/ca/submissions/${submissionId}/status`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(statusData),
+    });
+  }
+};
+
+// Training API calls (for users)
+export const trainingAPI = {
+  // Get all published courses (public)
+  getCourses: async () => {
+    return apiCall('/training/courses', {
+      method: 'GET',
+    });
+  },
+
+  // Get course by ID (public)
+  getCourseById: async (courseId) => {
+    return apiCall(`/training/courses/${courseId}`, {
+      method: 'GET',
+    });
+  },
+
+  // Enroll in course (user)
+  enroll: async (token, courseId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/training/courses/${courseId}/enroll`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Get user's progress (user)
+  getMyProgress: async (token) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/training/my-progress', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Complete topic (user)
+  completeTopic: async (token, courseId, topicId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/training/progress/${courseId}/complete-topic/${topicId}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Submit quiz (user)
+  submitQuiz: async (token, quizId, answers) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/training/quizzes/${quizId}/submit`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(answers),
+    });
+  },
+
+  // Create certificate order (user)
+  createCertificateOrder: async (token, courseId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/training/certificate/${courseId}/create-order`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Update certificate payment (user)
+  updateCertificatePayment: async (token, courseId, paymentData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/training/certificate/${courseId}/payment`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(paymentData),
+    });
+  }
+};
+
+// Admin Training API calls
+export const adminTrainingAPI = {
+  // Get all courses (admin)
+  getAllCourses: async (token) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/admin/training/courses', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Get course by ID (admin)
+  getCourseById: async (token, courseId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/training/courses/${courseId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Create course (admin)
+  createCourse: async (token, courseData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/admin/training/courses', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(courseData),
+    });
+  },
+
+  // Update course (admin)
+  updateCourse: async (token, courseId, courseData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/training/courses/${courseId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(courseData),
+    });
+  },
+
+  // Delete course (admin)
+  deleteCourse: async (token, courseId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/training/courses/${courseId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Toggle course publish status (admin)
+  toggleCoursePublish: async (token, courseId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/training/courses/${courseId}/publish`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Create module (admin)
+  createModule: async (token, courseId, moduleData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/training/courses/${courseId}/modules`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(moduleData),
+    });
+  },
+
+  // Update module (admin)
+  updateModule: async (token, moduleId, moduleData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/training/modules/${moduleId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(moduleData),
+    });
+  },
+
+  // Delete module (admin)
+  deleteModule: async (token, moduleId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/training/modules/${moduleId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Create topic (admin)
+  createTopic: async (token, moduleId, topicData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/training/modules/${moduleId}/topics`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(topicData),
+    });
+  },
+
+  // Update topic (admin)
+  updateTopic: async (token, topicId, topicData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/training/topics/${topicId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(topicData),
+    });
+  },
+
+  // Delete topic (admin)
+  deleteTopic: async (token, topicId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/training/topics/${topicId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Create quiz (admin)
+  createQuiz: async (token, topicId, quizData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/training/topics/${topicId}/quizzes`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(quizData),
+    });
+  },
+
+  // Update quiz (admin)
+  updateQuiz: async (token, quizId, quizData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/training/quizzes/${quizId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(quizData),
+    });
+  },
+
+  // Delete quiz (admin)
+  deleteQuiz: async (token, quizId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/training/quizzes/${quizId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  }
+};
+
+export default { authAPI, adminAPI, companyAPI, internshipAPI, applicationAPI, loansAPI, adminLoansAPI, mentorAPI, mentorBookingAPI, caAPI, adminCAAPI, legalServiceAPI, caLegalServiceAPI, legalSubmissionAPI, caLegalSubmissionAPI, trainingAPI, adminTrainingAPI };
 
