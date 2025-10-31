@@ -19,13 +19,10 @@ const testRoutes = require('./routes/testRoutes');
 const loanSchemeRoutes = require('./routes/loanSchemeRoutes');
 const adminLoanSchemeRoutes = require('./routes/loanSchemeRoutes').adminLoanSchemeRoutes;
 const mentorRoutes = require('./routes/mentorRoutes');
-<<<<<<< HEAD
 const caRoutes = require('./routes/caRoutes');
 const legalServiceRoutes = require('./routes/legalServiceRoutes');
-=======
 const trainingRoutes = require('./routes/trainingRoutes');
 const adminTrainingRoutes = require('./routes/adminTrainingRoutes');
->>>>>>> ea0726e (training done)
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -112,13 +109,9 @@ app.use('/api/mentors', mentorRoutes);
 app.use('/api/training', trainingRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin', adminLoanSchemeRoutes);
-<<<<<<< HEAD
 app.use('/api/ca', caRoutes);
 app.use('/api/legal', legalServiceRoutes);
-app.use('/api/ca', legalServiceRoutes);
-=======
 app.use('/api/admin', adminTrainingRoutes);
->>>>>>> ea0726e (training done)
 app.use('/api/test', testRoutes);
 
 // Root endpoint
