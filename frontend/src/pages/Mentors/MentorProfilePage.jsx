@@ -41,6 +41,7 @@ const MentorProfilePage = () => {
     profileImage: null,
     rating: 0,
     totalSessions: 0,
+    completedSessions: 0,
     responseTime: '24 hours',
     pricing: defaultPricing,
     skills: ['Strategy', 'Business'],
@@ -79,6 +80,7 @@ const MentorProfilePage = () => {
             profileImage: mentor.profileImage || null,
             rating: mentor.rating || 0,
             totalSessions: mentor.totalSessions || 0,
+            completedSessions: mentor.completedSessions || 0,
             responseTime: mentor.responseTime || defaultProfile.responseTime,
             pricing: mentor.pricing || defaultPricing,
             skills: mentor.skills || defaultProfile.skills,
@@ -368,11 +370,22 @@ const MentorProfilePage = () => {
             <div className="text-orange-100 text-sm">Rating</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold">{profileData.totalSessions}</div>
-            <div className="text-orange-100 text-sm">Sessions</div>
+            <div className="text-2xl font-bold">{profileData.completedSessions || 0}</div>
+            <div className="text-orange-100 text-sm">Completed Sessions</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold">{profileData.responseTime}</div>
+            {isEditing ? (
+              <input
+                type="text"
+                value={formData.responseTime}
+                onChange={(e) => handleInputChange('responseTime', e.target.value)}
+                className="bg-white/20 text-white placeholder-white/80 rounded-lg px-2 py-1 text-sm md:text-lg font-bold w-full text-center focus:outline-none focus:ring-2 focus:ring-white/50"
+                placeholder="24 hours"
+                style={{ maxWidth: '100px', margin: '0 auto' }}
+              />
+            ) : (
+              <div className="text-2xl font-bold">{profileData.responseTime}</div>
+            )}
             <div className="text-orange-100 text-sm">Response</div>
           </div>
         </div>

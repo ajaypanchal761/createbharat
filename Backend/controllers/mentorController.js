@@ -4,6 +4,7 @@ const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const { uploadToCloudinary } = require('../utils/cloudinary');
+const { sendBookingAcceptedEmail, sendBookingRejectedEmail } = require('../services/emailService');
 
 // Generate JWT Token
 const generateToken = (mentorId) => {
@@ -198,10 +199,20 @@ const getMe = async (req, res) => {
       });
     }
 
+    // Get completed sessions count
+    const completedSessions = await MentorBooking.countDocuments({ 
+      mentor: req.mentor.id, 
+      status: 'completed' 
+    });
+
+    // Convert mentor to object and add completed sessions count
+    const mentorObject = mentor.toObject();
+    mentorObject.completedSessions = completedSessions;
+
     res.status(200).json({
       success: true,
       data: {
-        mentor
+        mentor: mentorObject
       }
     });
 
@@ -681,7 +692,21 @@ const updateBookingStatus = async (req, res) => {
     }
     await booking.save();
 
-    await booking.populate('user', 'firstName lastName email');
+    // Populate both user and mentor data for email
+    await booking.populate('user', 'firstName lastName email phone');
+    await booking.populate('mentor', 'firstName lastName title company specialization');
+
+    // Send email notification to user
+    try {
+      if (status === 'accepted') {
+        await sendBookingAcceptedEmail(booking, booking.mentor, booking.user);
+      } else if (status === 'rejected') {
+        await sendBookingRejectedEmail(booking, booking.mentor, booking.user);
+      }
+    } catch (emailError) {
+      console.error('Error sending email notification:', emailError);
+      // Don't fail the request if email fails, just log it
+    }
 
     res.status(200).json({
       success: true,
