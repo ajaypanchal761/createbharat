@@ -21,6 +21,8 @@ const adminLoanSchemeRoutes = require('./routes/loanSchemeRoutes').adminLoanSche
 const mentorRoutes = require('./routes/mentorRoutes');
 const caRoutes = require('./routes/caRoutes');
 const legalServiceRoutes = require('./routes/legalServiceRoutes');
+const legalSubmissionRoutes = require('./routes/legalSubmissionRoutes');
+const caSubmissionRoutes = require('./routes/caSubmissionRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -97,6 +99,8 @@ app.use('/api/admin', adminLoanSchemeRoutes);
 app.use('/api/ca', caRoutes);
 app.use('/api/legal', legalServiceRoutes);
 app.use('/api/ca', legalServiceRoutes);
+app.use('/api/legal', legalSubmissionRoutes);
+app.use('/api/ca', caSubmissionRoutes);
 app.use('/api/test', testRoutes);
 
 // Root endpoint

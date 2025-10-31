@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ServiceNotification from '../../components/common/ServiceNotification';
+import { legalServiceAPI, legalSubmissionAPI } from '../../utils/api';
 
 // Icons
 const ArrowLeftIcon = () => (
@@ -50,61 +51,55 @@ const SpinnerIcon = () => (
 const LegalPaymentPage = () => {
   const { serviceId } = useParams();
   const navigate = useNavigate();
-
-  const legalServices = {
-    1: { name: 'GST Registration', icon: '📋', color: 'from-blue-500 to-cyan-500', fees: '₹1,999' },
-    2: { name: 'GST Filing', icon: '📄', color: 'from-green-500 to-emerald-500', fees: '₹999' },
-    3: { name: 'Income Tax Filing', icon: '💰', color: 'from-purple-500 to-violet-500', fees: '₹1,499' },
-    4: { name: 'ROC Filing', icon: '🏢', color: 'from-orange-500 to-red-500', fees: '₹2,999' },
-    5: { name: 'Import Export Registration', icon: '🚢', color: 'from-indigo-500 to-blue-500', fees: '₹1,999' },
-    6: { name: 'MSME Registration', icon: '🏭', color: 'from-teal-500 to-green-500', fees: '₹999' },
-    7: { name: 'Trade Mark Filing', icon: '™️', color: 'from-pink-500 to-rose-500', fees: '₹4,999' },
-    8: { name: 'Food (FSSAI) License', icon: '🍽️', color: 'from-yellow-500 to-orange-500', fees: '₹1,999' },
-    9: { name: 'PF/ESIC Registration', icon: '👥', color: 'from-cyan-500 to-blue-500', fees: '₹1,499' },
-    10: { name: 'ISO Certification', icon: '🏆', color: 'from-emerald-500 to-teal-500', fees: '₹9,999' },
-    11: { name: 'Proprietorship Company Registration', icon: '👤', color: 'from-violet-500 to-purple-500', fees: '₹999' },
-    12: { name: 'Partnership Company Registration', icon: '🤝', color: 'from-red-500 to-pink-500', fees: '₹1,999' },
-    13: { name: 'Private Limited/LLP Company Registration', icon: '🏛️', color: 'from-blue-600 to-indigo-600', fees: '₹4,999' },
-    14: { name: 'NGO Registration', icon: '❤️', color: 'from-green-600 to-emerald-600', fees: '₹2,999' }
-  };
-
-  const service = legalServices[parseInt(serviceId)];
-
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
+  const location = useLocation();
+  const [service, setService] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [submissionId, setSubmissionId] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
 
-  const paymentMethods = [
-    {
-      id: 'credit-card',
-      name: 'Credit/Debit Card',
-      icon: <CreditCardIcon />,
-      description: 'Visa, Mastercard, RuPay',
-      color: 'border-blue-500 bg-blue-50'
-    },
-    {
-      id: 'upi',
-      name: 'UPI',
-      icon: <UpiIcon />,
-      description: 'Google Pay, PhonePe, Paytm',
-      color: 'border-green-500 bg-green-50'
-    },
-    {
-      id: 'netbanking',
-      name: 'Net Banking',
-      icon: <NetBankingIcon />,
-      description: 'All major banks',
-      color: 'border-purple-500 bg-purple-50'
-    },
-    {
-      id: 'wallet',
-      name: 'Digital Wallet',
-      icon: <WalletIcon />,
-      description: 'Paytm, Mobikwik, Freecharge',
-      color: 'border-orange-500 bg-orange-50'
+  // Get submissionId from location state or URL params
+  useEffect(() => {
+    const stateSubmissionId = location.state?.submissionId;
+    if (stateSubmissionId) {
+      setSubmissionId(stateSubmissionId);
     }
-  ];
+    fetchServiceDetails();
+  }, [serviceId, location]);
+
+  const fetchServiceDetails = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await legalServiceAPI.getById(serviceId);
+      if (response.success && response.data.service) {
+        const serviceData = response.data.service;
+        setService({
+          id: serviceData._id,
+          name: serviceData.name,
+          icon: serviceData.icon || '⚖️',
+          color: 'from-blue-500 to-cyan-500', // Default color
+          price: serviceData.price || '₹0'
+        });
+      } else {
+        setError('Service not found');
+      }
+    } catch (err) {
+      console.error('Error fetching service details:', err);
+      setError(err.message || 'Failed to fetch service details');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Extract price number from string (e.g., "₹15,000" -> 15000)
+  const getPriceAmount = (priceString) => {
+    if (!priceString) return 0;
+    const priceNum = priceString.replace(/[₹,]/g, '');
+    return parseInt(priceNum) || 0;
+  };
 
   // Animation variants
   const fadeInUp = {
@@ -127,33 +122,146 @@ const LegalPaymentPage = () => {
   };
 
   const handlePayment = async () => {
-    if (!selectedPaymentMethod) {
-      alert('Please select a payment method');
+    if (!submissionId) {
+      alert('Submission ID not found. Please go back and try again.');
       return;
     }
 
     setIsProcessing(true);
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    setIsProcessing(false);
-    setIsCompleted(true);
-    
-    // Show notification after payment completion (only after success)
-    setTimeout(() => {
-      setShowNotification(true);
-    }, 1500);
+    setError(null);
 
-    // Redirect to success page or home after 8 seconds (giving time for notification)
-    setTimeout(() => {
-      navigate('/legal');
-    }, 8000);
+    try {
+      // Get user token
+      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      if (!token) {
+        alert('Please login to proceed with payment');
+        navigate('/login');
+        setIsProcessing(false);
+        return;
+      }
+
+      // Create Razorpay order
+      const orderResponse = await legalSubmissionAPI.createOrder(token, submissionId);
+      
+      if (!orderResponse.success) {
+        const errorMessage = orderResponse.error || orderResponse.message || 'Failed to create payment order';
+        console.error('Order creation failed:', orderResponse);
+        throw new Error(errorMessage);
+      }
+      
+      if (!orderResponse.data) {
+        console.error('Order response missing data:', orderResponse);
+        throw new Error('Invalid order response from server');
+      }
+
+      const { orderId, amount, currency, keyId } = orderResponse.data;
+
+      // Validate required fields
+      if (!orderId) {
+        console.error('Order ID missing in response:', orderResponse.data);
+        throw new Error('Order ID is missing from server response');
+      }
+      
+      if (!keyId) {
+        console.error('Razorpay Key ID missing in response:', orderResponse.data);
+        throw new Error('Payment gateway configuration error. Please contact support.');
+      }
+      
+      if (!amount || amount <= 0) {
+        console.error('Invalid amount in response:', orderResponse.data);
+        throw new Error('Invalid payment amount');
+      }
+
+      // Initialize Razorpay
+      const options = {
+        key: keyId,
+        amount: amount,
+        currency: currency || 'INR',
+        name: service?.name || 'Legal Service',
+        description: `Payment for ${service?.name || 'Legal Service'}`,
+        order_id: orderId,
+        handler: async function (response) {
+          try {
+            // Update payment with Razorpay response
+            const paymentResponse = await legalSubmissionAPI.updatePayment(token, submissionId, {
+              paymentMethod: 'razorpay',
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+
+            if (paymentResponse.success) {
+              setIsProcessing(false);
+              setIsCompleted(true);
+              
+              // Show notification after payment completion
+              setTimeout(() => {
+                setShowNotification(true);
+              }, 1500);
+
+              // Redirect after 5 seconds
+              setTimeout(() => {
+                navigate('/legal');
+              }, 5000);
+            } else {
+              throw new Error(paymentResponse.message || 'Payment verification failed');
+            }
+          } catch (err) {
+            console.error('Payment verification error:', err);
+            setIsProcessing(false);
+            setError(err.message || 'Payment verification failed. Please contact support.');
+          }
+        },
+        prefill: {
+          name: localStorage.getItem('userName') || '',
+          email: localStorage.getItem('userEmail') || '',
+          contact: localStorage.getItem('userPhone') || ''
+        },
+        theme: {
+          color: '#2563eb'
+        },
+        modal: {
+          ondismiss: function() {
+            setIsProcessing(false);
+          }
+        }
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+      razorpay.on('payment.failed', function (response) {
+        console.error('Payment failed:', response.error);
+        setIsProcessing(false);
+        setError(response.error.description || 'Payment failed. Please try again.');
+      });
+
+    } catch (err) {
+      console.error('Payment error:', err);
+      const errorMessage = err.message || err.response?.data?.message || 'Failed to process payment. Please try again.';
+      setError(errorMessage);
+      setIsProcessing(false);
+      
+      // Show error notification
+      alert(errorMessage);
+    }
   };
 
-  if (!service) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Loading payment details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !service) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Service Not Found</h1>
+          <p className="text-gray-600 mb-4">{error || 'The service you are looking for does not exist.'}</p>
           <button
             onClick={() => navigate('/legal')}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -181,8 +289,11 @@ const LegalPaymentPage = () => {
           <CheckCircleIcon />
         </motion.div>
         <h2 className="text-3xl font-bold text-gray-800 mt-4 mb-2">Payment Successful!</h2>
-        <p className="text-lg text-gray-600">Your payment for {service.name} has been processed successfully.</p>
-        <p className="text-md text-gray-500 mt-2">We will process your application and get back to you shortly.</p>
+        <p className="text-lg text-gray-600 mb-4">Your payment for {service?.name || 'Legal Service'} has been processed successfully.</p>
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 max-w-md mx-auto mt-4">
+          <p className="text-lg font-semibold text-blue-800 mb-2">✓ CA will contact you within 24 hours</p>
+          <p className="text-sm text-blue-600">Our Chartered Accountant will review your submission and get in touch with you soon.</p>
+        </div>
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -241,7 +352,7 @@ const LegalPaymentPage = () => {
           <motion.div
             whileHover={{ scale: 1.1, rotate: 5 }}
             transition={{ duration: 0.3 }}
-            className={`w-20 h-20 bg-gradient-to-r ${service.color} rounded-2xl flex items-center justify-center text-white text-4xl mx-auto mb-4 shadow-lg`}
+            className={`w-20 h-20 bg-gradient-to-r ${service.color || 'from-blue-500 to-cyan-500'} rounded-2xl flex items-center justify-center text-white text-4xl mx-auto mb-4 shadow-lg`}
           >
             {service.icon}
           </motion.div>
@@ -260,69 +371,39 @@ const LegalPaymentPage = () => {
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Service Fee</span>
-              <span className="font-semibold">{service.fees}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Processing Fee</span>
-              <span className="font-semibold">₹99</span>
+              <span className="font-semibold">{service.price}</span>
             </div>
             <div className="border-t border-gray-200 pt-3">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-bold text-gray-900">Total Amount</span>
-                <span className="text-lg font-bold text-blue-600">{service.fees}</span>
+                <span className="text-lg font-bold text-blue-600">{service.price}</span>
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* Payment Methods */}
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4 mb-6"
+          >
+            {error}
+          </motion.div>
+        )}
+
+        {/* Payment Info */}
         <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={staggerContainer}
-          className="space-y-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="bg-white rounded-xl p-6 shadow-md mb-6"
         >
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Select Payment Method</h2>
-          
-          {paymentMethods.map((method, index) => (
-            <motion.div
-              key={method.id}
-              variants={fadeInUp}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setSelectedPaymentMethod(method.id)}
-              className={`border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 ${
-                selectedPaymentMethod === method.id 
-                  ? `${method.color} border-opacity-100` 
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-lg ${method.color}`}>
-                  {method.icon}
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{method.name}</h3>
-                  <p className="text-sm text-gray-600">{method.description}</p>
-                </div>
-                <div className={`w-6 h-6 rounded-full border-2 ${
-                  selectedPaymentMethod === method.id 
-                    ? 'border-blue-500 bg-blue-500' 
-                    : 'border-gray-300'
-                }`}>
-                  {selectedPaymentMethod === method.id && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="w-full h-full rounded-full bg-white flex items-center justify-center"
-                    >
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    </motion.div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          ))}
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Payment Information</h2>
+          <p className="text-gray-600">
+            Click the button below to proceed with payment via Razorpay. You will be redirected to the secure payment gateway.
+          </p>
         </motion.div>
 
         {/* Pay Button */}
@@ -336,11 +417,11 @@ const LegalPaymentPage = () => {
             whileHover={{ scale: 1.02, boxShadow: "0 10px 20px rgba(59, 130, 246, 0.3)" }}
             whileTap={{ scale: 0.98 }}
             onClick={handlePayment}
-            className={`w-full bg-gradient-to-r ${service.color} text-white py-4 px-6 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2`}
-            disabled={isProcessing}
+            className={`w-full bg-gradient-to-r ${service.color || 'from-blue-500 to-cyan-500'} text-white py-4 px-6 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2`}
+            disabled={isProcessing || !submissionId}
           >
             {isProcessing && <SpinnerIcon />}
-            {isProcessing ? 'Processing Payment...' : `Pay ${service.fees}`}
+            {isProcessing ? 'Processing Payment...' : `Pay ${service.price}`}
           </motion.button>
         </motion.div>
 

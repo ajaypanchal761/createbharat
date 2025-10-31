@@ -17,6 +17,7 @@ const {
   deleteUserForAdmin,
   deactivateUserForAdmin
 } = require('../controllers/adminController');
+const { getAdminPaymentHistory } = require('../controllers/legalSubmissionController');
 const { protect, authorize, protect: adminProtect } = require('../middleware/adminAuth');
 
 const router = express.Router();
@@ -63,6 +64,9 @@ router.get('/users/:id', adminProtect, getUserByIdForAdmin);
 router.put('/users/:id', adminProtect, updateUserForAdmin);
 router.delete('/users/:id', adminProtect, deleteUserForAdmin);
 router.patch('/users/:id/deactivate', adminProtect, deactivateUserForAdmin);
+
+// Legal Service Payment History (Admin access)
+router.get('/legal-payments', adminProtect, getAdminPaymentHistory);
 
 module.exports = router;
 
