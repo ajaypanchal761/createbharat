@@ -417,7 +417,7 @@ export const companyAPI = {
     // If files are provided, use FormData
     if (registrationFile || gstFile) {
       const formData = new FormData();
-      
+
       // Append all profile fields to formData
       Object.keys(profileData).forEach(key => {
         if (profileData[key] !== null && profileData[key] !== undefined) {
@@ -429,12 +429,12 @@ export const companyAPI = {
           }
         }
       });
-      
+
       // Append files if provided
       if (registrationFile) {
         formData.append('registrationCertificate', registrationFile);
       }
-      
+
       if (gstFile) {
         formData.append('gstCertificate', gstFile);
       }
@@ -738,10 +738,10 @@ export const mentorAPI = {
   // Mentor: Update booking status
   updateBookingStatus: async (token, bookingId, status, date, time, sessionLink, rejectReason) => {
     const body = { status };
-    if(date) body.date = date;
-    if(time) body.time = time;
-    if(sessionLink) body.sessionLink = sessionLink;
-    if(status === 'rejected' && rejectReason) body.reason = rejectReason;
+    if (date) body.date = date;
+    if (time) body.time = time;
+    if (sessionLink) body.sessionLink = sessionLink;
+    if (status === 'rejected' && rejectReason) body.reason = rejectReason;
     return apiCall(`/mentors/bookings/${bookingId}/status`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}` },
@@ -757,7 +757,7 @@ export const mentorBookingAPI = {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
-    const cleanToken = token.trim().replace(/^(["'])|\1$/g, '');
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
     return apiCall(`/mentors/${mentorId}/book`, {
       method: 'POST',
       headers: {
@@ -772,7 +772,7 @@ export const mentorBookingAPI = {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
-    const cleanToken = token.trim().replace(/^(["'])|\1$/g, '');
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
     return apiCall(`/mentors/bookings/${bookingId}/create-order`, {
       method: 'POST',
       headers: {
@@ -786,7 +786,7 @@ export const mentorBookingAPI = {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
-    const cleanToken = token.trim().replace(/^(["'])|\1$/g, '');
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
     return apiCall(`/mentors/bookings/${bookingId}/payment`, {
       method: 'PUT',
       headers: {
@@ -802,7 +802,7 @@ export const mentorBookingAPI = {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
-    const cleanToken = token.trim().replace(/^(["'])|\1$/g, '');
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
     return apiCall(`/mentors/my-bookings${queryString ? `?${queryString}` : ''}`, {
       method: 'GET',
       headers: {
@@ -815,7 +815,7 @@ export const mentorBookingAPI = {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
-    const cleanToken = token.trim().replace(/^(["'])|\1$/g, '');
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
     return apiCall(`/mentors/bookings/${bookingId}`, {
       method: 'GET',
       headers: {
@@ -825,7 +825,7 @@ export const mentorBookingAPI = {
   },
 };
 
-// Training API calls
+// Training API calls (for users)
 export const trainingAPI = {
   // Get all published courses (public)
   getCourses: async (params = {}) => {
@@ -835,15 +835,15 @@ export const trainingAPI = {
     });
   },
 
-  // Get course details by ID (public)
-  getCourseById: async (id) => {
-    return apiCall(`/training/courses/${id}`, {
+  // Get course by ID (public)
+  getCourseById: async (courseId) => {
+    return apiCall(`/training/courses/${courseId}`, {
       method: 'GET',
     });
   },
 
-  // Enroll in course (protected)
-  enrollInCourse: async (token, courseId) => {
+  // Enroll in course (user)
+  enroll: async (token, courseId) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
@@ -856,7 +856,7 @@ export const trainingAPI = {
     });
   },
 
-  // Get user's training progress (protected)
+  // Get user's progress (user)
   getMyProgress: async (token, params = {}) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
@@ -871,7 +871,7 @@ export const trainingAPI = {
     });
   },
 
-  // Complete a topic (protected)
+  // Complete topic (user)
   completeTopic: async (token, courseId, topicId) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
@@ -885,7 +885,7 @@ export const trainingAPI = {
     });
   },
 
-  // Submit quiz (protected)
+  // Submit quiz (user)
   submitQuiz: async (token, quizId, answers) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
@@ -900,7 +900,7 @@ export const trainingAPI = {
     });
   },
 
-  // Create certificate order (protected)
+  // Create certificate order (user)
   createCertificateOrder: async (token, courseId) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
@@ -914,7 +914,7 @@ export const trainingAPI = {
     });
   },
 
-  // Update certificate payment (protected)
+  // Update certificate payment (user)
   updateCertificatePayment: async (token, courseId, paymentData) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
@@ -930,9 +930,9 @@ export const trainingAPI = {
   },
 };
 
-// Legal Service API calls
+// Legal Service API calls (for users)
 export const legalServiceAPI = {
-  // Get all legal services (public)
+  // Get all legal services
   getAll: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiCall(`/legal/services${queryString ? `?${queryString}` : ''}`, {
@@ -940,75 +940,17 @@ export const legalServiceAPI = {
     });
   },
 
-  // Get service by ID (public)
-  getById: async (id) => {
-    return apiCall(`/legal/services/${id}`, {
+  // Get legal service by ID
+  getById: async (serviceId) => {
+    return apiCall(`/legal/services/${serviceId}`, {
       method: 'GET',
     });
-  },
-
-  // CA: Get my services (protected)
-  getCAServices: async (token) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/legal/legal-services', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  },
-
-  // CA: Create service (protected)
-  createService: async (token, serviceData) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/legal/legal-services', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-      body: JSON.stringify(serviceData),
-    });
-  },
-
-  // CA: Update service (protected)
-  updateService: async (token, id, updateData) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/legal/legal-services/${id}`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-      body: JSON.stringify(updateData),
-    });
-  },
-
-  // CA: Delete service (protected)
-  deleteService: async (token, id) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/legal/legal-services/${id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  },
+  }
 };
 
 // CA API calls
 export const caAPI = {
-  // Login CA
+  // CA Login
   login: async (credentials) => {
     return apiCall('/ca/login', {
       method: 'POST',
@@ -1016,7 +958,7 @@ export const caAPI = {
     });
   },
 
-  // Get CA profile (protected)
+  // Get CA Profile
   getProfile: async (token) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
@@ -1030,7 +972,7 @@ export const caAPI = {
     });
   },
 
-  // Update CA profile (protected)
+  // Update CA Profile
   updateProfile: async (token, profileData) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
@@ -1043,18 +985,33 @@ export const caAPI = {
       },
       body: JSON.stringify(profileData),
     });
-  },
+  }
 };
 
-// CA Legal Service API calls (alias for CA-specific legal service operations)
-export const caLegalServiceAPI = {
-  // Get all CA's legal services
-  getAll: async (token) => {
+// Admin CA API calls
+export const adminCAAPI = {
+  // Register CA (Admin only - only one CA can exist)
+  register: async (token, caData) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/legal/legal-services', {
+    return apiCall('/ca/admin/register', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(caData),
+    });
+  },
+
+  // Get payment history for legal services (Admin only - completed submissions)
+  getPaymentHistory: async (token) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/admin/legal-payments', {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${cleanToken}`,
@@ -1062,13 +1019,73 @@ export const caLegalServiceAPI = {
     });
   },
 
-  // Create legal service
+  // Get CA (Admin)
+  getCA: async (token) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/ca/admin', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Update CA (Admin)
+  updateCA: async (token, caData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/ca/admin', {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(caData),
+    });
+  },
+
+  // Delete CA (Admin)
+  deleteCA: async (token) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/ca/admin', {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  }
+};
+
+// CA Legal Service API calls
+export const caLegalServiceAPI = {
+  // Get all services (CA)
+  getAll: async (token) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/ca/legal-services', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Create service
   create: async (token, serviceData) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/legal/legal-services', {
+    return apiCall('/ca/legal-services', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${cleanToken}`,
@@ -1077,34 +1094,169 @@ export const caLegalServiceAPI = {
     });
   },
 
-  // Update legal service
-  update: async (token, id, updateData) => {
+  // Update service
+  update: async (token, serviceId, serviceData) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/legal/legal-services/${id}`, {
+    return apiCall(`/ca/legal-services/${serviceId}`, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${cleanToken}`,
       },
-      body: JSON.stringify(updateData),
+      body: JSON.stringify(serviceData),
     });
   },
 
-  // Delete legal service
-  delete: async (token, id) => {
+  // Delete service
+  delete: async (token, serviceId) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/legal/legal-services/${id}`, {
+    return apiCall(`/ca/legal-services/${serviceId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${cleanToken}`,
       },
     });
+  }
+};
+
+// Legal Submission API calls (for users)
+export const legalSubmissionAPI = {
+  // Create submission with documents
+  create: async (token, serviceId, category, files) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+
+    const formData = new FormData();
+    formData.append('serviceId', serviceId);
+    if (category) {
+      formData.append('category', category);
+    }
+    if (files && files.length > 0) {
+      files.forEach((file) => {
+        formData.append('documents', file);
+      });
+    }
+
+    return apiCall('/legal/submissions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: formData,
+      skipJsonHeaders: true,
+    });
   },
+
+  // Create Razorpay order
+  createOrder: async (token, submissionId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/legal/submissions/${submissionId}/create-order`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Update payment
+  updatePayment: async (token, submissionId, paymentData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/legal/submissions/${submissionId}/payment`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(paymentData),
+    });
+  },
+
+  // Get user's submissions
+  getUserSubmissions: async (token) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/legal/submissions', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Get submission by ID
+  getById: async (token, submissionId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/legal/submissions/${submissionId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  }
+};
+
+// CA Legal Submission API calls
+export const caLegalSubmissionAPI = {
+  // Get all submissions (CA)
+  getAll: async (token, status = null) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    const url = status ? `/ca/submissions?status=${status}` : '/ca/submissions';
+    return apiCall(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Get submission by ID (CA)
+  getById: async (token, submissionId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/ca/submissions/${submissionId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  // Update submission status (CA)
+  updateStatus: async (token, submissionId, statusData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/ca/submissions/${submissionId}/status`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(statusData),
+    });
+  }
 };
 
 // Admin Training API calls
@@ -1124,12 +1276,12 @@ export const adminTrainingAPI = {
   },
 
   // Get course by ID (admin)
-  getCourseById: async (token, id) => {
+  getCourseById: async (token, courseId) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/admin/training/courses/${id}`, {
+    return apiCall(`/admin/training/courses/${courseId}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${cleanToken}`,
@@ -1153,27 +1305,27 @@ export const adminTrainingAPI = {
   },
 
   // Update course (admin)
-  updateCourse: async (token, id, updateData) => {
+  updateCourse: async (token, courseId, courseData) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/admin/training/courses/${id}`, {
+    return apiCall(`/admin/training/courses/${courseId}`, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${cleanToken}`,
       },
-      body: JSON.stringify(updateData),
+      body: JSON.stringify(courseData),
     });
   },
 
   // Delete course (admin)
-  deleteCourse: async (token, id) => {
+  deleteCourse: async (token, courseId) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/admin/training/courses/${id}`, {
+    return apiCall(`/admin/training/courses/${courseId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${cleanToken}`,
@@ -1182,12 +1334,12 @@ export const adminTrainingAPI = {
   },
 
   // Toggle course publish status (admin)
-  toggleCoursePublish: async (token, id) => {
+  toggleCoursePublish: async (token, courseId) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/admin/training/courses/${id}/publish`, {
+    return apiCall(`/admin/training/courses/${courseId}/publish`, {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${cleanToken}`,
@@ -1211,27 +1363,27 @@ export const adminTrainingAPI = {
   },
 
   // Update module (admin)
-  updateModule: async (token, id, updateData) => {
+  updateModule: async (token, moduleId, moduleData) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/admin/training/modules/${id}`, {
+    return apiCall(`/admin/training/modules/${moduleId}`, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${cleanToken}`,
       },
-      body: JSON.stringify(updateData),
+      body: JSON.stringify(moduleData),
     });
   },
 
   // Delete module (admin)
-  deleteModule: async (token, id) => {
+  deleteModule: async (token, moduleId) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/admin/training/modules/${id}`, {
+    return apiCall(`/admin/training/modules/${moduleId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${cleanToken}`,
@@ -1255,27 +1407,27 @@ export const adminTrainingAPI = {
   },
 
   // Update topic (admin)
-  updateTopic: async (token, id, updateData) => {
+  updateTopic: async (token, topicId, topicData) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/admin/training/topics/${id}`, {
+    return apiCall(`/admin/training/topics/${topicId}`, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${cleanToken}`,
       },
-      body: JSON.stringify(updateData),
+      body: JSON.stringify(topicData),
     });
   },
 
   // Delete topic (admin)
-  deleteTopic: async (token, id) => {
+  deleteTopic: async (token, topicId) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/admin/training/topics/${id}`, {
+    return apiCall(`/admin/training/topics/${topicId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${cleanToken}`,
@@ -1299,95 +1451,34 @@ export const adminTrainingAPI = {
   },
 
   // Update quiz (admin)
-  updateQuiz: async (token, id, updateData) => {
+  updateQuiz: async (token, quizId, quizData) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/admin/training/quizzes/${id}`, {
+    return apiCall(`/admin/training/quizzes/${quizId}`, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${cleanToken}`,
       },
-      body: JSON.stringify(updateData),
+      body: JSON.stringify(quizData),
     });
   },
 
   // Delete quiz (admin)
-  deleteQuiz: async (token, id) => {
+  deleteQuiz: async (token, quizId) => {
     if (!token || token === 'null' || token === 'undefined') {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/admin/training/quizzes/${id}`, {
+    return apiCall(`/admin/training/quizzes/${quizId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${cleanToken}`,
       },
     });
-  },
+  }
 };
 
-// Admin CA API calls
-export const adminCAAPI = {
-  // Get CA (admin)
-  getCA: async (token) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/ca/admin', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  },
-
-  // Register CA (admin)
-  register: async (token, caData) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/ca/admin/register', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-      body: JSON.stringify(caData),
-    });
-  },
-
-  // Update CA (admin)
-  updateCA: async (token, updateData) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/ca/admin', {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-      body: JSON.stringify(updateData),
-    });
-  },
-
-  // Delete CA (admin)
-  deleteCA: async (token) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/ca/admin', {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  },
-};
-
-export default { authAPI, adminAPI, companyAPI, internshipAPI, applicationAPI, loansAPI, adminLoansAPI, mentorAPI, mentorBookingAPI, trainingAPI, legalServiceAPI, caAPI, caLegalServiceAPI, adminTrainingAPI, adminCAAPI };
+export default { authAPI, adminAPI, companyAPI, internshipAPI, applicationAPI, loansAPI, adminLoansAPI, mentorAPI, mentorBookingAPI, caAPI, adminCAAPI, legalServiceAPI, caLegalServiceAPI, legalSubmissionAPI, caLegalSubmissionAPI, trainingAPI, adminTrainingAPI };
 

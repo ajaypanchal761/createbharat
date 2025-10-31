@@ -48,6 +48,22 @@ const resumeFilter = (req, file, cb) => {
   }
 };
 
+// File filter for legal documents (PDF and images)
+const legalDocumentFilter = (req, file, cb) => {
+  const allowedMimes = [
+    'application/pdf',
+    'image/jpeg',
+    'image/jpg',
+    'image/png'
+  ];
+
+  if (allowedMimes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only PDF, JPEG, and PNG files are allowed'), false);
+  }
+};
+
 // Configure multer for images
 const upload = multer({
   storage: storage,
@@ -87,9 +103,19 @@ const uploadDocuments = multer({
   fileFilter: resumeFilter // Same filter as resumes (PDF, DOC, DOCX)
 });
 
+// Configure multer for legal documents (PDF and images)
+const uploadLegalDocuments = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit for legal documents
+  },
+  fileFilter: legalDocumentFilter
+});
+
 // Export all upload middleware and parser
 module.exports = upload;
 module.exports.uploadResume = uploadResume;
 module.exports.uploadDocuments = uploadDocuments;
+module.exports.uploadLegalDocuments = uploadLegalDocuments;
 module.exports.parseFormData = parseFormDataFields;
 

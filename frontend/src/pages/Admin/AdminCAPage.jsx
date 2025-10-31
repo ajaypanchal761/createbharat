@@ -33,42 +33,11 @@ const AdminCAPage = () => {
     // CA data - only one CA can exist
     const [ca, setCa] = useState(null);
 
-    // Mock data for users who paid for CA services
-    const paidUsers = [
-        {
-            id: 1,
-            userName: 'Amit Patel',
-            userEmail: 'amit@example.com',
-            userPhone: '9876543210',
-            serviceType: 'GST Registration',
-            amount: 5000,
-            paymentDate: '2024-03-01',
-            caAssigned: 'Rajesh Kumar',
-            status: 'In Progress'
-        },
-        {
-            id: 2,
-            userName: 'Deepak Singh',
-            userEmail: 'deepak@example.com',
-            userPhone: '9876543211',
-            serviceType: 'Income Tax Filing',
-            amount: 3500,
-            paymentDate: '2024-03-05',
-            caAssigned: 'Priya Sharma',
-            status: 'Completed'
-        },
-        {
-            id: 3,
-            userName: 'Neha Gupta',
-            userEmail: 'neha@example.com',
-            userPhone: '9876543212',
-            serviceType: 'Company Registration',
-            amount: 8000,
-            paymentDate: '2024-03-10',
-            caAssigned: 'Rajesh Kumar',
-            status: 'In Progress'
-        }
-    ];
+    // Payment history state
+    const [paymentHistory, setPaymentHistory] = useState([]);
+    const [isPaymentHistoryLoading, setIsPaymentHistoryLoading] = useState(false);
+    const [paymentHistoryError, setPaymentHistoryError] = useState('');
+    const [totalRevenue, setTotalRevenue] = useState(0);
 
     const handleChange = (e) => {
         setFormData({
@@ -77,9 +46,10 @@ const AdminCAPage = () => {
         });
     };
 
-    // Fetch CA data on mount
+    // Fetch CA data and payment history on mount
     useEffect(() => {
         fetchCA();
+        fetchPaymentHistory();
     }, []);
 
     const fetchCA = async () => {
@@ -120,18 +90,18 @@ const AdminCAPage = () => {
             const response = await adminCAAPI.register(token, formData);
             if (response.success) {
                 setCa(response.data.ca);
-                setFormData({
-                    name: '',
-                    email: '',
-                    password: '',
-                    caNumber: '',
-                    phone: '',
-                    experience: '',
-                    specialization: '',
-                    firmName: ''
-                });
-                setShowRegisterForm(false);
-                alert('CA registered successfully!');
+        setFormData({
+            name: '',
+            email: '',
+            password: '',
+            caNumber: '',
+            phone: '',
+            experience: '',
+            specialization: '',
+            firmName: ''
+        });
+        setShowRegisterForm(false);
+        alert('CA registered successfully!');
             } else {
                 setError(response.message || 'Failed to register CA');
             }
@@ -201,6 +171,70 @@ const AdminCAPage = () => {
         }
     };
 
+    const fetchPaymentHistory = async () => {
+        setIsPaymentHistoryLoading(true);
+        setPaymentHistoryError('');
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                setPaymentHistoryError('Admin token not found');
+                setIsPaymentHistoryLoading(false);
+                return;
+            }
+            const response = await adminCAAPI.getPaymentHistory(token);
+            if (response.success && response.data) {
+                // Transform backend data to match frontend format
+                const transformedHistory = response.data.map(payment => ({
+                    id: payment.id,
+                    userName: payment.userName || 'User',
+                    userEmail: payment.userEmail || '',
+                    userPhone: payment.userPhone || '',
+                    serviceType: payment.serviceName || 'Legal Service',
+                    serviceIcon: payment.serviceIcon || '⚖️',
+                    serviceCategory: payment.serviceCategory || '',
+                    amount: payment.paymentAmount || 0,
+                    paymentMethod: payment.paymentMethod || 'razorpay',
+                    transactionId: payment.transactionId || payment.razorpayPaymentId || '',
+                    razorpayOrderId: payment.razorpayOrderId || '',
+                    razorpayPaymentId: payment.razorpayPaymentId || '',
+                    paymentDate: payment.paidAt
+                        ? new Date(payment.paidAt).toLocaleDateString('en-IN', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                        })
+                        : 'N/A',
+                    completedDate: payment.completedAt
+                        ? new Date(payment.completedAt).toLocaleDateString('en-IN', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                        })
+                        : 'N/A',
+                    submittedDate: payment.submittedAt
+                        ? new Date(payment.submittedAt).toLocaleDateString('en-IN', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                        })
+                        : 'N/A'
+                }));
+                setPaymentHistory(transformedHistory);
+                setTotalRevenue(response.totalRevenue || 0);
+            } else {
+                setPaymentHistory([]);
+                setTotalRevenue(0);
+            }
+        } catch (err) {
+            console.error('Error fetching payment history:', err);
+            setPaymentHistoryError(err.message || 'Failed to fetch payment history');
+            setPaymentHistory([]);
+            setTotalRevenue(0);
+        } finally {
+            setIsPaymentHistoryLoading(false);
+        }
+    };
+
     const handleDelete = async () => {
         if (!window.confirm('Are you sure you want to delete this CA? You will be able to register a new CA after deletion.')) {
             return;
@@ -248,13 +282,13 @@ const AdminCAPage = () => {
                         </div>
                     </div>
                     {!ca ? (
-                        <button
-                            onClick={() => setShowRegisterForm(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                            <FaPlus className="w-4 h-4" />
-                            Register CA
-                        </button>
+                    <button
+                        onClick={() => setShowRegisterForm(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        <FaPlus className="w-4 h-4" />
+                        Register CA
+                    </button>
                     ) : (
                         <div className="flex gap-2">
                             <button
@@ -630,45 +664,95 @@ const AdminCAPage = () => {
                     )}
                 </div>
 
-                {/* Paid Users Section */}
+                {/* Payment History Section */}
                 <div className="space-y-4">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">Paid Users</h2>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-bold text-gray-900">Payment History</h2>
+                        {totalRevenue > 0 && (
+                            <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
+                                <span className="text-sm text-gray-600">Total Revenue:</span>
+                                <span className="text-lg font-bold text-green-600 flex items-center gap-1">
+                                    <FaRupeeSign />{totalRevenue.toLocaleString('en-IN')}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                    
+                    {paymentHistoryError && (
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                            {paymentHistoryError}
+                        </div>
+                    )}
+
+                    {isPaymentHistoryLoading ? (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
+                            <p className="text-gray-600">Loading payment history...</p>
+                        </div>
+                    ) : paymentHistory.length === 0 ? (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
+                            <p className="text-gray-600">No payment history available. Payments will appear here once users complete legal services.</p>
+                        </div>
+                    ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {paidUsers.map((user) => (
+                            {paymentHistory.map((payment) => (
                             <motion.div
-                                key={user.id}
+                                    key={payment.id}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow"
                             >
                                 <div className="flex items-start gap-3 mb-3">
-                                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <FaUser className="w-5 h-5 text-white" />
+                                        <div className="text-2xl flex-shrink-0">
+                                            {payment.serviceIcon}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="text-sm font-bold text-gray-900 truncate">{user.userName}</h3>
-                                        <p className="text-xs text-gray-600 truncate">{user.userEmail}</p>
+                                            <h3 className="text-sm font-bold text-gray-900 truncate">{payment.userName}</h3>
+                                            <p className="text-xs text-gray-600 truncate">{payment.userEmail}</p>
+                                            {payment.userPhone && (
+                                                <p className="text-xs text-gray-500 truncate">{payment.userPhone}</p>
+                                            )}
                                     </div>
                                 </div>
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs text-gray-600">Service</span>
-                                        <span className="text-xs font-semibold text-gray-900">{user.serviceType}</span>
+                                            <span className="text-xs font-semibold text-gray-900">{payment.serviceType}</span>
+                                        </div>
+                                        {payment.serviceCategory && (
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs text-gray-600">Category</span>
+                                                <span className="text-xs text-gray-700 bg-blue-50 px-2 py-0.5 rounded-full">{payment.serviceCategory}</span>
                                     </div>
+                                        )}
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs text-gray-600">Amount</span>
                                         <span className="text-xs font-bold text-green-600 flex items-center gap-1">
-                                            <FaRupeeSign />{user.amount.toLocaleString()}
+                                                <FaRupeeSign />{payment.amount.toLocaleString('en-IN')}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs text-gray-600">Payment Date</span>
-                                        <span className="text-xs font-semibold text-gray-700">{user.paymentDate}</span>
+                                            <span className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                                                <FaCalendar className="w-3 h-3" />
+                                                {payment.paymentDate}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-gray-600">Completed</span>
+                                            <span className="text-xs text-gray-700">{payment.completedDate}</span>
+                                        </div>
+                                        {payment.transactionId && (
+                                            <div className="mt-2 pt-2 border-t border-gray-100">
+                                                <p className="text-xs text-gray-500 truncate">
+                                                    <span className="font-medium">Txn ID:</span> {payment.transactionId}
+                                                </p>
                                     </div>
+                                        )}
                                 </div>
                             </motion.div>
                         ))}
                     </div>
+                    )}
                 </div>
             </div>
         </div>

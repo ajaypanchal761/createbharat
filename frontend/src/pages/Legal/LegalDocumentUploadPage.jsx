@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { legalServiceAPI, legalSubmissionAPI } from '../../utils/api';
 
 // Icons
 const ArrowLeftIcon = () => (
@@ -37,25 +38,40 @@ const SpinnerIcon = () => (
 const LegalDocumentUploadPage = () => {
   const { serviceId } = useParams();
   const navigate = useNavigate();
+  const [service, setService] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const legalServices = {
-    1: { name: 'GST Registration', icon: '📋', color: 'from-blue-500 to-cyan-500' },
-    2: { name: 'GST Filing', icon: '📄', color: 'from-green-500 to-emerald-500' },
-    3: { name: 'Income Tax Filing', icon: '💰', color: 'from-purple-500 to-violet-500' },
-    4: { name: 'ROC Filing', icon: '🏢', color: 'from-orange-500 to-red-500' },
-    5: { name: 'Import Export Registration', icon: '🚢', color: 'from-indigo-500 to-blue-500' },
-    6: { name: 'MSME Registration', icon: '🏭', color: 'from-teal-500 to-green-500' },
-    7: { name: 'Trade Mark Filing', icon: '™️', color: 'from-pink-500 to-rose-500' },
-    8: { name: 'Food (FSSAI) License', icon: '🍽️', color: 'from-yellow-500 to-orange-500' },
-    9: { name: 'PF/ESIC Registration', icon: '👥', color: 'from-cyan-500 to-blue-500' },
-    10: { name: 'ISO Certification', icon: '🏆', color: 'from-emerald-500 to-teal-500' },
-    11: { name: 'Proprietorship Company Registration', icon: '👤', color: 'from-violet-500 to-purple-500' },
-    12: { name: 'Partnership Company Registration', icon: '🤝', color: 'from-red-500 to-pink-500' },
-    13: { name: 'Private Limited/LLP Company Registration', icon: '🏛️', color: 'from-blue-600 to-indigo-600' },
-    14: { name: 'NGO Registration', icon: '❤️', color: 'from-green-600 to-emerald-600' }
+  // Fetch service details from backend
+  useEffect(() => {
+    fetchServiceDetails();
+  }, [serviceId]);
+
+  const fetchServiceDetails = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await legalServiceAPI.getById(serviceId);
+      if (response.success && response.data.service) {
+        const serviceData = response.data.service;
+        setService({
+          id: serviceData._id,
+          name: serviceData.name,
+          icon: serviceData.icon || '⚖️',
+          color: 'from-blue-500 to-cyan-500', // Default color
+          documentUploads: serviceData.documentUploads || [],
+          requiredDocuments: serviceData.requiredDocuments || []
+        });
+      } else {
+        setError('Service not found');
+      }
+    } catch (err) {
+      console.error('Error fetching service details:', err);
+      setError(err.message || 'Failed to fetch service details');
+    } finally {
+      setIsLoading(false);
+    }
   };
-
-  const service = legalServices[parseInt(serviceId)];
 
   // GST Types for category dropdown
   const gstTypes = [
@@ -218,8 +234,22 @@ const LegalDocumentUploadPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [submissionId, setSubmissionId] = useState(null);
 
-  const documents = documentRequirements[parseInt(serviceId)] || [];
+  // Use documentUploads from service if available, otherwise fallback to mock
+  const documents = service?.documentUploads && service.documentUploads.length > 0 
+    ? service.documentUploads.map((docName, index) => ({
+        name: docName,
+        required: true,
+        description: `Upload ${docName}`
+      }))
+    : (service?.requiredDocuments && service.requiredDocuments.length > 0
+      ? service.requiredDocuments.map((docName) => ({
+          name: docName,
+          required: true,
+          description: `Upload ${docName}`
+        }))
+      : []);
 
   // Animation variants
   const fadeInUp = {
@@ -281,24 +311,69 @@ const LegalDocumentUploadPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateUploads()) {
-      setIsSubmitting(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+    if (!validateUploads()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      // Get user token
+      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      if (!token) {
+        alert('Please login to submit documents');
+        navigate('/login');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Prepare files array
+      const filesArray = Object.values(uploadedFiles).filter(file => file instanceof File);
+      
+      if (filesArray.length === 0) {
+        alert('Please upload at least one document');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Create submission with documents
+      const response = await legalSubmissionAPI.create(token, serviceId, selectedCategory || '', filesArray);
+      
+      if (response.success && response.data.submission) {
+        setSubmissionId(response.data.submission._id);
+        setIsSubmitted(true);
+        // Redirect to payment page after 2 seconds
+        setTimeout(() => {
+          navigate(`/legal/service/${serviceId}/payment`, { state: { submissionId: response.data.submission._id } });
+        }, 2000);
+      } else {
+        setError(response.message || 'Failed to create submission');
+      }
+    } catch (err) {
+      console.error('Error submitting documents:', err);
+      setError(err.message || 'Failed to submit documents. Please try again.');
+    } finally {
       setIsSubmitting(false);
-      setIsSubmitted(true);
-      // Redirect to payment page
-      setTimeout(() => {
-        navigate(`/legal/service/${serviceId}/payment`);
-      }, 3000);
     }
   };
 
-  if (!service) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Loading service details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !service) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Service Not Found</h1>
+          <p className="text-gray-600 mb-4">{error || 'The service you are looking for does not exist.'}</p>
           <button
             onClick={() => navigate('/legal')}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -369,7 +444,7 @@ const LegalDocumentUploadPage = () => {
           <motion.div
             whileHover={{ scale: 1.1, rotate: 5 }}
             transition={{ duration: 0.3 }}
-            className={`w-20 h-20 bg-gradient-to-r ${service.color} rounded-2xl flex items-center justify-center text-white text-4xl mx-auto mb-4 shadow-lg`}
+            className={`w-20 h-20 bg-gradient-to-r ${service.color || 'from-blue-500 to-cyan-500'} rounded-2xl flex items-center justify-center text-white text-4xl mx-auto mb-4 shadow-lg`}
           >
             {service.icon}
           </motion.div>
@@ -377,8 +452,8 @@ const LegalDocumentUploadPage = () => {
           <p className="text-gray-600">Upload all required documents for {service.name}</p>
         </motion.div>
 
-        {/* GST Category Dropdown (only for GST Registration) */}
-        {parseInt(serviceId) === 1 && (
+        {/* GST Category Dropdown (only for GST Registration service) */}
+        {serviceId && service.name && service.name.toLowerCase().includes('gst') && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -408,6 +483,17 @@ const LegalDocumentUploadPage = () => {
           </motion.div>
         )}
 
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4 mb-6"
+          >
+            {error}
+          </motion.div>
+        )}
+
         {/* Upload Form */}
         <motion.form
           onSubmit={handleSubmit}
@@ -416,71 +502,80 @@ const LegalDocumentUploadPage = () => {
           variants={staggerContainer}
           className="space-y-6"
         >
-          {documents.map((doc, index) => (
+          {documents.length === 0 ? (
             <motion.div
-              key={doc.name}
               variants={fadeInUp}
-              className="bg-white rounded-xl p-6 shadow-md"
+              className="bg-white rounded-xl p-6 shadow-md text-center"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <DocumentIcon />
-                    {doc.name}
-                    {doc.required && <span className="text-red-500 text-sm">*</span>}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">{doc.description}</p>
+              <p className="text-gray-600">No documents required for this service.</p>
+            </motion.div>
+          ) : (
+            documents.map((doc, index) => (
+              <motion.div
+                key={doc.name}
+                variants={fadeInUp}
+                className="bg-white rounded-xl p-6 shadow-md"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <DocumentIcon />
+                      {doc.name}
+                      {doc.required && <span className="text-red-500 text-sm">*</span>}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">{doc.description}</p>
+                  </div>
+                  {uploadedFiles[doc.name] && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="text-green-500"
+                    >
+                      <CheckCircleIcon />
+                    </motion.div>
+                  )}
                 </div>
+
+                <label 
+                  htmlFor={`file-${index}`}
+                  className={`flex flex-col items-center justify-center w-full h-32 border-2 ${uploadedFiles[doc.name] ? 'border-green-500' : 'border-blue-300'} border-dashed rounded-lg cursor-pointer bg-blue-50 hover:bg-blue-100 transition-colors duration-200`}
+                >
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <UploadIcon />
+                    <p className="mb-2 text-sm text-gray-600">
+                      <span className="font-semibold">Click to upload</span> or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-500">PDF, JPEG, PNG (MAX. 10MB)</p>
+                  </div>
+                  <input 
+                    id={`file-${index}`}
+                    type="file" 
+                    className="hidden" 
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => handleFileChange(doc.name, e.target.files[0])}
+                  />
+                </label>
+
                 {uploadedFiles[doc.name] && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="text-green-500"
+                  <motion.p 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-2 text-sm text-gray-700 flex items-center gap-2"
                   >
                     <CheckCircleIcon />
-                  </motion.div>
+                    Uploaded: <span className="font-medium">{uploadedFiles[doc.name].name}</span>
+                  </motion.p>
                 )}
-              </div>
-
-              <label 
-                htmlFor={`file-${index}`}
-                className={`flex flex-col items-center justify-center w-full h-32 border-2 ${uploadedFiles[doc.name] ? 'border-green-500' : 'border-blue-300'} border-dashed rounded-lg cursor-pointer bg-blue-50 hover:bg-blue-100 transition-colors duration-200`}
-              >
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <UploadIcon />
-                  <p className="mb-2 text-sm text-gray-600">
-                    <span className="font-semibold">Click to upload</span> or drag and drop
-                  </p>
-                  <p className="text-xs text-gray-500">PDF, JPEG, PNG (MAX. 10MB)</p>
-                </div>
-                <input 
-                  id={`file-${index}`}
-                  type="file" 
-                  className="hidden" 
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => handleFileChange(doc.name, e.target.files[0])}
-                />
-              </label>
-
-              {uploadedFiles[doc.name] && (
-                <motion.p 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-2 text-sm text-gray-700 flex items-center gap-2"
-                >
-                  <CheckCircleIcon />
-                  Uploaded: <span className="font-medium">{uploadedFiles[doc.name].name}</span>
-                </motion.p>
-              )}
-            </motion.div>
-          ))}
+              </motion.div>
+            ))
+          )}
 
           {/* Submit Button */}
           <motion.button
             type="submit"
             whileHover={{ scale: 1.02, boxShadow: "0 10px 20px rgba(59, 130, 246, 0.3)" }}
             whileTap={{ scale: 0.98 }}
-            className={`w-full bg-gradient-to-r ${service.color} text-white py-4 px-6 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2`}
+            className={`w-full bg-gradient-to-r ${service.color || 'from-blue-500 to-cyan-500'} text-white py-4 px-6 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2`}
             disabled={isSubmitting}
           >
             {isSubmitting && <SpinnerIcon />}

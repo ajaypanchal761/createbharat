@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FaGavel, 
-  FaFileUpload, 
-  FaUsers, 
+import {
+  FaGavel,
+  FaFileUpload,
+  FaUsers,
   FaSignOutAlt,
   FaPlus,
   FaEdit,
@@ -12,7 +12,7 @@ import {
   FaSearch, 
   FaUserCircle
 } from 'react-icons/fa';
-import { caAPI, caLegalServiceAPI } from '../../utils/api';
+import { caAPI, caLegalServiceAPI, caLegalSubmissionAPI } from '../../utils/api';
 
 const CADashboard = () => {
   const navigate = useNavigate();
@@ -27,7 +27,10 @@ const CADashboard = () => {
   const [editingService, setEditingService] = useState(null);
   const [showSubmissionDetail, setShowSubmissionDetail] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
-  
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
   // Legal Services State
   const [legalServices, setLegalServices] = useState([
     {
@@ -116,7 +119,7 @@ const CADashboard = () => {
       submissions: 15
     }
   ]);
-  
+
   // Form state for create/edit
   const [formData, setFormData] = useState({
     name: '',
@@ -157,6 +160,8 @@ const CADashboard = () => {
     currentPassword: ''
   });
 
+  const [isSubmissionsLoading, setIsSubmissionsLoading] = useState(false);
+  const [submissionsError, setSubmissionsError] = useState(null);
   const [userSubmissions, setUserSubmissions] = useState([
     {
       id: 1,
@@ -223,6 +228,13 @@ const CADashboard = () => {
     }
   }, [activeTab]);
 
+  // Fetch submissions when submissions tab is active
+  useEffect(() => {
+    if (activeTab === 'submissions') {
+      fetchSubmissions();
+    }
+  }, [activeTab]);
+
   const fetchLegalServices = async () => {
     setIsServicesLoading(true);
     setError('');
@@ -260,6 +272,192 @@ const CADashboard = () => {
       setError(err.message || 'Failed to fetch legal services');
     } finally {
       setIsServicesLoading(false);
+    }
+  };
+
+  const fetchSubmissions = async () => {
+    setIsSubmissionsLoading(true);
+    setSubmissionsError(null);
+    try {
+      const token = localStorage.getItem('caToken');
+      if (!token) {
+        setSubmissionsError('CA token not found');
+        setIsSubmissionsLoading(false);
+        return;
+      }
+      const response = await caLegalSubmissionAPI.getAll(token);
+      if (response.success && response.data) {
+        // Transform backend data to match frontend format
+        const transformedSubmissions = response.data.map(submission => ({
+          id: submission.id || submission._id,
+          userName: submission.userName || 'User',
+          userEmail: submission.userEmail || '',
+          userPhone: submission.userPhone || '',
+          serviceName: submission.serviceName || '',
+          submittedDate: submission.submittedDate || new Date().toISOString().split('T')[0],
+          status: submission.status || 'pending',
+          paymentStatus: submission.paymentStatus || 'pending',
+          paymentAmount: submission.paymentAmount || 0,
+          documents: submission.documents || [],
+          category: submission.category || '',
+          caNotes: submission.caNotes || '',
+          rejectionReason: submission.rejectionReason || ''
+        }));
+        setUserSubmissions(transformedSubmissions);
+      }
+    } catch (err) {
+      console.error('Error fetching submissions:', err);
+      setSubmissionsError(err.message || 'Failed to fetch submissions');
+    } finally {
+      setIsSubmissionsLoading(false);
+    }
+  };
+
+  const fetchSubmissionDetails = async (submissionId) => {
+    try {
+      const token = localStorage.getItem('caToken');
+      if (!token) {
+        console.error('CA token not found');
+        return;
+      }
+
+      const response = await caLegalSubmissionAPI.getById(token, submissionId);
+      if (response.success && response.data && response.data.submission) {
+        const submission = response.data.submission;
+        const user = submission.user || {};
+
+        // Update selectedSubmission with full details including user email and phone
+        setSelectedSubmission({
+          id: submission._id || submission.id,
+          userName: user.firstName && user.lastName
+            ? `${user.firstName} ${user.lastName}`.trim()
+            : user.email || 'User',
+          userEmail: user.email || '',
+          userPhone: user.phone || '',
+          serviceName: submission.serviceName || '',
+          submittedDate: submission.createdAt
+            ? new Date(submission.createdAt).toLocaleDateString('en-IN', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            })
+            : submission.submittedDate || 'N/A',
+          status: submission.status || 'pending',
+          paymentStatus: submission.paymentStatus || 'pending',
+          paymentAmount: submission.paymentAmount || 0,
+          documents: submission.documents || [],
+          category: submission.category || '',
+          caNotes: submission.caNotes || '',
+          rejectionReason: submission.rejectionReason || '',
+          address: user.address || ''
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching submission details:', err);
+    }
+  };
+
+  const handleStatusUpdate = async (newStatus) => {
+    if (!selectedSubmission || !selectedSubmission.id) {
+      alert('Submission ID not found');
+      return;
+    }
+
+    setIsUpdatingStatus(true);
+    try {
+      const token = localStorage.getItem('caToken');
+      if (!token) {
+        alert('CA token not found. Please login again.');
+        setIsUpdatingStatus(false);
+        return;
+      }
+
+      const statusData = {
+        status: newStatus,
+        caNotes: selectedSubmission.caNotes || ''
+      };
+
+      const response = await caLegalSubmissionAPI.updateStatus(token, selectedSubmission.id, statusData);
+
+      if (response.success) {
+        // Update local state
+        setUserSubmissions(userSubmissions.map(s =>
+          s.id === selectedSubmission.id
+            ? { ...s, status: newStatus }
+            : s
+        ));
+        setSelectedSubmission({ ...selectedSubmission, status: newStatus });
+
+        // Refresh submissions list
+        await fetchSubmissions();
+        alert('Status updated successfully');
+      } else {
+        throw new Error(response.message || 'Failed to update status');
+      }
+    } catch (err) {
+      console.error('Error updating status:', err);
+      alert(err.message || 'Failed to update status. Please try again.');
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleRejectSubmission = async () => {
+    if (!rejectionReason.trim()) {
+      alert('Please provide a rejection reason');
+      return;
+    }
+
+    if (!selectedSubmission || !selectedSubmission.id) {
+      alert('Submission ID not found');
+      return;
+    }
+
+    setIsUpdatingStatus(true);
+    try {
+      const token = localStorage.getItem('caToken');
+      if (!token) {
+        alert('CA token not found. Please login again.');
+        setIsUpdatingStatus(false);
+        return;
+      }
+
+      const statusData = {
+        status: 'rejected',
+        rejectionReason: rejectionReason.trim(),
+        caNotes: selectedSubmission.caNotes || ''
+      };
+
+      const response = await caLegalSubmissionAPI.updateStatus(token, selectedSubmission.id, statusData);
+
+      if (response.success) {
+        // Update local state
+        setUserSubmissions(userSubmissions.map(s =>
+          s.id === selectedSubmission.id
+            ? { ...s, status: 'rejected', rejectionReason: rejectionReason.trim() }
+            : s
+        ));
+        setSelectedSubmission({
+          ...selectedSubmission,
+          status: 'rejected',
+          rejectionReason: rejectionReason.trim()
+        });
+
+        // Close reject modal and reset reason
+        setShowRejectModal(false);
+        setRejectionReason('');
+
+        // Refresh submissions list
+        await fetchSubmissions();
+        alert('Submission rejected successfully');
+      } else {
+        throw new Error(response.message || 'Failed to reject submission');
+      }
+    } catch (err) {
+      console.error('Error rejecting submission:', err);
+      alert(err.message || 'Failed to reject submission. Please try again.');
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -317,7 +515,7 @@ const CADashboard = () => {
   const handleProfileSave = async () => {
     setIsLoading(true);
     setError('');
-    
+
     // Validate password if changing
     if (profileFormData.password) {
       if (!profileFormData.currentPassword) {
@@ -651,7 +849,7 @@ const CADashboard = () => {
                 <p className="text-xs text-gray-500">Legal Services Management</p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">
                 {localStorage.getItem('caEmail') || 'ca@example.com'}
@@ -670,7 +868,7 @@ const CADashboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
@@ -710,38 +908,35 @@ const CADashboard = () => {
               </div>
             </div>
           </div>
-        </motion.div>
+        </Motion.div>
 
         {/* Tabs */}
         <div className="bg-white rounded-2xl shadow-lg mb-6">
           <div className="flex border-b border-gray-200">
             <button
               onClick={() => setActiveTab('services')}
-              className={`flex-1 py-4 text-center font-medium transition-colors ${
-                activeTab === 'services'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`flex-1 py-4 text-center font-medium transition-colors ${activeTab === 'services'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               Legal Services
             </button>
             <button
               onClick={() => setActiveTab('submissions')}
-              className={`flex-1 py-4 text-center font-medium transition-colors ${
-                activeTab === 'submissions'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`flex-1 py-4 text-center font-medium transition-colors ${activeTab === 'submissions'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               User Submissions
             </button>
             <button
               onClick={() => setActiveTab('profile')}
-              className={`flex-1 py-4 text-center font-medium transition-colors ${
-                activeTab === 'profile'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`flex-1 py-4 text-center font-medium transition-colors ${activeTab === 'profile'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               Profile
             </button>
@@ -750,7 +945,7 @@ const CADashboard = () => {
 
         {/* Services Tab */}
         {activeTab === 'services' && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="bg-white rounded-2xl shadow-lg p-6"
@@ -819,81 +1014,99 @@ const CADashboard = () => {
                 ))}
               </div>
             )}
-          </motion.div>
+          </Motion.div>
         )}
 
         {/* Submissions Tab */}
         {activeTab === 'submissions' && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="bg-white rounded-2xl shadow-lg p-6"
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">User Submissions</h2>
-              <div className="flex items-center space-x-2">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search submissions..."
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
-                  />
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                </div>
-              </div>
+              <button
+                onClick={fetchSubmissions}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                disabled={isSubmissionsLoading}
+              >
+                {isSubmissionsLoading ? 'Loading...' : 'Refresh'}
+              </button>
             </div>
 
-            <div className="space-y-4">
-              {userSubmissions.map((submission) => (
-                <div
-                  key={submission.id}
-                  className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{submission.userName}</h3>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Service: {submission.serviceName}
-                      </p>
-                      <div className="flex items-center space-x-4 text-xs text-gray-500 mt-2">
-                        <span>📅 {submission.submittedDate}</span>
-                        <span>📧 {submission.email}</span>
-                        <span>📱 {submission.phone}</span>
+            {submissionsError && (
+              <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4 mb-4">
+                {submissionsError}
+              </div>
+            )}
+
+            {isSubmissionsLoading ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600">Loading submissions...</p>
+              </div>
+            ) : userSubmissions.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600">No submissions found.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {userSubmissions.map((submission) => (
+                  <div
+                    key={submission.id}
+                    className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{submission.userName}</h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Service: {submission.serviceName}
+                        </p>
+                        <div className="flex items-center space-x-4 text-xs text-gray-500 mt-2">
+                          <span>📅 {submission.submittedDate}</span>
+                          {submission.userEmail && <span>📧 {submission.userEmail}</span>}
+                          {submission.userPhone && <span>📱 {submission.userPhone}</span>}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end space-y-2">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${submission.status === 'pending'
+                          ? 'bg-orange-100 text-orange-600'
+                          : submission.status === 'in-progress'
+                            ? 'bg-blue-100 text-blue-600'
+                            : submission.status === 'rejected'
+                              ? 'bg-red-100 text-red-600'
+                              : 'bg-green-100 text-green-600'
+                          }`}>
+                          {submission.status.charAt(0).toUpperCase() + submission.status.slice(1).replace('-', ' ')}
+                        </span>
+                        {submission.documents && submission.documents.length > 0 && (
+                          <div className="text-xs text-gray-500">
+                            📄 {submission.documents.length} documents uploaded
+                          </div>
+                        )}
+                        <button
+                          onClick={async () => {
+                            setSelectedSubmission(submission);
+                            setShowSubmissionDetail(true);
+                            // Fetch full submission details from API
+                            await fetchSubmissionDetails(submission.id);
+                          }}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          View Details & Documents
+                        </button>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end space-y-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        submission.status === 'pending'
-                          ? 'bg-orange-100 text-orange-600'
-                          : 'bg-blue-100 text-blue-600'
-                      }`}>
-                        {submission.status}
-                      </span>
-                      {submission.documents && submission.documents.length > 0 && (
-                        <div className="text-xs text-gray-500">
-                          📄 {submission.documents.length} documents uploaded
-                        </div>
-                      )}
-                      <button 
-                        onClick={() => {
-                          setSelectedSubmission(submission);
-                          setShowSubmissionDetail(true);
-                        }}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        View Details & Documents
-                      </button>
-                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
+                ))}
+              </div>
+            )}
+          </Motion.div>
         )}
 
         {/* Profile Tab */}
         {activeTab === 'profile' && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="bg-white rounded-2xl shadow-lg p-6"
@@ -1105,14 +1318,14 @@ const CADashboard = () => {
                 )}
               </div>
             )}
-          </motion.div>
+          </Motion.div>
         )}
       </div>
 
       {/* Create Service Modal */}
       <AnimatePresence>
         {showCreateModal && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1124,7 +1337,7 @@ const CADashboard = () => {
               }
             }}
           >
-            <motion.div
+            <Motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
@@ -1441,297 +1654,6 @@ const CADashboard = () => {
                   {error}
                 </div>
               )}
-              {/* Service Form */}
-              <div className="space-y-6">
-                {/* Basic Information Section */}
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <span className="text-xl">📋</span> Basic Information
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Service Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleFormChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                        placeholder="Enter service name"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Category <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        name="category"
-                        value={formData.category}
-                        onChange={handleFormChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                        required
-                      >
-                        <option value="Business">Business</option>
-                        <option value="Intellectual Property">Intellectual Property</option>
-                        <option value="IP Rights">IP Rights</option>
-                        <option value="Tax">Tax</option>
-                        <option value="Certification">Certification</option>
-                        <option value="Compliance">Compliance</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Icon (Default)
-                      </label>
-                      <input
-                        type="text"
-                        name="icon"
-                        value={formData.icon}
-                        onChange={handleFormChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-xl"
-                        placeholder="e.g., ⚖️"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Price <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleFormChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                        placeholder="e.g., ₹15,000"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Duration <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="duration"
-                        value={formData.duration}
-                        onChange={handleFormChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                        placeholder="e.g., 15-30 days"
-                        required
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Description <span className="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleFormChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"
-                        rows="3"
-                        placeholder="Enter detailed description"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Content Information Section */}
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <span className="text-xl">📄</span> Content Information
-                  </h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Heading
-                      </label>
-                      <input
-                        type="text"
-                        name="heading"
-                        value={formData.heading}
-                        onChange={handleFormChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-                        placeholder="Enter service heading"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Paragraph
-                      </label>
-                      <textarea
-                        name="paragraph"
-                        value={formData.paragraph}
-                        onChange={handleFormChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-none"
-                        rows="4"
-                        placeholder="Enter detailed paragraph about the service"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Benefits Section */}
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <span className="text-xl">✅</span> Benefits
-                  </h3>
-                  <div className="space-y-3">
-                    {formData.benefits.map((benefit, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">{index + 1}</span>
-                        </div>
-                        <input
-                          type="text"
-                          value={benefit}
-                          onChange={(e) => updateArrayItem('benefits', index, e.target.value)}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                          placeholder="Enter benefit"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeArrayItem('benefits', index)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <FaTrash className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => addArrayItem('benefits')}
-                      className="w-full px-4 py-2 border-2 border-dashed border-green-300 rounded-lg text-green-600 hover:border-green-500 hover:bg-green-50 transition-all font-medium"
-                    >
-                      + Add Benefit
-                    </button>
-                  </div>
-                </div>
-
-                {/* Process Steps Section */}
-                <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-100">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <span className="text-xl">📋</span> Process Steps
-                  </h3>
-                  <div className="space-y-3">
-                    {formData.process.map((step, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                          {index + 1}
-                        </div>
-                        <input
-                          type="text"
-                          value={step}
-                          onChange={(e) => updateArrayItem('process', index, e.target.value)}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
-                          placeholder="Enter process step"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeArrayItem('process', index)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <FaTrash className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => addArrayItem('process')}
-                      className="w-full px-4 py-2 border-2 border-dashed border-orange-300 rounded-lg text-orange-600 hover:border-orange-500 hover:bg-orange-50 transition-all font-medium"
-                    >
-                      + Add Process Step
-                    </button>
-                  </div>
-                </div>
-
-                {/* Required Documents Section */}
-                <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-100">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <span className="text-xl">📄</span> Required Documents
-                  </h3>
-                  <div className="space-y-3">
-                    {formData.requiredDocuments.map((document, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                          <span className="text-indigo-600 text-sm">📎</span>
-                        </div>
-                        <input
-                          type="text"
-                          value={document}
-                          onChange={(e) => updateArrayItem('requiredDocuments', index, e.target.value)}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                          placeholder="Enter required document"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeArrayItem('requiredDocuments', index)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <FaTrash className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => addArrayItem('requiredDocuments')}
-                      className="w-full px-4 py-2 border-2 border-dashed border-indigo-300 rounded-lg text-indigo-600 hover:border-indigo-500 hover:bg-indigo-50 transition-all font-medium"
-                    >
-                      + Add Required Document
-                    </button>
-                  </div>
-                </div>
-
-                {/* Document Upload Fields Section */}
-                <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-xl p-6 border border-cyan-100">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <span className="text-xl">📤</span> Document Upload Fields
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    These are the fields that users will see when uploading documents for this service
-                  </p>
-                  <div className="space-y-3">
-                    {formData.documentUploads.map((upload, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center">
-                          <span className="text-cyan-600 text-sm">📁</span>
-                        </div>
-                        <input
-                          type="text"
-                          value={upload}
-                          onChange={(e) => updateArrayItem('documentUploads', index, e.target.value)}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
-                          placeholder="Enter upload field name (e.g., PAN Card Copy)"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeArrayItem('documentUploads', index)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <FaTrash className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => addArrayItem('documentUploads')}
-                      className="w-full px-4 py-2 border-2 border-dashed border-cyan-300 rounded-lg text-cyan-600 hover:border-cyan-500 hover:bg-cyan-50 transition-all font-medium"
-                    >
-                      + Add Upload Field
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {error && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-                  {error}
-                </div>
-              )}
 
               <div className="flex justify-end space-x-3 mt-6">
                 <button
@@ -1750,22 +1672,22 @@ const CADashboard = () => {
                   {isLoading ? 'Creating...' : 'Create Service'}
                 </button>
               </div>
-            </motion.div>
-          </motion.div>
+            </Motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
 
       {/* Submission Detail Modal */}
       <AnimatePresence>
         {showSubmissionDetail && selectedSubmission && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={() => setShowSubmissionDetail(false)}
           >
-            <motion.div
+            <Motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
@@ -1800,11 +1722,11 @@ const CADashboard = () => {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Email</label>
-                    <p className="text-gray-900 font-semibold mt-1">{selectedSubmission.email}</p>
+                    <p className="text-gray-900 font-semibold mt-1">{selectedSubmission.userEmail || 'N/A'}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Phone</label>
-                    <p className="text-gray-900 font-semibold mt-1">{selectedSubmission.phone}</p>
+                    <p className="text-gray-900 font-semibold mt-1">{selectedSubmission.userPhone || 'N/A'}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Submitted Date</label>
@@ -1820,15 +1742,21 @@ const CADashboard = () => {
                 <div className="mt-4">
                   <label className="text-sm font-medium text-gray-600">Status</label>
                   <div className="mt-2">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      selectedSubmission.status === 'pending'
-                        ? 'bg-orange-100 text-orange-600'
-                        : selectedSubmission.status === 'in-progress'
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${selectedSubmission.status === 'pending'
+                      ? 'bg-orange-100 text-orange-600'
+                      : selectedSubmission.status === 'in-progress'
                         ? 'bg-blue-100 text-blue-600'
-                        : 'bg-green-100 text-green-600'
-                    }`}>
-                      {selectedSubmission.status.charAt(0).toUpperCase() + selectedSubmission.status.slice(1)}
+                        : selectedSubmission.status === 'rejected'
+                          ? 'bg-red-100 text-red-600'
+                          : 'bg-green-100 text-green-600'
+                      }`}>
+                      {selectedSubmission.status.charAt(0).toUpperCase() + selectedSubmission.status.slice(1).replace('-', ' ')}
                     </span>
+                    {selectedSubmission.status === 'rejected' && selectedSubmission.rejectionReason && (
+                      <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded-lg">
+                        <strong>Rejection Reason:</strong> {selectedSubmission.rejectionReason}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1839,11 +1767,11 @@ const CADashboard = () => {
                   <FaFileUpload className="text-green-600" />
                   Uploaded Documents ({selectedSubmission.documents?.length || 0})
                 </h3>
-                
+
                 {selectedSubmission.documents && selectedSubmission.documents.length > 0 ? (
                   <div className="space-y-3">
                     {selectedSubmission.documents.map((doc, index) => (
-                      <motion.div
+                      <Motion.div
                         key={index}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1852,13 +1780,12 @@ const CADashboard = () => {
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4 flex-1">
-                            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                              doc.fileType === 'pdf' 
-                                ? 'bg-red-100' 
-                                : doc.fileType === 'png' || doc.fileType === 'jpg' 
-                                ? 'bg-blue-100' 
+                            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${doc.fileType === 'pdf'
+                              ? 'bg-red-100'
+                              : doc.fileType === 'png' || doc.fileType === 'jpg'
+                                ? 'bg-blue-100'
                                 : 'bg-gray-100'
-                            }`}>
+                              }`}>
                               {doc.fileType === 'pdf' ? (
                                 <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
@@ -1886,7 +1813,7 @@ const CADashboard = () => {
                             </div>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <motion.button
+                            <Motion.button
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
                               onClick={() => {
@@ -1900,8 +1827,8 @@ const CADashboard = () => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                               </svg>
-                            </motion.button>
-                            <motion.button
+                            </Motion.button>
+                            <Motion.button
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
                               onClick={() => {
@@ -1917,10 +1844,10 @@ const CADashboard = () => {
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                               </svg>
-                            </motion.button>
+                            </Motion.button>
                           </div>
                         </div>
-                      </motion.div>
+                      </Motion.div>
                     ))}
                   </div>
                 ) : (
@@ -1942,45 +1869,131 @@ const CADashboard = () => {
                   Close
                 </button>
                 {selectedSubmission.status === 'pending' && (
-                  <button
-                    onClick={() => {
-                      setUserSubmissions(userSubmissions.map(s => 
-                        s.id === selectedSubmission.id 
-                          ? { ...s, status: 'in-progress' }
-                          : s
-                      ));
-                      setSelectedSubmission({ ...selectedSubmission, status: 'in-progress' });
-                    }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Mark as In Progress
-                  </button>
+                  <>
+                    <button
+                      onClick={() => handleStatusUpdate('in-progress')}
+                      disabled={isUpdatingStatus}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isUpdatingStatus ? 'Updating...' : 'Mark as In Progress'}
+                    </button>
+                    <button
+                      onClick={() => setShowRejectModal(true)}
+                      disabled={isUpdatingStatus}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Reject
+                    </button>
+                  </>
                 )}
                 {selectedSubmission.status === 'in-progress' && (
                   <button
-                    onClick={() => {
-                      setUserSubmissions(userSubmissions.map(s => 
-                        s.id === selectedSubmission.id 
-                          ? { ...s, status: 'completed' }
-                          : s
-                      ));
-                      setSelectedSubmission({ ...selectedSubmission, status: 'completed' });
-                    }}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    onClick={() => handleStatusUpdate('completed')}
+                    disabled={isUpdatingStatus}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Mark as Completed
+                    {isUpdatingStatus ? 'Updating...' : 'Mark as Completed'}
                   </button>
                 )}
               </div>
-            </motion.div>
-          </motion.div>
+            </Motion.div>
+          </Motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Reject Submission Modal */}
+      <AnimatePresence>
+        {showRejectModal && (
+          <Motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => {
+              if (!isUpdatingStatus) {
+                setShowRejectModal(false);
+                setRejectionReason('');
+              }
+            }}
+          >
+            <Motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-200 p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-900">Reject Submission</h2>
+                <button
+                  onClick={() => {
+                    if (!isUpdatingStatus) {
+                      setShowRejectModal(false);
+                      setRejectionReason('');
+                    }
+                  }}
+                  disabled={isUpdatingStatus}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
+                >
+                  <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  Service: <span className="font-semibold">{selectedSubmission?.serviceName}</span>
+                </p>
+                <p className="text-sm text-gray-600">
+                  User: <span className="font-semibold">{selectedSubmission?.userName}</span>
+                </p>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Rejection Reason <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  disabled={isUpdatingStatus}
+                  rows={4}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  placeholder="Please provide a reason for rejection..."
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    if (!isUpdatingStatus) {
+                      setShowRejectModal(false);
+                      setRejectionReason('');
+                    }
+                  }}
+                  disabled={isUpdatingStatus}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRejectSubmission}
+                  disabled={isUpdatingStatus || !rejectionReason.trim()}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isUpdatingStatus ? 'Rejecting...' : 'Confirm Reject'}
+                </button>
+              </div>
+            </Motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
 
       {/* Edit Service Modal */}
       <AnimatePresence>
         {showEditModal && editingService && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1992,7 +2005,7 @@ const CADashboard = () => {
               }
             }}
           >
-            <motion.div
+            <Motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
@@ -2327,8 +2340,8 @@ const CADashboard = () => {
                   {isLoading ? 'Updating...' : 'Update Service'}
                 </button>
               </div>
-            </motion.div>
-          </motion.div>
+            </Motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
     </div>
