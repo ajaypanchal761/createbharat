@@ -1715,7 +1715,7 @@ const CADashboard = () => {
               }}
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Edit Legal Service - {editingService.name}</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Edit Legal Service - {editingService?.name}</h2>
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
@@ -1726,6 +1726,298 @@ const CADashboard = () => {
                   </svg>
                 </button>
               </div>
+
+              {/* Service Form - Same as Create Form */}
+              <div className="space-y-6">
+                {/* Basic Information Section */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="text-xl">📋</span> Basic Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Service Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleFormChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        placeholder="Enter service name"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Category <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        name="category"
+                        value={formData.category}
+                        onChange={handleFormChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        required
+                      >
+                        <option value="Business">Business</option>
+                        <option value="Intellectual Property">Intellectual Property</option>
+                        <option value="IP Rights">IP Rights</option>
+                        <option value="Tax">Tax</option>
+                        <option value="Certification">Certification</option>
+                        <option value="Compliance">Compliance</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Icon (Default)
+                      </label>
+                      <input
+                        type="text"
+                        name="icon"
+                        value={formData.icon}
+                        onChange={handleFormChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-xl"
+                        placeholder="e.g., ⚖️"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Price <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="price"
+                        value={formData.price}
+                        onChange={handleFormChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        placeholder="e.g., ₹15,000"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Duration <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="duration"
+                        value={formData.duration}
+                        onChange={handleFormChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        placeholder="e.g., 15-30 days"
+                        required
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Description <span className="text-red-500">*</span>
+                      </label>
+                      <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleFormChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"
+                        rows="3"
+                        placeholder="Enter detailed description"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content Information Section */}
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="text-xl">📄</span> Content Information
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Heading
+                      </label>
+                      <input
+                        type="text"
+                        name="heading"
+                        value={formData.heading}
+                        onChange={handleFormChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                        placeholder="Enter service heading"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Paragraph
+                      </label>
+                      <textarea
+                        name="paragraph"
+                        value={formData.paragraph}
+                        onChange={handleFormChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-none"
+                        rows="4"
+                        placeholder="Enter detailed paragraph about the service"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Benefits Section */}
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="text-xl">✅</span> Benefits
+                  </h3>
+                  <div className="space-y-3">
+                    {formData.benefits.map((benefit, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">{index + 1}</span>
+                        </div>
+                        <input
+                          type="text"
+                          value={benefit}
+                          onChange={(e) => updateArrayItem('benefits', index, e.target.value)}
+                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                          placeholder="Enter benefit"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeArrayItem('benefits', index)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <FaTrash className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => addArrayItem('benefits')}
+                      className="w-full px-4 py-2 border-2 border-dashed border-green-300 rounded-lg text-green-600 hover:border-green-500 hover:bg-green-50 transition-all font-medium"
+                    >
+                      + Add Benefit
+                    </button>
+                  </div>
+                </div>
+
+                {/* Process Steps Section */}
+                <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-100">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="text-xl">📋</span> Process Steps
+                  </h3>
+                  <div className="space-y-3">
+                    {formData.process.map((step, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                          {index + 1}
+                        </div>
+                        <input
+                          type="text"
+                          value={step}
+                          onChange={(e) => updateArrayItem('process', index, e.target.value)}
+                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                          placeholder="Enter process step"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeArrayItem('process', index)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <FaTrash className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => addArrayItem('process')}
+                      className="w-full px-4 py-2 border-2 border-dashed border-orange-300 rounded-lg text-orange-600 hover:border-orange-500 hover:bg-orange-50 transition-all font-medium"
+                    >
+                      + Add Process Step
+                    </button>
+                  </div>
+                </div>
+
+                {/* Required Documents Section */}
+                <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-100">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="text-xl">📄</span> Required Documents
+                  </h3>
+                  <div className="space-y-3">
+                    {formData.requiredDocuments.map((document, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                          <span className="text-indigo-600 text-sm">📎</span>
+                        </div>
+                        <input
+                          type="text"
+                          value={document}
+                          onChange={(e) => updateArrayItem('requiredDocuments', index, e.target.value)}
+                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                          placeholder="Enter required document"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeArrayItem('requiredDocuments', index)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <FaTrash className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => addArrayItem('requiredDocuments')}
+                      className="w-full px-4 py-2 border-2 border-dashed border-indigo-300 rounded-lg text-indigo-600 hover:border-indigo-500 hover:bg-indigo-50 transition-all font-medium"
+                    >
+                      + Add Required Document
+                    </button>
+                  </div>
+                </div>
+
+                {/* Document Upload Fields Section */}
+                <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-xl p-6 border border-cyan-100">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="text-xl">📤</span> Document Upload Fields
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    These are the fields that users will see when uploading documents for this service
+                  </p>
+                  <div className="space-y-3">
+                    {formData.documentUploads.map((upload, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center">
+                          <span className="text-cyan-600 text-sm">📁</span>
+                        </div>
+                        <input
+                          type="text"
+                          value={upload}
+                          onChange={(e) => updateArrayItem('documentUploads', index, e.target.value)}
+                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
+                          placeholder="Enter upload field name (e.g., PAN Card Copy)"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeArrayItem('documentUploads', index)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <FaTrash className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => addArrayItem('documentUploads')}
+                      className="w-full px-4 py-2 border-2 border-dashed border-cyan-300 rounded-lg text-cyan-600 hover:border-cyan-500 hover:bg-cyan-50 transition-all font-medium"
+                    >
+                      + Add Upload Field
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {error && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                  {error}
+                </div>
+              )}
 
               <div className="flex justify-end space-x-3 mt-6">
                 <button
