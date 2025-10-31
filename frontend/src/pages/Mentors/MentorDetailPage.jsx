@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { mentorAPI, mentorBookingAPI } from '../../utils/api';
 
 // Icons
@@ -40,6 +41,7 @@ const MentorDetailPage = () => {
   const [isBooking, setIsBooking] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [mentorData, setMentorData] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Fetch mentor data
   useEffect(() => {
@@ -156,13 +158,109 @@ const MentorDetailPage = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <button 
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
                 <MenuIcon />
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-50"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            {/* Menu Sidebar */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 right-0 w-64 bg-white shadow-2xl z-50 overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                {/* Close button */}
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-900">Menu</h2>
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                {/* Menu Items */}
+                <div className="space-y-2">
+                  <Link 
+                    to="/" 
+                    className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Home
+                  </Link>
+                  <Link 
+                    to="/mentors" 
+                    className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Mentors
+                  </Link>
+                  <Link 
+                    to="/loans" 
+                    className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Loans
+                  </Link>
+                  <Link 
+                    to="/internships" 
+                    className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Internships
+                  </Link>
+                  <Link 
+                    to="/legal" 
+                    className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Legal Services
+                  </Link>
+                  <Link 
+                    to="/training" 
+                    className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Training
+                  </Link>
+                  <Link 
+                    to="/profile" 
+                    className="block py-3 px-4 rounded-lg hover:bg-gray-100 text-gray-700 font-medium transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Profile
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Main Content */}
       <div className="px-4 pt-6 pb-4">
