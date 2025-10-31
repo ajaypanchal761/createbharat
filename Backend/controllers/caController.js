@@ -363,12 +363,122 @@ const getCAProfile = async (req, res) => {
   }
 };
 
+// @desc    Update CA Profile (CA)
+// @route   PUT /api/ca/profile
+// @access  Private/CA
+const updateCAProfile = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const ca = await CA.findById(req.ca.id);
+
+    if (!ca) {
+      return res.status(404).json({
+        success: false,
+        message: 'CA not found'
+      });
+    }
+
+    const {
+      name,
+      email,
+      phone,
+      caNumber,
+      firmName,
+      experience,
+      specialization,
+      password,
+      currentPassword
+    } = req.body;
+
+    // Check if email is being changed and if it already exists
+    if (email && email !== ca.email) {
+      const existingEmail = await CA.findOne({ email });
+      if (existingEmail) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already registered'
+        });
+      }
+      ca.email = email;
+    }
+
+    // Check if CA number is being changed and if it already exists
+    if (caNumber && caNumber !== ca.caNumber) {
+      const existingCANumber = await CA.findOne({ caNumber });
+      if (existingCANumber) {
+        return res.status(400).json({
+          success: false,
+          message: 'CA Number already registered'
+        });
+      }
+      ca.caNumber = caNumber;
+    }
+
+    // Update password if provided
+    if (password) {
+      // If password is provided, currentPassword is required
+      if (!currentPassword) {
+        return res.status(400).json({
+          success: false,
+          message: 'Current password is required to change password'
+        });
+      }
+
+      // Verify current password
+      const caWithPassword = await CA.findById(req.ca.id).select('+password');
+      const isCurrentPasswordValid = await caWithPassword.comparePassword(currentPassword);
+
+      if (!isCurrentPasswordValid) {
+        return res.status(401).json({
+          success: false,
+          message: 'Current password is incorrect'
+        });
+      }
+
+      // Update password (will be hashed by pre-save hook)
+      ca.password = password;
+    }
+
+    // Update allowed fields
+    if (name !== undefined) ca.name = name;
+    if (phone !== undefined) ca.phone = phone;
+    if (firmName !== undefined) ca.firmName = firmName;
+    if (experience !== undefined) ca.experience = experience;
+    if (specialization !== undefined) ca.specialization = specialization;
+
+    await ca.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: { ca }
+    });
+
+  } catch (error) {
+    console.error('Update CA profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   registerCA,
   getCA,
   updateCA,
   deleteCA,
   loginCA,
-  getCAProfile
+  getCAProfile,
+  updateCAProfile
 };
 

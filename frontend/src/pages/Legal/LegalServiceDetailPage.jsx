@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { legalServiceAPI } from '../../utils/api';
 
 // Icons
 const MenuIcon = () => (
@@ -31,6 +32,9 @@ const LegalServiceDetailPage = () => {
   const { serviceId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const [service, setService] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   // Get the selected GST type from URL params
   const urlParams = new URLSearchParams(location.search);
@@ -49,14 +53,54 @@ const LegalServiceDetailPage = () => {
     'casual': 'Casual Taxable Person'
   };
 
-  // Redirect to specific pages based on serviceId
+  // Fetch service details from backend
   useEffect(() => {
-    // GST Registration now goes directly to detail page (no redirect to category)
-    if (serviceId === '15') {
+    fetchServiceDetails();
+  }, [serviceId]);
+
+  const fetchServiceDetails = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await legalServiceAPI.getById(serviceId);
+      if (response.success && response.data.service) {
+        const serviceData = response.data.service;
+        // Transform backend data to match frontend format
+        const transformedService = {
+          id: serviceData._id,
+          name: serviceData.name,
+          icon: serviceData.icon || '⚖️',
+          color: 'from-blue-500 to-cyan-500', // Default color
+          description: serviceData.description,
+          heading: serviceData.heading || serviceData.name,
+          paragraph: serviceData.paragraph || serviceData.description,
+          benefits: serviceData.benefits || [],
+          documents: serviceData.requiredDocuments || [],
+          process: serviceData.process || [],
+          timeline: serviceData.duration || '',
+          fees: serviceData.price || '₹0'
+        };
+        setService(transformedService);
+      } else {
+        setError('Service not found');
+      }
+    } catch (err) {
+      console.error('Error fetching service details:', err);
+      setError(err.message || 'Failed to fetch service details');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Redirect to specific pages based on serviceId (only for legacy IDs)
+  useEffect(() => {
+    // Only redirect if it's the old project report ID
+    if (serviceId === '15' && !service) {
       navigate('/legal/project-report');
     }
-  }, [serviceId, navigate]);
+  }, [serviceId, navigate, service]);
 
+  // Legacy mock data for backward compatibility (fallback)
   const legalServices = {
     1: {
       name: 'GST Registration',
@@ -480,13 +524,25 @@ const LegalServiceDetailPage = () => {
     }
   };
 
-  const service = legalServices[parseInt(serviceId)];
+  // Use fetched service or fallback to mock data for legacy IDs
+  const displayService = service || (serviceId && legalServices[parseInt(serviceId)]);
 
-  if (!service) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Loading service details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !displayService) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Service Not Found</h1>
+          <p className="text-gray-600 mb-4">{error || 'The service you are looking for does not exist.'}</p>
           <button
             onClick={() => navigate('/legal')}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -551,12 +607,12 @@ const LegalServiceDetailPage = () => {
           <motion.div
             whileHover={{ scale: 1.1, rotate: 5 }}
             transition={{ duration: 0.3 }}
-            className={`w-20 h-20 bg-gradient-to-r ${service.color} rounded-2xl flex items-center justify-center text-white text-4xl mx-auto mb-4 shadow-lg`}
+            className={`w-20 h-20 bg-gradient-to-r ${displayService.color || 'from-blue-500 to-cyan-500'} rounded-2xl flex items-center justify-center text-white text-4xl mx-auto mb-4 shadow-lg`}
           >
-            {service.icon}
+            {displayService.icon}
           </motion.div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{service.name}</h1>
-          <p className="text-gray-600">{service.description}</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{displayService.name}</h1>
+          <p className="text-gray-600">{displayService.description}</p>
           
           {/* GST Type Display */}
           {serviceId === '1' && selectedGSTType && (
@@ -592,7 +648,7 @@ const LegalServiceDetailPage = () => {
               Benefits
             </h2>
             <ul className="space-y-2">
-              {service.benefits.map((benefit, index) => (
+              {displayService.benefits.map((benefit, index) => (
                 <li key={index} className="flex items-start gap-2 text-gray-700">
                   <CheckIcon />
                   <span>{benefit}</span>
@@ -605,9 +661,9 @@ const LegalServiceDetailPage = () => {
           <motion.div variants={fadeInUp} className="bg-white rounded-xl p-6 shadow-md">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Process</h2>
             <div className="space-y-3">
-              {service.process.map((step, index) => (
+              {displayService.process.map((step, index) => (
                 <div key={index} className="flex items-start gap-3">
-                  <div className={`w-8 h-8 bg-gradient-to-r ${service.color} rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
+                  <div className={`w-8 h-8 bg-gradient-to-r ${displayService.color || 'from-blue-500 to-cyan-500'} rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
                     {index + 1}
                   </div>
                   <p className="text-gray-700">{step}</p>
@@ -623,7 +679,7 @@ const LegalServiceDetailPage = () => {
               Required Documents
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {service.documents.map((doc, index) => (
+              {displayService.documents.map((doc, index) => (
                 <div key={index} className="flex items-start gap-2 text-gray-700">
                   <DocumentIcon />
                   <span className="text-sm">{doc}</span>
@@ -637,11 +693,11 @@ const LegalServiceDetailPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Timeline</h3>
-                <p className="text-gray-600">{service.timeline}</p>
+                <p className="text-gray-600">{displayService.timeline}</p>
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Service Fee</h3>
-                <p className="text-gray-600">{service.fees}</p>
+                <p className="text-gray-600">{displayService.fees}</p>
               </div>
             </div>
           </motion.div>
@@ -652,7 +708,7 @@ const LegalServiceDetailPage = () => {
               whileHover={{ scale: 1.02, boxShadow: "0 10px 20px rgba(59, 130, 246, 0.3)" }}
               whileTap={{ scale: 0.98 }}
               onClick={() => navigate(`/legal/service/${serviceId}/upload`)}
-              className={`w-full bg-gradient-to-r ${service.color} text-white py-4 px-6 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300`}
+              className={`w-full bg-gradient-to-r ${displayService.color || 'from-blue-500 to-cyan-500'} text-white py-4 px-6 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300`}
             >
               Upload Documents
             </motion.button>

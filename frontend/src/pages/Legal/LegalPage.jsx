@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavbar from '../../components/common/BottomNavbar';
+import { legalServiceAPI } from '../../utils/api';
 
 // Icons
 const MenuIcon = () => (
@@ -23,6 +24,8 @@ const LegalPage = () => {
     // Load active tab from localStorage
     return localStorage.getItem('legalActiveTab') || 'services';
   });
+  const [legalServices, setLegalServices] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Save active tab to localStorage whenever it changes
   useEffect(() => {
@@ -42,24 +45,57 @@ const LegalPage = () => {
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('legalTabChange', { detail: { tab: activeTab } }));
   }, [activeTab]);
-  
-  const legalServices = [
-    { id: 1, name: 'GST Registration', icon: '📋', color: 'from-blue-500 to-cyan-500' },
-    { id: 2, name: 'GST Filing', icon: '📄', color: 'from-green-500 to-emerald-500' },
-    { id: 3, name: 'Income Tax Filing', icon: '💰', color: 'from-purple-500 to-violet-500' },
-    { id: 4, name: 'ROC Filing', icon: '🏢', color: 'from-orange-500 to-red-500' },
-    { id: 5, name: 'Import Export Registration', icon: '🚢', color: 'from-indigo-500 to-blue-500' },
-    { id: 6, name: 'MSME Registration', icon: '🏭', color: 'from-teal-500 to-green-500' },
-    { id: 7, name: 'Trade Mark Filing', icon: '™️', color: 'from-pink-500 to-rose-500' },
-    { id: 8, name: 'Food (FSSAI) License', icon: '🍽️', color: 'from-yellow-500 to-orange-500' },
-    { id: 9, name: 'PF/ESIC Registration', icon: '👥', color: 'from-cyan-500 to-blue-500' },
-    { id: 10, name: 'ISO Certification', icon: '🏆', color: 'from-emerald-500 to-teal-500' },
-    { id: 11, name: 'Proprietorship Company Registration', icon: '👤', color: 'from-violet-500 to-purple-500' },
-    { id: 12, name: 'Partnership Company Registration', icon: '🤝', color: 'from-red-500 to-pink-500' },
-    { id: 13, name: 'Private Limited/LLP Company Registration', icon: '🏛️', color: 'from-blue-600 to-indigo-600' },
-    { id: 14, name: 'NGO Registration', icon: '❤️', color: 'from-green-600 to-emerald-600' },
-    { id: 15, name: 'Project Report', icon: '📊', color: 'from-amber-500 to-yellow-500' }
-  ];
+
+  // Fetch legal services from backend
+  useEffect(() => {
+    fetchLegalServices();
+  }, []);
+
+  const fetchLegalServices = async () => {
+    setIsLoading(true);
+    try {
+      const response = await legalServiceAPI.getAll();
+      if (response.success && response.data) {
+        // Transform backend data to match frontend format
+        const transformedServices = response.data.map((service, index) => {
+          // Generate color gradient based on index or use default
+          const colors = [
+            'from-blue-500 to-cyan-500',
+            'from-green-500 to-emerald-500',
+            'from-purple-500 to-violet-500',
+            'from-orange-500 to-red-500',
+            'from-indigo-500 to-blue-500',
+            'from-teal-500 to-green-500',
+            'from-pink-500 to-rose-500',
+            'from-yellow-500 to-orange-500',
+            'from-cyan-500 to-blue-500',
+            'from-emerald-500 to-teal-500',
+            'from-violet-500 to-purple-500',
+            'from-red-500 to-pink-500',
+            'from-blue-600 to-indigo-600',
+            'from-green-600 to-emerald-600',
+            'from-amber-500 to-yellow-500'
+          ];
+          return {
+            id: service._id,
+            name: service.name,
+            icon: service.icon || '⚖️',
+            color: colors[index % colors.length]
+          };
+        });
+        setLegalServices(transformedServices);
+      } else {
+        // Fallback to empty array if API fails
+        setLegalServices([]);
+      }
+    } catch (err) {
+      console.error('Error fetching legal services:', err);
+      // Fallback to empty array if API fails
+      setLegalServices([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Mock applied services with status
   const appliedServices = [
@@ -212,7 +248,16 @@ const LegalPage = () => {
           variants={staggerContainer}
           className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-w-6xl mx-auto"
         >
-          {legalServices.map((service, index) => (
+          {isLoading ? (
+            <div className="col-span-full text-center py-12">
+              <p className="text-gray-600">Loading services...</p>
+            </div>
+          ) : legalServices.length === 0 ? (
+            <div className="col-span-full text-center py-12">
+              <p className="text-gray-600">No services available at the moment.</p>
+            </div>
+          ) : (
+            legalServices.map((service, index) => (
             <motion.div
               key={service.id}
               variants={scaleIn}
@@ -263,10 +308,11 @@ const LegalPage = () => {
                       </motion.svg>
                     </motion.button>
                   </div>
-                </motion.div>
-              </Link>
-            </motion.div>
-          ))}
+                  </motion.div>
+                </Link>
+              </motion.div>
+            ))
+          )}
         </motion.div>
         )}
 

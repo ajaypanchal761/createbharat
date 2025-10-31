@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -9,19 +9,26 @@ import {
   FaPlus,
   FaEdit,
   FaTrash,
-  FaSearch
+  FaSearch,
+  FaUserCircle
 } from 'react-icons/fa';
+import { caAPI, caLegalServiceAPI } from '../../utils/api';
 
 const CADashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('services');
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const [isServicesLoading, setIsServicesLoading] = useState(false);
+  const [error, setError] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingService, setEditingService] = useState(null);
   const [showSubmissionDetail, setShowSubmissionDetail] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   
-  // Mock Data - All Legal Services
+  // Legal Services State
   const [legalServices, setLegalServices] = useState([
     {
       id: 1,
@@ -126,6 +133,30 @@ const CADashboard = () => {
     documentUploads: []
   });
 
+  // CA Profile Data
+  const [profileData, setProfileData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    caNumber: '',
+    firmName: '',
+    experience: '',
+    specialization: ''
+  });
+
+  const [profileFormData, setProfileFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    caNumber: '',
+    firmName: '',
+    experience: '',
+    specialization: '',
+    password: '',
+    confirmPassword: '',
+    currentPassword: ''
+  });
+
   const [userSubmissions, setUserSubmissions] = useState([
     {
       id: 1,
@@ -178,16 +209,219 @@ const CADashboard = () => {
     }
   ]);
 
+  // Fetch CA profile on mount
+  useEffect(() => {
+    if (activeTab === 'profile') {
+      fetchCAProfile();
+    }
+  }, [activeTab]);
+
+  // Fetch legal services on mount and when services tab is active
+  useEffect(() => {
+    if (activeTab === 'services') {
+      fetchLegalServices();
+    }
+  }, [activeTab]);
+
+  const fetchLegalServices = async () => {
+    setIsServicesLoading(true);
+    setError('');
+    try {
+      const token = localStorage.getItem('caToken');
+      if (!token) {
+        setError('CA token not found');
+        setIsServicesLoading(false);
+        return;
+      }
+      const response = await caLegalServiceAPI.getAll(token);
+      if (response.success && response.data) {
+        // Transform backend data to match frontend format
+        const transformedServices = response.data.map(service => ({
+          id: service._id,
+          name: service.name,
+          description: service.description,
+          icon: service.icon,
+          category: service.category,
+          price: service.price,
+          duration: service.duration,
+          heading: service.heading,
+          paragraph: service.paragraph,
+          benefits: service.benefits || [],
+          process: service.process || [],
+          requiredDocuments: service.requiredDocuments || [],
+          documentUploads: service.documentUploads || [],
+          active: service.isActive,
+          submissions: service.totalSubmissions || 0
+        }));
+        setLegalServices(transformedServices);
+      }
+    } catch (err) {
+      console.error('Error fetching legal services:', err);
+      setError(err.message || 'Failed to fetch legal services');
+    } finally {
+      setIsServicesLoading(false);
+    }
+  };
+
+  const fetchCAProfile = async () => {
+    setIsFetching(true);
+    setError('');
+    try {
+      const token = localStorage.getItem('caToken');
+      if (!token) {
+        setError('CA token not found');
+        setIsFetching(false);
+        return;
+      }
+      const response = await caAPI.getProfile(token);
+      if (response.success && response.data.ca) {
+        const ca = response.data.ca;
+        setProfileData({
+          name: ca.name || '',
+          email: ca.email || '',
+          phone: ca.phone || '',
+          caNumber: ca.caNumber || '',
+          firmName: ca.firmName || '',
+          experience: ca.experience || '',
+          specialization: ca.specialization || ''
+        });
+        setProfileFormData({
+          name: ca.name || '',
+          email: ca.email || '',
+          phone: ca.phone || '',
+          caNumber: ca.caNumber || '',
+          firmName: ca.firmName || '',
+          experience: ca.experience || '',
+          specialization: ca.specialization || '',
+          password: '',
+          confirmPassword: '',
+          currentPassword: ''
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching CA profile:', err);
+      setError(err.message || 'Failed to fetch profile');
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  const handleProfileChange = (e) => {
+    setProfileFormData({
+      ...profileFormData,
+      [e.target.name]: e.target.value
+    });
+    setError(''); // Clear error on input change
+  };
+
+  const handleProfileSave = async () => {
+    setIsLoading(true);
+    setError('');
+    
+    // Validate password if changing
+    if (profileFormData.password) {
+      if (!profileFormData.currentPassword) {
+        setError('Current password is required to change password');
+        setIsLoading(false);
+        return;
+      }
+      if (profileFormData.password !== profileFormData.confirmPassword) {
+        setError('New password and confirm password do not match');
+        setIsLoading(false);
+        return;
+      }
+      if (profileFormData.password.length < 6) {
+        setError('Password must be at least 6 characters');
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    try {
+      const token = localStorage.getItem('caToken');
+      if (!token) {
+        setError('CA token not found');
+        setIsLoading(false);
+        return;
+      }
+
+      // Prepare update data (exclude confirmPassword and empty password)
+      const updateData = {
+        name: profileFormData.name,
+        email: profileFormData.email,
+        phone: profileFormData.phone,
+        caNumber: profileFormData.caNumber,
+        firmName: profileFormData.firmName,
+        experience: profileFormData.experience,
+        specialization: profileFormData.specialization
+      };
+
+      // Only include password fields if password is being changed
+      if (profileFormData.password) {
+        updateData.password = profileFormData.password;
+        updateData.currentPassword = profileFormData.currentPassword;
+      }
+
+      const response = await caAPI.updateProfile(token, updateData);
+      if (response.success) {
+        setProfileData({
+          name: response.data.ca.name || '',
+          email: response.data.ca.email || '',
+          phone: response.data.ca.phone || '',
+          caNumber: response.data.ca.caNumber || '',
+          firmName: response.data.ca.firmName || '',
+          experience: response.data.ca.experience || '',
+          specialization: response.data.ca.specialization || ''
+        });
+        // Reset password fields
+        setProfileFormData({
+          ...profileFormData,
+          password: '',
+          confirmPassword: '',
+          currentPassword: ''
+        });
+        setIsEditing(false);
+        alert('Profile updated successfully!');
+      } else {
+        setError(response.message || 'Failed to update profile');
+      }
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      setError(err.message || 'Failed to update profile');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleProfileCancel = () => {
+    setProfileFormData({
+      name: profileData.name,
+      email: profileData.email,
+      phone: profileData.phone,
+      caNumber: profileData.caNumber,
+      firmName: profileData.firmName,
+      experience: profileData.experience,
+      specialization: profileData.specialization,
+      password: '',
+      confirmPassword: '',
+      currentPassword: ''
+    });
+    setIsEditing(false);
+    setError('');
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('isCALoggedIn');
     localStorage.removeItem('userType');
     localStorage.removeItem('caEmail');
     localStorage.removeItem('caName');
+    localStorage.removeItem('caToken');
+    localStorage.removeItem('caData');
     navigate('/ca/login');
   };
 
   // Reset form
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setFormData({
       name: '',
       description: '',
@@ -202,51 +436,91 @@ const CADashboard = () => {
       requiredDocuments: [],
       documentUploads: []
     });
-  };
+  }, []);
+
+  // Handle form field changes
+  const handleFormChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  }, []);
 
   // Add new item to array fields
-  const addArrayItem = (field) => {
-    setFormData({
-      ...formData,
-      [field]: [...formData[field], '']
-    });
-  };
+  const addArrayItem = useCallback((field) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: [...prev[field], '']
+    }));
+  }, []);
 
   // Update array item
-  const updateArrayItem = (field, index, value) => {
-    const updatedArray = [...formData[field]];
-    updatedArray[index] = value;
-    setFormData({
-      ...formData,
-      [field]: updatedArray
+  const updateArrayItem = useCallback((field, index, value) => {
+    setFormData(prev => {
+      const updatedArray = [...prev[field]];
+      updatedArray[index] = value;
+      return {
+        ...prev,
+        [field]: updatedArray
+      };
     });
-  };
+  }, []);
 
   // Remove array item
-  const removeArrayItem = (field, index) => {
-    const updatedArray = formData[field].filter((_, i) => i !== index);
-    setFormData({
-      ...formData,
-      [field]: updatedArray
+  const removeArrayItem = useCallback((field, index) => {
+    setFormData(prev => {
+      const updatedArray = prev[field].filter((_, i) => i !== index);
+      return {
+        ...prev,
+        [field]: updatedArray
+      };
     });
-  };
+  }, []);
 
   // Handle create new service
-  const handleCreateService = () => {
-    const newService = {
-      id: Date.now(),
-      ...formData,
-      benefits: formData.benefits.filter(b => b.trim() !== ''),
-      process: formData.process.filter(p => p.trim() !== ''),
-      requiredDocuments: formData.requiredDocuments.filter(d => d.trim() !== ''),
-      documentUploads: formData.documentUploads.filter(u => u.trim() !== ''),
-      active: true,
-      submissions: 0
-    };
-    
-    setLegalServices([...legalServices, newService]);
-    setShowCreateModal(false);
-    resetForm();
+  const handleCreateService = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const token = localStorage.getItem('caToken');
+      if (!token) {
+        setError('CA token not found');
+        setIsLoading(false);
+        return;
+      }
+
+      const serviceData = {
+        name: formData.name,
+        description: formData.description,
+        icon: formData.icon || '⚖️',
+        category: formData.category || 'Business',
+        price: formData.price,
+        duration: formData.duration,
+        heading: formData.heading || '',
+        paragraph: formData.paragraph || '',
+        benefits: formData.benefits.filter(b => b.trim() !== ''),
+        process: formData.process.filter(p => p.trim() !== ''),
+        requiredDocuments: formData.requiredDocuments.filter(d => d.trim() !== ''),
+        documentUploads: formData.documentUploads.filter(u => u.trim() !== ''),
+        isActive: true
+      };
+
+      const response = await caLegalServiceAPI.create(token, serviceData);
+      if (response.success) {
+        await fetchLegalServices(); // Refresh services list
+        setShowCreateModal(false);
+        resetForm();
+        alert('Service created successfully!');
+      } else {
+        setError(response.message || 'Failed to create service');
+      }
+    } catch (err) {
+      console.error('Error creating service:', err);
+      setError(err.message || 'Failed to create service');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Handle edit service
@@ -270,22 +544,49 @@ const CADashboard = () => {
   };
 
   // Handle update service
-  const handleUpdateService = () => {
-    const updatedService = {
-      ...editingService,
-      ...formData,
-      benefits: formData.benefits.filter(b => b.trim() !== ''),
-      process: formData.process.filter(p => p.trim() !== ''),
-      requiredDocuments: formData.requiredDocuments.filter(d => d.trim() !== ''),
-      documentUploads: formData.documentUploads.filter(u => u.trim() !== '')
-    };
-    
-    setLegalServices(legalServices.map(service => 
-      service.id === editingService.id ? updatedService : service
-    ));
-    setShowEditModal(false);
-    setEditingService(null);
-    resetForm();
+  const handleUpdateService = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const token = localStorage.getItem('caToken');
+      if (!token) {
+        setError('CA token not found');
+        setIsLoading(false);
+        return;
+      }
+
+      const serviceData = {
+        name: formData.name,
+        description: formData.description,
+        icon: formData.icon || '⚖️',
+        category: formData.category || 'Business',
+        price: formData.price,
+        duration: formData.duration,
+        heading: formData.heading || '',
+        paragraph: formData.paragraph || '',
+        benefits: formData.benefits.filter(b => b.trim() !== ''),
+        process: formData.process.filter(p => p.trim() !== ''),
+        requiredDocuments: formData.requiredDocuments.filter(d => d.trim() !== ''),
+        documentUploads: formData.documentUploads.filter(u => u.trim() !== ''),
+        isActive: editingService.active
+      };
+
+      const response = await caLegalServiceAPI.update(token, editingService.id, serviceData);
+      if (response.success) {
+        await fetchLegalServices(); // Refresh services list
+        setShowEditModal(false);
+        setEditingService(null);
+        resetForm();
+        alert('Service updated successfully!');
+      } else {
+        setError(response.message || 'Failed to update service');
+      }
+    } catch (err) {
+      console.error('Error updating service:', err);
+      setError(err.message || 'Failed to update service');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const addService = () => {
@@ -300,9 +601,33 @@ const CADashboard = () => {
     }
   };
 
-  const deleteService = (serviceId) => {
-    if (window.confirm('Are you sure you want to delete this service?')) {
-      setLegalServices(legalServices.filter(s => s.id !== serviceId));
+  const deleteService = async (serviceId) => {
+    if (!window.confirm('Are you sure you want to delete this service?')) {
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+    try {
+      const token = localStorage.getItem('caToken');
+      if (!token) {
+        setError('CA token not found');
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await caLegalServiceAPI.delete(token, serviceId);
+      if (response.success) {
+        await fetchLegalServices(); // Refresh services list
+        alert('Service deleted successfully!');
+      } else {
+        setError(response.message || 'Failed to delete service');
+      }
+    } catch (err) {
+      console.error('Error deleting service:', err);
+      setError(err.message || 'Failed to delete service');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -317,8 +642,9 @@ const CADashboard = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">Service Name *</label>
             <input
               type="text"
+              name="name"
               value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              onChange={handleFormChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter service name"
             />
@@ -326,8 +652,9 @@ const CADashboard = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
             <select
+              name="category"
               value={formData.category}
-              onChange={(e) => setFormData({...formData, category: e.target.value})}
+              onChange={handleFormChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="Business">Business</option>
@@ -342,8 +669,9 @@ const CADashboard = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">Icon (Default)</label>
             <input
               type="text"
+              name="icon"
               value={formData.icon}
-              onChange={(e) => setFormData({...formData, icon: e.target.value})}
+              onChange={handleFormChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="e.g., ⚖️"
             />
@@ -352,8 +680,9 @@ const CADashboard = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">Price *</label>
             <input
               type="text"
+              name="price"
               value={formData.price}
-              onChange={(e) => setFormData({...formData, price: e.target.value})}
+              onChange={handleFormChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="e.g., ₹15,000"
             />
@@ -362,8 +691,9 @@ const CADashboard = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">Duration *</label>
             <input
               type="text"
+              name="duration"
               value={formData.duration}
-              onChange={(e) => setFormData({...formData, duration: e.target.value})}
+              onChange={handleFormChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="e.g., 15-30 days"
             />
@@ -371,8 +701,9 @@ const CADashboard = () => {
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
             <textarea
+              name="description"
               value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              onChange={handleFormChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               rows="3"
               placeholder="Enter detailed description"
@@ -389,8 +720,9 @@ const CADashboard = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">Heading</label>
             <input
               type="text"
+              name="heading"
               value={formData.heading}
-              onChange={(e) => setFormData({...formData, heading: e.target.value})}
+              onChange={handleFormChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter service heading"
             />
@@ -398,8 +730,9 @@ const CADashboard = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Paragraph</label>
             <textarea
+              name="paragraph"
               value={formData.paragraph}
-              onChange={(e) => setFormData({...formData, paragraph: e.target.value})}
+              onChange={handleFormChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               rows="4"
               placeholder="Enter detailed paragraph about the service"
@@ -634,6 +967,16 @@ const CADashboard = () => {
             >
               User Submissions
             </button>
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`flex-1 py-4 text-center font-medium transition-colors ${
+                activeTab === 'profile'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Profile
+            </button>
           </div>
         </div>
 
@@ -655,43 +998,59 @@ const CADashboard = () => {
               </button>
             </div>
 
-            <div className="space-y-4">
-              {legalServices.map((service) => (
-                <div
-                  key={service.id}
-                  className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="text-3xl">{service.icon}</div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{service.name}</h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                          <span>📂 {service.category}</span>
-                          <span>💰 {service.price}</span>
-                          <span>⏱️ {service.duration}</span>
-                          <span>📊 {service.submissions} submissions</span>
+            {error && activeTab === 'services' && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl">
+                {error}
+              </div>
+            )}
+
+            {isServicesLoading ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600">Loading services...</p>
+              </div>
+            ) : legalServices.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600">No services found. Click "Add Service" to create one.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {legalServices.map((service) => (
+                  <div
+                    key={service.id}
+                    className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="text-3xl">{service.icon}</div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{service.name}</h3>
+                          <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
+                            <span>📂 {service.category}</span>
+                            <span>💰 {service.price}</span>
+                            <span>⏱️ {service.duration}</span>
+                            <span>📊 {service.submissions} submissions</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => editService(service.id)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        onClick={() => deleteService(service.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                      >
-                        <FaTrash />
-                      </button>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => editService(service.id)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          onClick={() => deleteService(service.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -763,6 +1122,223 @@ const CADashboard = () => {
             </div>
           </motion.div>
         )}
+
+        {/* Profile Tab */}
+        {activeTab === 'profile' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-white rounded-2xl shadow-lg p-6"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Profile</h2>
+              {!isEditing ? (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                >
+                  <FaEdit />
+                  <span>Edit Profile</span>
+                </button>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handleProfileCancel}
+                    disabled={isLoading}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleProfileSave}
+                    disabled={isLoading}
+                    className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50"
+                  >
+                    {isLoading ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl">
+                {error}
+              </div>
+            )}
+
+            {isFetching ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600">Loading profile...</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Basic Information */}
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          name="name"
+                          value={profileFormData.name}
+                          onChange={handleProfileChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          required
+                        />
+                      ) : (
+                        <p className="text-gray-900 font-semibold">{profileData.name || 'N/A'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                      {isEditing ? (
+                        <input
+                          type="email"
+                          name="email"
+                          value={profileFormData.email}
+                          onChange={handleProfileChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          required
+                        />
+                      ) : (
+                        <p className="text-gray-900 font-semibold">{profileData.email || 'N/A'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
+                      {isEditing ? (
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={profileFormData.phone}
+                          onChange={handleProfileChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          required
+                        />
+                      ) : (
+                        <p className="text-gray-900 font-semibold">{profileData.phone || 'N/A'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">CA Number *</label>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          name="caNumber"
+                          value={profileFormData.caNumber}
+                          onChange={handleProfileChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          required
+                        />
+                      ) : (
+                        <p className="text-gray-900 font-semibold">{profileData.caNumber || 'N/A'}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Professional Information */}
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Professional Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Firm Name *</label>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          name="firmName"
+                          value={profileFormData.firmName}
+                          onChange={handleProfileChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          required
+                        />
+                      ) : (
+                        <p className="text-gray-900 font-semibold">{profileData.firmName || 'N/A'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Experience *</label>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          name="experience"
+                          value={profileFormData.experience}
+                          onChange={handleProfileChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="e.g., 10 years"
+                          required
+                        />
+                      ) : (
+                        <p className="text-gray-900 font-semibold">{profileData.experience || 'N/A'}</p>
+                      )}
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Specialization *</label>
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          name="specialization"
+                          value={profileFormData.specialization}
+                          onChange={handleProfileChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="e.g., GST, Income Tax"
+                          required
+                        />
+                      ) : (
+                        <p className="text-gray-900 font-semibold">{profileData.specialization || 'N/A'}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Password Change Section (only in edit mode) */}
+                {isEditing && (
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h3>
+                    <p className="text-sm text-gray-600 mb-4">Leave blank if you don't want to change password</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                        <input
+                          type="password"
+                          name="currentPassword"
+                          value={profileFormData.currentPassword}
+                          onChange={handleProfileChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Enter current password"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                        <input
+                          type="password"
+                          name="password"
+                          value={profileFormData.password}
+                          onChange={handleProfileChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Enter new password"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                        <input
+                          type="password"
+                          name="confirmPassword"
+                          value={profileFormData.confirmPassword}
+                          onChange={handleProfileChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Confirm new password"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
+        )}
       </div>
 
       {/* Create Service Modal */}
@@ -773,7 +1349,12 @@ const CADashboard = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowCreateModal(false)}
+            onClick={(e) => {
+              // Only close if clicking the backdrop, not the modal content
+              if (e.target === e.currentTarget) {
+                setShowCreateModal(false);
+              }
+            }}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -781,10 +1362,17 @@ const CADashboard = () => {
               exit={{ scale: 0.9, opacity: 0 }}
               className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                // Prevent modal from closing on Escape key while typing
+                if (e.key === 'Escape' && e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                  e.stopPropagation();
+                }
+              }}
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Create New Legal Service</h2>
                 <button
+                  type="button"
                   onClick={() => setShowCreateModal(false)}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
@@ -798,16 +1386,19 @@ const CADashboard = () => {
 
               <div className="flex justify-end space-x-3 mt-6">
                 <button
+                  type="button"
                   onClick={() => setShowCreateModal(false)}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={handleCreateService}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  disabled={isLoading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
-                  Create Service
+                  {isLoading ? 'Creating...' : 'Create Service'}
                 </button>
               </div>
             </motion.div>
@@ -1045,7 +1636,12 @@ const CADashboard = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowEditModal(false)}
+            onClick={(e) => {
+              // Only close if clicking the backdrop, not the modal content
+              if (e.target === e.currentTarget) {
+                setShowEditModal(false);
+              }
+            }}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -1053,10 +1649,17 @@ const CADashboard = () => {
               exit={{ scale: 0.9, opacity: 0 }}
               className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                // Prevent modal from closing on Escape key while typing
+                if (e.key === 'Escape' && e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                  e.stopPropagation();
+                }
+              }}
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Edit Legal Service - {editingService.name}</h2>
                 <button
+                  type="button"
                   onClick={() => setShowEditModal(false)}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
@@ -1070,16 +1673,19 @@ const CADashboard = () => {
 
               <div className="flex justify-end space-x-3 mt-6">
                 <button
+                  type="button"
                   onClick={() => setShowEditModal(false)}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={handleUpdateService}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  disabled={isLoading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
-                  Update Service
+                  {isLoading ? 'Updating...' : 'Update Service'}
                 </button>
               </div>
             </motion.div>

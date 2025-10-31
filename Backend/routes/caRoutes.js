@@ -7,7 +7,8 @@ const {
   updateCA,
   deleteCA,
   loginCA,
-  getCAProfile
+  getCAProfile,
+  updateCAProfile
 } = require('../controllers/caController');
 const { protect: adminProtect } = require('../middleware/adminAuth');
 const { protect: caProtect } = require('../middleware/caAuth');
@@ -40,6 +41,18 @@ const loginValidation = [
   body('password').notEmpty().withMessage('Password is required')
 ];
 
+const profileUpdateValidation = [
+  body('name').optional().trim().notEmpty().withMessage('Name cannot be empty'),
+  body('email').optional().isEmail().withMessage('Please provide a valid email'),
+  body('phone').optional().matches(/^[6-9]\d{9}$/).withMessage('Please provide a valid 10-digit phone number'),
+  body('caNumber').optional().trim().notEmpty().withMessage('CA Number cannot be empty'),
+  body('firmName').optional().trim().notEmpty().withMessage('Firm Name cannot be empty'),
+  body('experience').optional().trim().notEmpty().withMessage('Experience cannot be empty'),
+  body('specialization').optional().trim().notEmpty().withMessage('Specialization cannot be empty'),
+  body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('currentPassword').optional().notEmpty().withMessage('Current password is required when changing password')
+];
+
 // Admin routes - CA management
 router.post('/admin/register', adminProtect, registerValidation, registerCA);
 router.get('/admin', adminProtect, getCA);
@@ -49,6 +62,7 @@ router.delete('/admin', adminProtect, deleteCA);
 // CA routes - Authentication and profile
 router.post('/login', loginValidation, loginCA);
 router.get('/profile', caProtect, getCAProfile);
+router.put('/profile', caProtect, profileUpdateValidation, updateCAProfile);
 
 module.exports = router;
 
