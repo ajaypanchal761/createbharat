@@ -77,11 +77,15 @@ const apiCall = async (endpoint, options = {}) => {
 
       // Handle validation errors specifically
       if (data.errors && Array.isArray(data.errors)) {
-        const errorMessages = data.errors.map(err => err.msg || err.message).join(', ');
-        throw new Error(errorMessages || data.message || 'Validation failed');
+        const errorMessages = data.errors.map(err => err.msg || err.message || err).join(', ');
+        const error = new Error(errorMessages || data.message || 'Validation failed');
+        error.errors = data.errors.map(err => err.msg || err.message || err);
+        throw error;
       }
 
-      throw new Error(data.message || data.error || 'Something went wrong');
+      const error = new Error(data.message || data.error || 'Something went wrong');
+      if (data.error) error.error = data.error;
+      throw error;
     }
 
     return data;
@@ -178,6 +182,58 @@ export const adminAPI = {
   getMe: async (token) => {
     return apiCall('/admin/me', {
       method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Get all users (Admin management)
+  getAllUsers: async (token, params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/admin/users${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Get user by ID (Admin management)
+  getUserById: async (token, userId) => {
+    return apiCall(`/admin/users/${userId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Update user (Admin management)
+  updateUser: async (token, userId, updateData) => {
+    return apiCall(`/admin/users/${userId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(updateData),
+    });
+  },
+
+  // Delete user (Admin management)
+  deleteUser: async (token, userId) => {
+    return apiCall(`/admin/users/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Deactivate/activate user (Admin management)
+  deactivateUser: async (token, userId) => {
+    return apiCall(`/admin/users/${userId}/deactivate`, {
+      method: 'PATCH',
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -826,20 +882,6 @@ export const adminCAAPI = {
     });
   },
 
-  // Get payment history for legal services (Admin only - completed submissions)
-  getPaymentHistory: async (token) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/admin/legal-payments', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  },
-
   // Get CA (Admin)
   getCA: async (token) => {
     if (!token || token === 'null' || token === 'undefined') {
@@ -962,139 +1004,5 @@ export const caLegalServiceAPI = {
   }
 };
 
-// Legal Submission API calls (for users)
-export const legalSubmissionAPI = {
-  // Create submission with documents
-  create: async (token, serviceId, category, files) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-
-    const formData = new FormData();
-    formData.append('serviceId', serviceId);
-    if (category) {
-      formData.append('category', category);
-    }
-    if (files && files.length > 0) {
-      files.forEach((file) => {
-        formData.append('documents', file);
-      });
-    }
-
-    return apiCall('/legal/submissions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-      body: formData,
-    });
-  },
-
-  // Create Razorpay order
-  createOrder: async (token, submissionId) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/legal/submissions/${submissionId}/create-order`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  },
-
-  // Update payment
-  updatePayment: async (token, submissionId, paymentData) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/legal/submissions/${submissionId}/payment`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-      body: JSON.stringify(paymentData),
-    });
-  },
-
-  // Get user's submissions
-  getUserSubmissions: async (token) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/legal/submissions', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  },
-
-  // Get submission by ID
-  getById: async (token, submissionId) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/legal/submissions/${submissionId}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  }
-};
-
-// CA Legal Submission API calls
-export const caLegalSubmissionAPI = {
-  // Get all submissions (CA)
-  getAll: async (token, status = null) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    const url = status ? `/ca/submissions?status=${status}` : '/ca/submissions';
-    return apiCall(url, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  },
-
-  // Get submission by ID (CA)
-  getById: async (token, submissionId) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/ca/submissions/${submissionId}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  },
-
-  // Update submission status (CA)
-  updateStatus: async (token, submissionId, statusData) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall(`/ca/submissions/${submissionId}/status`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-      body: JSON.stringify(statusData),
-    });
-  }
-};
-
-export default { authAPI, adminAPI, companyAPI, internshipAPI, applicationAPI, loansAPI, adminLoansAPI, mentorAPI, mentorBookingAPI, caAPI, adminCAAPI, legalServiceAPI, caLegalServiceAPI, legalSubmissionAPI, caLegalSubmissionAPI };
+export default { authAPI, adminAPI, companyAPI, internshipAPI, applicationAPI, loansAPI, adminLoansAPI, mentorAPI, mentorBookingAPI, caAPI, adminCAAPI, legalServiceAPI, caLegalServiceAPI };
 

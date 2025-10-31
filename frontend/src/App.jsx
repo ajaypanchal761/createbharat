@@ -94,10 +94,10 @@ function App() {
                     <Route path="/internships/:internshipId" element={<InternshipDetailPage />} />
                     <Route path="/internships/:internshipId/apply" element={<InternshipApplicationPage />} />
                     <Route path="/training" element={<TrainingPage />} />
-                    <Route path="/training/modules/entrepreneurship-mastery" element={<ModulesListPage />} />
-                    <Route path="/training/module/:moduleId" element={<ModuleDetailPage />} />
-                    <Route path="/training/module/:moduleId/topic/:topicId" element={<TopicDetailPage />} />
-                    <Route path="/training/certificate" element={<CertificatePage />} />
+                    <Route path="/training/modules/:courseId" element={<ModulesListPage />} />
+                    <Route path="/training/module/:courseId/:moduleId" element={<ModuleDetailPage />} />
+                    <Route path="/training/module/:courseId/:moduleId/topic/:topicId" element={<TopicDetailPage />} />
+                    <Route path="/training/certificate/:courseId?" element={<CertificatePage />} />
                     <Route path="/legal" element={<LegalPage />} />
                     <Route path="/legal/gst-registration-type" element={<GSTRegistrationTypePage />} />
                     <Route path="/legal/project-report" element={<ProjectReportPage />} />

@@ -634,58 +634,30 @@ const HomePage = () => {
                         ))}
                     </motion.div>
 
-                    {/* Feature Banner */}
-                                                        <motion.div 
-                        variants={slideInLeft}
-                        initial="hidden"
-                        animate="visible"
-                        className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-2xl p-6 relative overflow-hidden shadow-lg ring-1 ring-blue-200"
-                    >
-                        {/* Animated Background Text */}
-                                                            <motion.div
-                            className="absolute inset-0 flex items-center justify-center opacity-5"
-                                                                animate={{
-                                scale: [1, 1.05, 1],
-                                rotate: [0, 1, 0]
-                                                                }}
-                                                                transition={{
-                                duration: 8, 
-                                                                    repeat: Infinity,
-                                ease: "easeInOut" 
-                            }}
-                        >
-                            <span className="text-6xl font-bold text-gray-400">SUCCESS</span>
-                                                        </motion.div>
-                        
-                        <div className="relative z-10">    
-                            {/* Bank Account Service Card */}
+                    {/* Bank Account Service Card - Direct without wrapper */}
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.4 }}
-                                className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-4 mb-4 shadow-lg ring-1 ring-white/10"
+                                transition={{ delay: 0.4 }}
+                                className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-5 md:p-4 mb-4 shadow-lg ring-1 ring-white/10 w-full"
                             >
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-3xl">🏦</span>
-                                        <div>
-                                            <h3 className="font-bold text-white text-base">Bank Account Opening</h3>
-                                            <p className="text-xs text-blue-100">Coming Soon</p>
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3 flex-1">
+                                        <span className="text-4xl md:text-3xl">🏦</span>
+                                        <div className="flex-1">
+                                            <h3 className="font-bold text-white text-lg md:text-base">Bank Account Opening</h3>
+                                            <p className="text-sm md:text-xs text-blue-100">Coming Soon</p>
                                         </div>
-                                                    </div>
-                            <motion.button
+                                    </div>
+                                    <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="px-4 py-2 bg-white text-blue-600 font-semibold rounded-lg text-sm"
+                                        className="px-5 py-2.5 md:px-4 md:py-2 bg-white text-blue-600 font-semibold rounded-lg text-sm whitespace-nowrap flex-shrink-0"
                                         disabled
                                     >
                                         Coming Soon
-                            </motion.button>
+                                    </motion.button>
                                 </div>
-                            </motion.div>
-
-                            {/* Removed Get Started Button as requested */}
-                                                </div>
                             </motion.div>
 
                     {/* Middle Service Grid - 4 Columns */}
