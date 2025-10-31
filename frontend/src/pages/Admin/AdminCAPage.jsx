@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     FaBalanceScale, 
@@ -6,13 +6,19 @@ import {
     FaTimes, 
     FaEye, 
     FaTrash,
+    FaEdit,
     FaUser,
     FaRupeeSign,
     FaCalendar
 } from 'react-icons/fa';
+import { adminCAAPI } from '../../utils/api';
 
 const AdminCAPage = () => {
     const [showRegisterForm, setShowRegisterForm] = useState(false);
+    const [showEditForm, setShowEditForm] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isFetching, setIsFetching] = useState(true);
+    const [error, setError] = useState('');
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -24,21 +30,8 @@ const AdminCAPage = () => {
         firmName: ''
     });
 
-    // Mock data for CA list - only one default CA
-    const [cas, setCas] = useState([
-        {
-            id: 1,
-            name: 'Rajesh Kumar',
-            email: 'rajesh.kumar@example.com',
-            caNumber: 'CA12345',
-            phone: '9876543210',
-            experience: '10 years',
-            specialization: 'GST, Income Tax',
-            firmName: 'Kumar & Associates',
-            status: 'active',
-            registeredDate: '2024-01-15'
-        }
-    ]);
+    // CA data - only one CA can exist
+    const [ca, setCa] = useState(null);
 
     // Mock data for users who paid for CA services
     const paidUsers = [
@@ -84,38 +77,155 @@ const AdminCAPage = () => {
         });
     };
 
-    const handleRegister = (e) => {
-        e.preventDefault();
-        // Here you would call the backend API to register a new CA
-        console.log('Registering CA:', formData);
-        
-        // Mock: Add to list
-        const newCA = {
-            id: cas.length + 1,
-            ...formData,
-            status: 'active',
-            registeredDate: new Date().toISOString().split('T')[0]
-        };
-        setCas([...cas, newCA]);
-        
-        // Reset form
-        setFormData({
-            name: '',
-            email: '',
-            password: '',
-            caNumber: '',
-            phone: '',
-            experience: '',
-            specialization: '',
-            firmName: ''
-        });
-        setShowRegisterForm(false);
-        alert('CA registered successfully!');
+    // Fetch CA data on mount
+    useEffect(() => {
+        fetchCA();
+    }, []);
+
+    const fetchCA = async () => {
+        setIsFetching(true);
+        setError('');
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                setError('Admin token not found');
+                setIsFetching(false);
+                return;
+            }
+            const response = await adminCAAPI.getCA(token);
+            if (response.success && response.data.ca) {
+                setCa(response.data.ca);
+            } else {
+                setCa(null); // No CA registered yet
+            }
+        } catch (err) {
+            console.error('Error fetching CA:', err);
+            setCa(null); // No CA registered yet
+        } finally {
+            setIsFetching(false);
+        }
     };
 
-    const handleDelete = (caId) => {
-        if (window.confirm('Are you sure you want to delete this CA?')) {
-            setCas(cas.filter(ca => ca.id !== caId));
+    const handleRegister = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError('');
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                setError('Admin token not found');
+                setIsLoading(false);
+                return;
+            }
+            const response = await adminCAAPI.register(token, formData);
+            if (response.success) {
+                setCa(response.data.ca);
+                setFormData({
+                    name: '',
+                    email: '',
+                    password: '',
+                    caNumber: '',
+                    phone: '',
+                    experience: '',
+                    specialization: '',
+                    firmName: ''
+                });
+                setShowRegisterForm(false);
+                alert('CA registered successfully!');
+            } else {
+                setError(response.message || 'Failed to register CA');
+            }
+        } catch (err) {
+            console.error('Error registering CA:', err);
+            setError(err.message || 'Failed to register CA. Only one CA can exist at a time.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleEdit = () => {
+        if (ca) {
+            setFormData({
+                name: ca.name || '',
+                email: ca.email || '',
+                password: '', // Don't populate password
+                caNumber: ca.caNumber || '',
+                phone: ca.phone || '',
+                experience: ca.experience || '',
+                specialization: ca.specialization || '',
+                firmName: ca.firmName || ''
+            });
+            setShowEditForm(true);
+        }
+    };
+
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError('');
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                setError('Admin token not found');
+                setIsLoading(false);
+                return;
+            }
+            // Only send fields that are being updated (exclude empty password)
+            const updateData = { ...formData };
+            if (!updateData.password) {
+                delete updateData.password;
+            }
+            const response = await adminCAAPI.updateCA(token, updateData);
+            if (response.success) {
+                setCa(response.data.ca);
+                setFormData({
+                    name: '',
+                    email: '',
+                    password: '',
+                    caNumber: '',
+                    phone: '',
+                    experience: '',
+                    specialization: '',
+                    firmName: ''
+                });
+                setShowEditForm(false);
+                alert('CA updated successfully!');
+            } else {
+                setError(response.message || 'Failed to update CA');
+            }
+        } catch (err) {
+            console.error('Error updating CA:', err);
+            setError(err.message || 'Failed to update CA');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!window.confirm('Are you sure you want to delete this CA? You will be able to register a new CA after deletion.')) {
+            return;
+        }
+        setIsLoading(true);
+        setError('');
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                setError('Admin token not found');
+                setIsLoading(false);
+                return;
+            }
+            const response = await adminCAAPI.deleteCA(token);
+            if (response.success) {
+                setCa(null);
+                alert('CA deleted successfully! You can now register a new CA.');
+            } else {
+                setError(response.message || 'Failed to delete CA');
+            }
+        } catch (err) {
+            console.error('Error deleting CA:', err);
+            setError(err.message || 'Failed to delete CA');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -137,18 +247,45 @@ const AdminCAPage = () => {
                             <p className="text-sm text-gray-600">Manage Chartered Accountants</p>
                         </div>
                     </div>
-                    <button
-                        onClick={() => setShowRegisterForm(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                        <FaPlus className="w-4 h-4" />
-                        Register CA
-                    </button>
+                    {!ca ? (
+                        <button
+                            onClick={() => setShowRegisterForm(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            <FaPlus className="w-4 h-4" />
+                            Register CA
+                        </button>
+                    ) : (
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleEdit}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                            >
+                                <FaEdit className="w-4 h-4" />
+                                Update CA
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                disabled={isLoading}
+                                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                            >
+                                <FaTrash className="w-4 h-4" />
+                                Delete CA
+                            </button>
+                        </div>
+                    )}
                 </motion.div>
+
+                {/* Error Message */}
+                {error && (
+                    <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg">
+                        {error}
+                    </div>
+                )}
 
                 {/* Register Form Modal */}
                 <AnimatePresence>
-                    {showRegisterForm && (
+                    {showRegisterForm && !ca && (
                         <>
                             <motion.div
                                 initial={{ opacity: 0 }}
@@ -269,16 +406,21 @@ const AdminCAPage = () => {
                                         <div className="flex gap-3 pt-4">
                                             <button
                                                 type="button"
-                                                onClick={() => setShowRegisterForm(false)}
-                                                className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                                                onClick={() => {
+                                                    setShowRegisterForm(false);
+                                                    setError('');
+                                                }}
+                                                disabled={isLoading}
+                                                className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium disabled:opacity-50"
                                             >
                                                 Cancel
                                             </button>
                                             <button
                                                 type="submit"
-                                                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                                                disabled={isLoading}
+                                                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
                                             >
-                                                Register CA
+                                                {isLoading ? 'Registering...' : 'Register CA'}
                                             </button>
                                         </div>
                                     </form>
@@ -288,12 +430,167 @@ const AdminCAPage = () => {
                     )}
                 </AnimatePresence>
 
-                {/* CA List */}
+                {/* Edit Form Modal */}
+                <AnimatePresence>
+                    {showEditForm && ca && (
+                        <>
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+                                onClick={() => {
+                                    setShowEditForm(false);
+                                    setError('');
+                                }}
+                            >
+                                <motion.div
+                                    initial={{ scale: 0.9, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0.9, opacity: 0 }}
+                                    className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between rounded-t-2xl">
+                                        <h2 className="text-2xl font-bold text-gray-900">Update CA</h2>
+                                        <button
+                                            onClick={() => {
+                                                setShowEditForm(false);
+                                                setError('');
+                                            }}
+                                            className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                                        >
+                                            <FaTimes className="w-4 h-4 text-gray-600" />
+                                        </button>
+                                    </div>
+                                    <form onSubmit={handleUpdate} className="p-6 space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                                                <input
+                                                    type="text"
+                                                    name="name"
+                                                    value={formData.name}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                                                <input
+                                                    type="email"
+                                                    name="email"
+                                                    value={formData.email}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Password (leave blank to keep current)</label>
+                                                <input
+                                                    type="password"
+                                                    name="password"
+                                                    value={formData.password}
+                                                    onChange={handleChange}
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">CA Number *</label>
+                                                <input
+                                                    type="text"
+                                                    name="caNumber"
+                                                    value={formData.caNumber}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
+                                                <input
+                                                    type="tel"
+                                                    name="phone"
+                                                    value={formData.phone}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Experience *</label>
+                                                <input
+                                                    type="text"
+                                                    name="experience"
+                                                    value={formData.experience}
+                                                    onChange={handleChange}
+                                                    required
+                                                    placeholder="e.g., 10 years"
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Specialization *</label>
+                                                <input
+                                                    type="text"
+                                                    name="specialization"
+                                                    value={formData.specialization}
+                                                    onChange={handleChange}
+                                                    required
+                                                    placeholder="e.g., GST, Income Tax"
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Firm Name *</label>
+                                                <input
+                                                    type="text"
+                                                    name="firmName"
+                                                    value={formData.firmName}
+                                                    onChange={handleChange}
+                                                    required
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-3 pt-4">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setShowEditForm(false);
+                                                    setError('');
+                                                }}
+                                                disabled={isLoading}
+                                                className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium disabled:opacity-50"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                disabled={isLoading}
+                                                className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50"
+                                            >
+                                                {isLoading ? 'Updating...' : 'Update CA'}
+                                            </button>
+                                        </div>
+                                    </form>
+                                </motion.div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
+
+                {/* CA Display */}
                 <div className="space-y-4 mb-8">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">Registered CAs</h2>
-                    {cas.map((ca) => (
+                    <h2 className="text-xl font-bold text-gray-900 mb-4">Registered CA</h2>
+                    {isFetching ? (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
+                            <p className="text-gray-600">Loading...</p>
+                        </div>
+                    ) : ca ? (
                         <motion.div
-                            key={ca.id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
@@ -313,6 +610,9 @@ const AdminCAPage = () => {
                                             <span className="text-xs bg-gray-50 text-gray-700 px-2 py-1 rounded-full">
                                                 {ca.phone}
                                             </span>
+                                            <span className={`text-xs px-2 py-1 rounded-full ${ca.isActive ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                                                {ca.isActive ? 'Active' : 'Inactive'}
+                                            </span>
                                         </div>
                                         <div className="mt-2 space-y-1">
                                             <p className="text-sm text-gray-700"><strong>Experience:</strong> {ca.experience}</p>
@@ -321,17 +621,13 @@ const AdminCAPage = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => handleDelete(ca.id)}
-                                        className="w-8 h-8 flex items-center justify-center bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-                                    >
-                                        <FaTrash className="w-4 h-4" />
-                                    </button>
-                                </div>
                             </div>
                         </motion.div>
-                    ))}
+                    ) : (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
+                            <p className="text-gray-600">No CA registered yet. Click "Register CA" to add one.</p>
+                        </div>
+                    )}
                 </div>
 
                 {/* Paid Users Section */}

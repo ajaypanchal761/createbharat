@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { caAPI } from '../../utils/api';
 
 const CALoginPage = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,7 @@ const CALoginPage = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const navigate = useNavigate();
 
@@ -17,20 +19,33 @@ const CALoginPage = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+    setError(''); // Clear error on input change
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     
-    // Simulate login (remove when backend is ready)
-    setTimeout(() => {
-      localStorage.setItem('isCALoggedIn', 'true');
-      localStorage.setItem('userType', 'ca');
-      localStorage.setItem('caEmail', formData.email);
+    try {
+      const response = await caAPI.login(formData);
+      if (response.success && response.data) {
+        // Store CA token and data
+        localStorage.setItem('caToken', response.data.token);
+        localStorage.setItem('isCALoggedIn', 'true');
+        localStorage.setItem('userType', 'ca');
+        localStorage.setItem('caData', JSON.stringify(response.data.ca));
+        setIsLoading(false);
+        navigate('/ca/dashboard');
+      } else {
+        setError(response.message || 'Login failed');
+        setIsLoading(false);
+      }
+    } catch (err) {
+      console.error('CA Login error:', err);
+      setError(err.message || 'Invalid credentials. Please check your email and password.');
       setIsLoading(false);
-      navigate('/ca/dashboard');
-    }, 1500);
+    }
   };
 
   return (
@@ -50,12 +65,12 @@ const CALoginPage = () => {
           <p className="text-gray-600">Sign in to manage legal services</p>
         </div>
 
-        {/* Demo Credentials */}
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-          <p className="text-xs text-blue-600 font-semibold mb-2">Demo Credentials:</p>
-          <p className="text-xs text-gray-700">Email: ca@createbharat.com</p>
-          <p className="text-xs text-gray-700">Password: ca123</p>
-        </div>
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
