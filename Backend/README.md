@@ -124,6 +124,26 @@ Authorization: Bearer <jwt-token>
 | `JWT_SECRET` | JWT secret key | Required |
 | `JWT_EXPIRE` | JWT expiration time | `7d` |
 | `FRONTEND_URL` | Frontend URL for CORS | `http://localhost:3000` |
+| `SMTP_HOST` | SMTP server host | `smtp.gmail.com` |
+| `SMTP_PORT` | SMTP server port | `587` |
+| `SMTP_SECURE` | Use secure connection (SSL/TLS) | `false` |
+| `SMTP_USER` | SMTP email address | Required for email functionality |
+| `SMTP_PASSWORD` | SMTP password/app password | Required for email functionality |
+
+### Email Configuration
+
+For Gmail:
+1. Enable 2-Step Verification on your Google account
+2. Generate an App Password: https://myaccount.google.com/apppasswords
+3. Use the App Password in `SMTP_PASSWORD`
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+```
 
 ## Project Structure
 
