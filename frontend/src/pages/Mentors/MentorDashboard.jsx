@@ -263,13 +263,13 @@ const MentorDashboard = () => {
                             {(booking.user && `${booking.user.firstName || ''} ${booking.user.lastName || ''}`.trim()) || 'Student'}
                           </h3>
                           <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs md:text-sm font-medium border ${getStatusColor(booking.status)}`}>
-                            <span className="flex items-center space-x-1">
-                              {getStatusIcon(booking.status)}
-                              <span className="capitalize">{booking.status}</span>
-                            </span>
-                          </span>
-                        </div>
-
+                        <span className="flex items-center space-x-1">
+                          {getStatusIcon(booking.status)}
+                          <span className="capitalize">{booking.status}</span>
+                        </span>
+                      </span>
+                    </div>
+                    
                         {/* Minimal fields per status */}
                         {(booking.status === 'pending') && (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm text-gray-600">
@@ -400,19 +400,19 @@ const MentorDashboard = () => {
                     <span className="text-xs md:text-sm text-gray-600">Email:</span>
                     <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking?.user?.email || '-'}</p>
                   </div>
-                  <div>
+                      <div>
                     <span className="text-xs md:text-sm text-gray-600">Session Type:</span>
                     <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking?.sessionType} ({selectedBooking?.duration})</p>
-                  </div>
-                  <div>
+                      </div>
+                      <div>
                     <span className="text-xs md:text-sm text-gray-600">Amount:</span>
                     <p className="text-sm md:text-base text-gray-900 font-medium">₹{selectedBooking?.amount}</p>
-                  </div>
-                  <div>
+                      </div>
+                      <div>
                     <span className="text-xs md:text-sm text-gray-600">Current Date:</span>
                     <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking?.date ? new Date(selectedBooking.date).toLocaleDateString() : '-'}</p>
-                  </div>
-                  <div>
+                      </div>
+                      <div>
                     <span className="text-xs md:text-sm text-gray-600">Current Time:</span>
                     <p className="text-sm md:text-base text-gray-900 font-medium">{selectedBooking?.time || '-'}</p>
                   </div>
@@ -420,8 +420,8 @@ const MentorDashboard = () => {
                 <div className="mt-3 md:mt-4">
                   <span className="text-xs md:text-sm text-gray-600">Message:</span>
                   <p className="text-sm md:text-base text-gray-900 mt-1">{selectedBooking.message}</p>
-                </div>
-              </div>
+                      </div>
+                    </div>
 
               {/* New Schedule Form */}
               <div className="mb-4 md:mb-6">
@@ -448,7 +448,7 @@ const MentorDashboard = () => {
                       onChange={(e) => setNewSchedule({ ...newSchedule, time: e.target.value })}
                       className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
                     />
-                  </div>
+                    </div>
                   <div>
                     <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                       Meeting Link
@@ -460,11 +460,11 @@ const MentorDashboard = () => {
                       placeholder="https://meet.google.com/..."
                       className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
                     />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Actions */}
+                  {/* Actions */}
               <div className="flex space-x-2 md:space-x-3">
                 <button
                   onClick={() => setShowAcceptModal(false)}
@@ -480,7 +480,7 @@ const MentorDashboard = () => {
                 </button>
               </div>
             </div>
-          </div>
+                    </div>
         </>
       )}
 
@@ -557,7 +557,7 @@ const MentorDashboard = () => {
                   placeholder="Enter reason for rejection..."
                   className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none text-sm md:text-base"
                 />
-              </div>
+                </div>
 
               {/* Actions */}
               <div className="flex space-x-2 md:space-x-3">
@@ -573,7 +573,7 @@ const MentorDashboard = () => {
                 >
                   Reject & Refund
                 </button>
-              </div>
+            </div>
       </div>
           </div>
         </>

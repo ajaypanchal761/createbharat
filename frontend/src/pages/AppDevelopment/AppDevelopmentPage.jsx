@@ -190,15 +190,15 @@ const AppDevelopmentPage = () => {
                             </div>
                             <div>
                                 <h1 className="text-xl font-bold text-gray-800">App Development</h1>
-                                <p className="text-sm text-gray-600">Client Portal</p>
+                                <p className="text-sm text-gray-600">Web Development Services</p>
                             </div>
                         </div>
-                        <button
-                            onClick={handleLogout}
+                        <Link
+                            to="/"
                             className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                         >
-                            Logout
-                        </button>
+                            ← Back to Home
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -635,33 +635,8 @@ const AppDevelopmentPage = () => {
         </div>
     );
 
-    // Check if user is logged in from localStorage and set state if needed
-    const loggedInUserType = localStorage.getItem('userType');
-    const localStorageLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-
-    // Initialize state from localStorage if available
-    if (localStorageLoggedIn && !isLoggedIn && loggedInUserType) {
-        setUserType(loggedInUserType);
-        setIsLoggedIn(true);
-        return null; // Prevent flash of login page
-    }
-
-    // Show login page if not logged in
-    if (!isLoggedIn) {
-        return renderLoginPage();
-    }
-
-    // Render appropriate page based on user type
-    switch (userType) {
-        case 'client':
-            return renderClientPage();
-        case 'admin':
-            return renderAdminPage();
-        case 'appzeto':
-            return renderAppzetoPage();
-        default:
-            return renderLoginPage();
-    }
+    // Always show the client page without requiring login
+    return renderClientPage();
 };
 
 export default AppDevelopmentPage;

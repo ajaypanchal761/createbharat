@@ -344,7 +344,43 @@ export const companyAPI = {
   },
 
   // Update company profile
-  updateProfile: async (token, profileData) => {
+  updateProfile: async (token, profileData, registrationFile = null, gstFile = null) => {
+    // If files are provided, use FormData
+    if (registrationFile || gstFile) {
+      const formData = new FormData();
+      
+      // Append all profile fields to formData
+      Object.keys(profileData).forEach(key => {
+        if (profileData[key] !== null && profileData[key] !== undefined) {
+          // Handle address or other objects
+          if (typeof profileData[key] === 'object') {
+            formData.append(key, JSON.stringify(profileData[key]));
+          } else {
+            formData.append(key, profileData[key]);
+          }
+        }
+      });
+      
+      // Append files if provided
+      if (registrationFile) {
+        formData.append('registrationCertificate', registrationFile);
+      }
+      
+      if (gstFile) {
+        formData.append('gstCertificate', gstFile);
+      }
+
+      return apiCall('/company/profile', {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+        skipJsonHeaders: true,
+      });
+    }
+
+    // Otherwise, use JSON
     return apiCall('/company/profile', {
       method: 'PUT',
       headers: {

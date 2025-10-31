@@ -78,8 +78,18 @@ const parseFormDataFields = (req, res, next) => {
   next();
 };
 
-// Export both upload middleware and parser
+// Configure multer for company documents (multiple files)
+const uploadDocuments = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit for documents
+  },
+  fileFilter: resumeFilter // Same filter as resumes (PDF, DOC, DOCX)
+});
+
+// Export all upload middleware and parser
 module.exports = upload;
 module.exports.uploadResume = uploadResume;
+module.exports.uploadDocuments = uploadDocuments;
 module.exports.parseFormData = parseFormDataFields;
 

@@ -20,6 +20,29 @@ const CompanyInternshipsPage = () => {
         hiredCandidates: 0,
         responseRate: '0%'
     });
+    const [jobFormData, setJobFormData] = useState({
+        title: '',
+        location: '',
+        duration: '3 months',
+        description: '',
+        requirements: [],
+        responsibilities: '',
+        salary: '',
+        stipend: '',
+        type: 'Internship',
+        category: 'Technology',
+        skills: '',
+        openings: '1',
+        applicationDeadline: ''
+    });
+    const [companyProfile, setCompanyProfile] = useState(null);
+    const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+    
+    // Document upload states
+    const [registrationDoc, setRegistrationDoc] = useState(null);
+    const [gstDoc, setGstDoc] = useState(null);
+    const [isUploadingDocs, setIsUploadingDocs] = useState(false);
+    const [showUploadModal, setShowUploadModal] = useState(false);
 
     // Check authentication on mount and load data
     useEffect(() => {
@@ -94,23 +117,6 @@ const CompanyInternshipsPage = () => {
             setIsLoading(false);
         }
     };
-    const [jobFormData, setJobFormData] = useState({
-        title: '',
-        location: '',
-        duration: '3 months',
-        description: '',
-        requirements: [],
-        responsibilities: '',
-        salary: '',
-        stipend: '',
-        type: 'Internship',
-        category: 'Technology',
-        skills: '',
-        openings: '1',
-        applicationDeadline: ''
-    });
-    const [companyProfile, setCompanyProfile] = useState(null);
-    const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
     const handleJobFormChange = (e) => {
         setJobFormData({
@@ -150,6 +156,12 @@ const CompanyInternshipsPage = () => {
         // If editing, use update handler instead
         if (editingInternship) {
             return handleUpdateInternship(e);
+        }
+
+        // Check if documents are uploaded
+        if (!companyInfo?.documents?.registrationCertificate?.url || !companyInfo?.documents?.gstCertificate?.url) {
+            setShowUploadModal(true);
+            return;
         }
 
         setIsPostingJob(true);
@@ -349,10 +361,14 @@ const CompanyInternshipsPage = () => {
                 profileData.address = companyProfile.address;
             }
 
-            const response = await companyAPI.updateProfile(token, profileData);
+            // Call updateProfile with files if selected
+            const response = await companyAPI.updateProfile(token, profileData, registrationDoc, gstDoc);
 
             if (response.success) {
                 alert('Profile updated successfully!');
+                // Clear file inputs after successful upload
+                setRegistrationDoc(null);
+                setGstDoc(null);
                 // Reload company data to get updated info
                 await loadCompanyData(token);
             } else {
@@ -1438,6 +1454,72 @@ const CompanyInternshipsPage = () => {
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                             />
                         </div>
+                        
+                        {/* Document Upload Section */}
+                        <div className="border-t border-gray-200 pt-4 mt-6">
+                            <h4 className="text-lg font-semibold text-gray-800 mb-4">Company Documents</h4>
+                            
+                            {/* Company Registration Certificate */}
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Company Registration Certificate *
+                                </label>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="file"
+                                        name="registrationCertificate"
+                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                        onChange={(e) => setRegistrationDoc(e.target.files[0])}
+                                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                                    />
+                                    {companyInfo?.documents?.registrationCertificate?.url && (
+                                        <a
+                                            href={companyInfo.documents.registrationCertificate.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                            View Current
+                                        </a>
+                                    )}
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">Upload PDF, DOC, DOCX, JPEG, or PNG (max 10MB)</p>
+                            </div>
+                            
+                            {/* GST Certificate */}
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    GST Registration Certificate *
+                                </label>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="file"
+                                        name="gstCertificate"
+                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                        onChange={(e) => setGstDoc(e.target.files[0])}
+                                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                                    />
+                                    {companyInfo?.documents?.gstCertificate?.url && (
+                                        <a
+                                            href={companyInfo.documents.gstCertificate.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                            View Current
+                                        </a>
+                                    )}
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">Upload PDF, DOC, DOCX, JPEG, or PNG (max 10MB)</p>
+                            </div>
+                        </div>
+                        
                         <motion.button
                             type="submit"
                             disabled={isUpdatingProfile}
@@ -1575,6 +1657,85 @@ const CompanyInternshipsPage = () => {
                 {activeTab === 'profile' && renderProfile()}
             </div>
 
+            {/* Document Upload Required Modal */}
+            {showUploadModal && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+                    onClick={() => setShowUploadModal(false)}
+                >
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.9, opacity: 0 }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-white rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl"
+                    >
+                        {/* Icon */}
+                        <div className="flex justify-center mb-4">
+                            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
+                                <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Title */}
+                        <h3 className="text-xl md:text-2xl font-bold text-gray-800 text-center mb-2">
+                            Documents Required
+                        </h3>
+
+                        {/* Message */}
+                        <p className="text-gray-600 text-center mb-6">
+                            Please upload your <strong>Company Registration Certificate</strong> and <strong>GST Registration Certificate</strong> to post internships.
+                        </p>
+
+                        {/* Missing Documents List */}
+                        <div className="bg-red-50 rounded-lg p-4 mb-6">
+                            <p className="text-sm font-medium text-red-800 mb-2">Missing Documents:</p>
+                            <ul className="text-sm text-red-700 space-y-1">
+                                {!companyInfo?.documents?.registrationCertificate?.url && (
+                                    <li className="flex items-center gap-2">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                        Company Registration Certificate
+                                    </li>
+                                )}
+                                {!companyInfo?.documents?.gstCertificate?.url && (
+                                    <li className="flex items-center gap-2">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                        GST Registration Certificate
+                                    </li>
+                                )}
+                            </ul>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <button
+                                onClick={() => setShowUploadModal(false)}
+                                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowUploadModal(false);
+                                    setActiveTab('profile');
+                                }}
+                                className="flex-1 px-4 py-3 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors"
+                            >
+                                Upload Documents
+                            </button>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
 
         </div>
     );

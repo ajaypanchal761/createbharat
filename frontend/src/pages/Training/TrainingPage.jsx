@@ -194,6 +194,87 @@ const TrainingPage = () => {
         </div>
       </div>
 
+      {/* Certificate Banner */}
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="relative overflow-hidden rounded-xl md:rounded-2xl shadow-xl"
+        >
+          {/* Background Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700"></div>
+          
+          {/* Animated Background Elements */}
+          <div className="absolute inset-0 opacity-15 overflow-hidden">
+            <motion.div
+              animate={{ 
+                x: [0, 50, 0],
+                y: [0, 50, 0],
+              }}
+              transition={{ 
+                duration: 8,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+              className="absolute -top-10 -left-10 w-40 h-40 bg-white rounded-full blur-2xl"
+            ></motion.div>
+            <motion.div
+              animate={{ 
+                x: [0, -50, 0],
+                y: [0, -50, 0],
+              }}
+              transition={{ 
+                duration: 10,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+              className="absolute -bottom-10 -right-10 w-40 h-40 bg-white rounded-full blur-2xl"
+            ></motion.div>
+          </div>
+
+          {/* Content */}
+          <div className="relative z-10 p-5 md:p-8">
+            <div className="flex items-center gap-4 md:gap-6">
+              {/* Icon */}
+              <div className="relative flex-shrink-0">
+                <div className="w-14 h-14 md:w-16 md:h-16 bg-white/25 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30 shadow-lg">
+                  <span className="text-3xl md:text-4xl">🎓</span>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 text-white">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <span className="inline-block px-2 py-0.5 bg-white/25 backdrop-blur-sm rounded-md text-[10px] md:text-xs font-bold border border-white/30">
+                    CERTIFICATE
+                  </span>
+                  <span className="text-[10px] md:text-xs text-orange-100">70% Completion Required</span>
+                </div>
+                <h3 className="text-base md:text-xl font-bold mb-1.5 leading-tight">
+                  Get Your Verified Certificate
+                </h3>
+                <p className="text-xs md:text-sm text-orange-50 mb-0 leading-relaxed">
+                  Unlock your certificate after completing 70% of the course
+                </p>
+              </div>
+
+              {/* Right Side - Features */}
+              <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/30">
+                  <span className="text-lg">✅</span>
+                  <span className="text-xs font-semibold">Verified</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/30">
+                  <span className="text-lg">📥</span>
+                  <span className="text-xs font-semibold">PDF</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
       {/* Footer */}
       <div className="bg-gray-900 text-white py-8 px-4">
         <div className="max-w-7xl mx-auto text-center">

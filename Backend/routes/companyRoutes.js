@@ -2,6 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const { registerCompany, loginCompany, getMe, updateProfile } = require('../controllers/companyController');
 const { protect } = require('../middleware/companyAuth');
+const { uploadDocuments } = require('../utils/multer');
 
 const router = express.Router();
 
@@ -61,7 +62,10 @@ router.post('/login', loginValidation, loginCompany);
 
 // Protected routes
 router.get('/me', protect, getMe);
-router.put('/profile', protect, updateProfileValidation, updateProfile);
+router.put('/profile', protect, uploadDocuments.fields([
+  { name: 'registrationCertificate', maxCount: 1 },
+  { name: 'gstCertificate', maxCount: 1 }
+]), updateProfile);
 
 module.exports = router;
 
