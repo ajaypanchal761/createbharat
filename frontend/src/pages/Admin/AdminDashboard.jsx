@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
     FaUsers, 
     FaMoneyBillWave, 
@@ -19,17 +20,18 @@ import { adminAPI } from '../../utils/api';
 // Simple Revenue Chart Component
 const RevenueChart = ({ data }) => {
     const maxRevenue = Math.max(...data.map(d => d.revenue), 1);
-    const chartHeight = 240; // h-60 = 240px
+    const availableHeight = 240; // Total available height for bars (excluding padding)
     
     // Get last 7 days for better visualization
     const last7Days = data.slice(-7);
     
     return (
         <div className="h-full flex flex-col">
-            <div className="flex-1 relative">
+            <div className="flex-1 relative h-[240px]">
                 <div className="absolute inset-0 flex items-end justify-between gap-1 md:gap-2 pb-8">
                     {last7Days.map((item, index) => {
-                        const height = (item.revenue / maxRevenue) * chartHeight;
+                        // Calculate height as percentage of max, ensuring it fits within available space
+                        const height = Math.min((item.revenue / maxRevenue) * availableHeight, availableHeight);
                         const date = new Date(item.date);
                         const dayLabel = date.toLocaleDateString('en-US', { weekday: 'short' });
                         
@@ -72,6 +74,7 @@ const RevenueChart = ({ data }) => {
 };
 
 const AdminDashboard = () => {
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         totalUsers: 0,
@@ -117,6 +120,31 @@ const AdminDashboard = () => {
     }, []);
 
 
+    const handleCardClick = (cardType) => {
+        switch(cardType) {
+            case 'users':
+                navigate('/admin/users?type=users');
+                break;
+            case 'revenue':
+                navigate('/admin/payments');
+                break;
+            case 'loans':
+                navigate('/admin/loans');
+                break;
+            case 'legal':
+                navigate('/admin/ca');
+                break;
+            case 'training':
+                navigate('/admin/training');
+                break;
+            case 'mentors':
+                navigate('/admin/users?type=mentors');
+                break;
+            default:
+                break;
+        }
+    };
+
     const kpiCards = [
         {
             title: 'Total Users',
@@ -126,7 +154,8 @@ const AdminDashboard = () => {
             icon: FaUsers,
             color: 'from-blue-500 to-blue-600',
             bgColor: 'bg-blue-50',
-            textColor: 'text-blue-600'
+            textColor: 'text-blue-600',
+            route: 'users'
         },
         {
             title: 'Total Revenue',
@@ -136,7 +165,8 @@ const AdminDashboard = () => {
             icon: FaMoneyBillWave,
             color: 'from-green-500 to-green-600',
             bgColor: 'bg-green-50',
-            textColor: 'text-green-600'
+            textColor: 'text-green-600',
+            route: 'revenue'
         },
         {
             title: 'Loans Schemes',
@@ -146,7 +176,8 @@ const AdminDashboard = () => {
             icon: FaChartLine,
             color: 'from-purple-500 to-purple-600',
             bgColor: 'bg-purple-50',
-            textColor: 'text-purple-600'
+            textColor: 'text-purple-600',
+            route: 'loans'
         },
         {
             title: 'Legal Services',
@@ -156,7 +187,8 @@ const AdminDashboard = () => {
             icon: FaGavel,
             color: 'from-orange-500 to-orange-600',
             bgColor: 'bg-orange-50',
-            textColor: 'text-orange-600'
+            textColor: 'text-orange-600',
+            route: 'legal'
         },
         {
             title: 'Training Modules',
@@ -166,7 +198,8 @@ const AdminDashboard = () => {
             icon: FaGraduationCap,
             color: 'from-indigo-500 to-indigo-600',
             bgColor: 'bg-indigo-50',
-            textColor: 'text-indigo-600'
+            textColor: 'text-indigo-600',
+            route: 'training'
         },
         {
             title: 'Active Mentors',
@@ -176,7 +209,8 @@ const AdminDashboard = () => {
             icon: FaUsers,
             color: 'from-pink-500 to-pink-600',
             bgColor: 'bg-pink-50',
-            textColor: 'text-pink-600'
+            textColor: 'text-pink-600',
+            route: 'mentors'
         }
     ];
 
@@ -221,7 +255,8 @@ const AdminDashboard = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: index * 0.1 }}
-                            className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300"
+                            onClick={() => handleCardClick(card.route)}
+                            className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                         >
                             <div className="flex items-center justify-between mb-3 md:mb-4">
                                 <div className={`w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r ${card.color} rounded-lg md:rounded-xl flex items-center justify-center`}>
@@ -261,7 +296,7 @@ const AdminDashboard = () => {
                 className="grid grid-cols-1 gap-3 md:gap-6"
             >
                 {/* Revenue Chart */}
-                <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200">
+                <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200 overflow-hidden">
                     <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Revenue Trend</h3>
                     {revenueTrend.length === 0 ? (
                     <div className="h-48 md:h-64 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl flex items-center justify-center">
@@ -271,9 +306,9 @@ const AdminDashboard = () => {
                         </div>
                     </div>
                     ) : (
-                        <div className="h-48 md:h-64">
+                        <div className="h-48 md:h-64 overflow-hidden">
                             <RevenueChart data={revenueTrend} />
-                </div>
+                        </div>
                     )}
                 </div>
             </motion.div>

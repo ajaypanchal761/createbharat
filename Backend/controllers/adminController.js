@@ -711,7 +711,7 @@ const getDashboardStats = async (req, res) => {
       LoanScheme.countDocuments({ isActive: true }),
       LegalService.countDocuments({ isActive: true }),
       TrainingCourse.countDocuments({ isActive: true, isPublished: true }),
-      Mentor.countDocuments({ isActive: true, isVerified: true }),
+      Mentor.countDocuments({ isActive: true }),
       MentorBooking.countDocuments(),
       MentorBooking.countDocuments({ status: 'pending' }),
       MentorBooking.countDocuments({ status: 'accepted' }),

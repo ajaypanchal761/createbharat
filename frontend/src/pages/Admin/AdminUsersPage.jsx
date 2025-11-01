@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams } from 'react-router-dom';
 import { FaUsers, FaSearch, FaFilter, FaEye, FaTrash, FaCheckCircle, FaTimesCircle, FaSpinner, FaPhone, FaEnvelope, FaMapMarkerAlt, FaUser, FaCalendarAlt, FaIdCard, FaBan, FaUnlock, FaBuilding, FaGraduationCap } from 'react-icons/fa';
 import { adminAPI } from '../../utils/api';
 
 const AdminUsersPage = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterType, setFilterType] = useState('users'); // users, companies, mentors
+    const [filterType, setFilterType] = useState(searchParams.get('type') || 'users'); // users, companies, mentors
     const [filterStatus, setFilterStatus] = useState('all');
     const [profiles, setProfiles] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -241,7 +243,7 @@ const AdminUsersPage = () => {
                     {/* Profile Type Tabs */}
                     <div className="flex flex-wrap gap-2 mb-2 md:mb-0">
                         <button
-                            onClick={() => setFilterType('users')}
+                            onClick={() => { setFilterType('users'); setSearchParams({ type: 'users' }); }}
                             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                                 filterType === 'users'
                                     ? 'bg-orange-500 text-white'
@@ -252,7 +254,7 @@ const AdminUsersPage = () => {
                             Users
                         </button>
                         <button
-                            onClick={() => setFilterType('companies')}
+                            onClick={() => { setFilterType('companies'); setSearchParams({ type: 'companies' }); }}
                             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                                 filterType === 'companies'
                                     ? 'bg-orange-500 text-white'
@@ -263,7 +265,7 @@ const AdminUsersPage = () => {
                             Companies
                         </button>
                         <button
-                            onClick={() => setFilterType('mentors')}
+                            onClick={() => { setFilterType('mentors'); setSearchParams({ type: 'mentors' }); }}
                             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                                 filterType === 'mentors'
                                     ? 'bg-orange-500 text-white'
