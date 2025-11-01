@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavbar from '../../components/common/BottomNavbar';
 import { legalServiceAPI, legalSubmissionAPI } from '../../utils/api';
@@ -19,6 +19,7 @@ const UserIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" class
 const StatusIcon = ({ active }) => ( <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${active ? 'text-orange-500' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> );
 
 const LegalPage = () => {
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
     // Load active tab from localStorage, default to 'services'
@@ -275,8 +276,21 @@ const LegalPage = () => {
       >
         <div className="flex items-center justify-between px-4 py-3">
           <motion.button 
-            whileHover={{ scale: 1.1, rotate: 90 }}
-            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate(-1)}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </motion.button>
+          
+          <h1 className="text-lg font-bold text-gray-900">Legal Services</h1>
+          
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setIsMobileMenuOpen(true)}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
@@ -284,10 +298,6 @@ const LegalPage = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </motion.button>
-          
-          <h1 className="text-lg font-bold text-gray-900">Legal Services</h1>
-          
-          <div className="w-20"></div>
         </div>
       </motion.header>
 
@@ -295,11 +305,11 @@ const LegalPage = () => {
       {/* Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex">
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-end">
             <motion.div
-              initial={{ x: '-100%' }}
+              initial={{ x: '100%' }}
               animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
+              exit={{ x: '100%' }}
               className="w-64 bg-white h-full shadow-xl"
             >
               <div className="p-6">

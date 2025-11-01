@@ -598,54 +598,54 @@ const CompanyInternshipsPage = () => {
             className="space-y-6"
         >
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4">
                 {statsData.map((stat, index) => (
                     <motion.div
                         key={stat.label}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: index * 0.1 }}
-                        className="bg-white rounded-2xl p-6 shadow-lg"
+                        className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-6 shadow-lg"
                     >
-                        <h3 className="text-2xl font-bold text-gray-800">{stat.value}</h3>
-                        <p className="text-sm text-gray-600 mt-1">{stat.label}</p>
-                        <p className="text-xs text-green-600 mt-1">{stat.change}</p>
+                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">{stat.value}</h3>
+                        <p className="text-xs sm:text-sm text-gray-600 mt-1">{stat.label}</p>
+                        <p className="text-[10px] sm:text-xs text-green-600 mt-1">{stat.change}</p>
                     </motion.div>
                 ))}
             </div>
 
             {/* Recent Applications */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-gray-800">Recent Applications</h3>
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">Recent Applications</h3>
                     <Link
                         to="#"
-                        className="text-blue-600 text-sm font-medium hover:text-blue-800"
+                        className="text-blue-600 text-xs sm:text-sm font-medium hover:text-blue-800"
                     >
                         View All
                     </Link>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                     {recentApplications.map((app, index) => (
                         <motion.div
                             key={app.id}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 p-3 sm:p-4 bg-gray-50 rounded-lg"
                         >
-                            <div>
-                                <h4 className="font-semibold text-gray-800">{app.candidate}</h4>
-                                <p className="text-sm text-gray-600">{app.position}</p>
+                            <div className="min-w-0 flex-1">
+                                <h4 className="font-semibold text-gray-800 text-sm sm:text-base truncate">{app.candidate}</h4>
+                                <p className="text-xs sm:text-sm text-gray-600 truncate">{app.position}</p>
                             </div>
-                            <div className="text-right">
-                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${app.status === 'New' ? 'bg-blue-100 text-blue-800' :
+                            <div className="flex flex-col sm:flex-row items-start sm:items-end gap-1 sm:gap-0 sm:text-right w-full sm:w-auto">
+                                <span className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap ${app.status === 'New' ? 'bg-blue-100 text-blue-800' :
                                     app.status === 'Under Review' ? 'bg-yellow-100 text-yellow-800' :
                                         'bg-green-100 text-green-800'
                                     }`}>
                                     {app.status}
                                 </span>
-                                <p className="text-xs text-gray-500 mt-1">{app.appliedDate}</p>
+                                <p className="text-[10px] sm:text-xs text-gray-500 sm:mt-1">{app.appliedDate}</p>
                             </div>
                         </motion.div>
                     ))}
@@ -663,15 +663,15 @@ const CompanyInternshipsPage = () => {
         >
             <div className="relative">
                 {/* Inner Container */}
-                <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-gray-200">
+                <div className="relative bg-white rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl border border-gray-200">
                     {/* Form Header */}
                     <motion.div
-                        className="mb-8"
+                        className="mb-4 sm:mb-6 md:mb-8"
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
                     >
-                        <h3 className="text-3xl font-bold text-gray-800 text-center py-4">
+                        <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 text-center py-2 sm:py-3 md:py-4">
                             {editingInternship ? 'Edit Internship' : 'Post New Internship'}
                         </h3>
                         {editingInternship && (
@@ -703,17 +703,17 @@ const CompanyInternshipsPage = () => {
                         )}
                     </motion.div>
 
-                    <form onSubmit={handlePostJob} className="space-y-6">
+                    <form onSubmit={handlePostJob} className="space-y-4 sm:space-y-5 md:space-y-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-3">Job Title</label>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">Job Title</label>
                             <motion.div
                                 className="relative"
-                                whileFocus={{ scale: 1.02 }}
+                                whileFocus={{ scale: 1.01 }}
                                 transition={{ duration: 0.2 }}
                             >
                                 {/* Input Border Effect */}
                                 <motion.div
-                                    className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 rounded-xl opacity-0"
+                                    className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 rounded-lg sm:rounded-xl opacity-0"
                                     whileFocus={{ opacity: 1 }}
                                     transition={{ duration: 0.3 }}
                                 />
@@ -723,20 +723,20 @@ const CompanyInternshipsPage = () => {
                                     value={jobFormData.title}
                                     onChange={handleJobFormChange}
                                     required
-                                    className="relative w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-transparent bg-white/90 backdrop-blur-sm transition-all duration-300"
+                                    className="relative w-full px-3 sm:px-4 py-2.5 sm:py-3 md:py-4 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:ring-0 focus:border-transparent bg-white/90 backdrop-blur-sm transition-all duration-300 text-sm sm:text-base"
                                     placeholder="e.g., Frontend Developer Intern"
                                 />
                             </motion.div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-3">Location</label>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">Location</label>
                             <motion.div
                                 className="relative"
-                                whileFocus={{ scale: 1.02 }}
+                                whileFocus={{ scale: 1.01 }}
                                 transition={{ duration: 0.2 }}
                             >
                                 <motion.div
-                                    className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 rounded-xl opacity-0"
+                                    className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 rounded-lg sm:rounded-xl opacity-0"
                                     whileFocus={{ opacity: 1 }}
                                     transition={{ duration: 0.3 }}
                                 />
@@ -746,18 +746,18 @@ const CompanyInternshipsPage = () => {
                                     value={jobFormData.location}
                                     onChange={handleJobFormChange}
                                     required
-                                    className="relative w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-transparent bg-white/90 backdrop-blur-sm transition-all duration-300"
+                                    className="relative w-full px-3 sm:px-4 py-2.5 sm:py-3 md:py-4 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:ring-0 focus:border-transparent bg-white/90 backdrop-blur-sm transition-all duration-300 text-sm sm:text-base"
                                     placeholder="e.g., Mumbai, India"
                                 />
                             </motion.div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Duration</label>
                             <select
                                 name="duration"
                                 value={jobFormData.duration}
                                 onChange={handleJobFormChange}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                             >
                                 <option value="3 months">3 months</option>
                                 <option value="6 months">6 months</option>
@@ -918,16 +918,16 @@ const CompanyInternshipsPage = () => {
                             <p className="text-xs text-gray-500 mt-1">Internships with expired deadlines will not be shown to users</p>
                         </div>
                         {/* Submit Button */}
-                        <div className="mt-8 flex justify-center md:justify-start">
+                        <div className="mt-4 sm:mt-6 md:mt-8 flex justify-center md:justify-start">
                             <button
                                 type="submit"
                                 disabled={isPostingJob || isUpdatingInternship}
-                                className={`w-full md:w-auto md:px-12 py-4 px-8 rounded-xl font-bold text-lg transition-all duration-300 ${(isPostingJob || isUpdatingInternship)
+                                className={`w-full md:w-auto md:px-12 py-2.5 sm:py-3 md:py-4 px-6 sm:px-8 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base md:text-lg transition-all duration-300 ${(isPostingJob || isUpdatingInternship)
                                     ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
                                     : 'bg-orange-600 text-white hover:bg-orange-700 shadow-lg'
                                     }`}
-                            >
-                                {isPostingJob ? 'Posting...' : isUpdatingInternship ? 'Updating...' : editingInternship ? 'Update Internship' : 'Post Internship'}
+                                >
+                                    {isPostingJob ? 'Posting...' : isUpdatingInternship ? 'Updating...' : editingInternship ? 'Update Internship' : 'Post Internship'}
                             </button>
                         </div>
                     </form>
@@ -943,10 +943,10 @@ const CompanyInternshipsPage = () => {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-4"
         >
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-                <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-2xl font-bold text-gray-800">My Internships</h3>
-                    <span className="text-sm text-gray-600">
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-lg">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">My Internships</h3>
+                    <span className="text-xs sm:text-sm text-gray-600">
                         {myInternships.length} {myInternships.length === 1 ? 'internship' : 'internships'} posted
                     </span>
                 </div>
@@ -978,14 +978,14 @@ const CompanyInternshipsPage = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
-                                className="bg-gradient-to-r from-white to-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow"
+                                className="bg-gradient-to-r from-white to-gray-50 border border-gray-200 rounded-lg sm:rounded-xl p-4 sm:p-5 md:p-6 hover:shadow-lg transition-shadow"
                             >
-                                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                                    <div className="flex-1">
-                                        <div className="flex items-start justify-between mb-2">
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <h4 className="text-xl font-bold text-gray-800">{internship.title}</h4>
+                                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 sm:gap-4">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-2 sm:gap-0 mb-2">
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
+                                                    <h4 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 truncate">{internship.title}</h4>
                                                     {internship.applicationDeadline && new Date(internship.applicationDeadline) < new Date() && (
                                                         <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold border border-red-300">
                                                             Deadline Expired
@@ -1012,37 +1012,37 @@ const CompanyInternshipsPage = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <p className="text-gray-700 mb-3 line-clamp-2">{internship.description}</p>
-                                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                                        <p className="text-gray-700 mb-2 sm:mb-3 line-clamp-2 text-xs sm:text-sm">{internship.description}</p>
+                                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
                                             {Array.isArray(internship.skills) && internship.skills.length > 0 && (
                                                 internship.skills.slice(0, 5).map((skill, idx) => (
-                                                    <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs">
+                                                    <span key={idx} className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 text-gray-700 rounded-md text-[10px] sm:text-xs">
                                                         {skill}
                                                     </span>
                                                 ))
                                             )}
                                         </div>
-                                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
                                             <span className="font-semibold text-green-600">₹{internship.stipend || 'Not specified'}</span>
                                             <span>{internship.openings || 1} {internship.openings === 1 ? 'opening' : 'openings'}</span>
-                                            <span>Posted {new Date(internship.postedDate || internship.createdAt).toLocaleDateString()}</span>
+                                            <span className="hidden sm:inline">Posted {new Date(internship.postedDate || internship.createdAt).toLocaleDateString()}</span>
                                         </div>
                                     </div>
-                                    <div className="flex flex-col md:flex-row gap-2">
+                                    <div className="flex flex-row sm:flex-col md:flex-row gap-2 w-full sm:w-auto">
                                         <button
                                             onClick={() => handleEditInternship(internship)}
                                             disabled={isDeletingInternship === internship._id}
-                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                            className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
                                         >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
-                                            Edit
+                                            <span className="hidden sm:inline">Edit</span>
                                         </button>
                                         <button
                                             onClick={() => handleDeleteInternship(internship._id)}
                                             disabled={isDeletingInternship === internship._id}
-                                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                            className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
                                         >
                                             {isDeletingInternship === internship._id ? (
                                                 <>
@@ -1137,25 +1137,25 @@ const CompanyInternshipsPage = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            className="bg-white rounded-2xl p-6 shadow-lg"
+                            className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-lg"
                         >
-                            <div className="flex items-center justify-between mb-4">
-                                <div>
-                                    <h3 className="text-lg font-bold text-gray-800">{app.candidate}</h3>
-                                    <p className="text-gray-600">{app.position}</p>
-                                    <p className="text-sm text-gray-500">Applied on {app.appliedDate}</p>
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-3 sm:mb-4">
+                                <div className="min-w-0 flex-1">
+                                    <h3 className="text-base sm:text-lg font-bold text-gray-800 truncate">{app.candidate}</h3>
+                                    <p className="text-xs sm:text-sm text-gray-600 truncate">{app.position}</p>
+                                    <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Applied on {app.appliedDate}</p>
                                 </div>
-                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${app.statusColor || 'bg-blue-100 text-blue-800'}`}>
+                                <span className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs md:text-sm font-medium whitespace-nowrap ${app.statusColor || 'bg-blue-100 text-blue-800'}`}>
                                     {app.displayStatus || app.status}
                                 </span>
                             </div>
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap gap-1.5 sm:gap-2">
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => handleDownloadResume(app)}
                                     disabled={!app.resume?.url}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${app.resume?.url
+                                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex-1 sm:flex-none ${app.resume?.url
                                         ? 'bg-blue-600 text-white hover:bg-blue-700'
                                         : 'bg-gray-400 text-gray-200 cursor-not-allowed'
                                         }`}
@@ -1169,7 +1169,7 @@ const CompanyInternshipsPage = () => {
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => handleApplicationAction(app.id, 'shortlist')}
-                                            className="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm font-medium hover:bg-yellow-700"
+                                            className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-yellow-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-yellow-700"
                                         >
                                             Under Review
                                         </motion.button>
@@ -1177,7 +1177,7 @@ const CompanyInternshipsPage = () => {
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => handleApplicationAction(app.id, 'hire')}
-                                            className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
+                                            className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-green-700"
                                         >
                                             Accept
                                         </motion.button>
@@ -1185,7 +1185,7 @@ const CompanyInternshipsPage = () => {
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => handleApplicationAction(app.id, 'reject')}
-                                            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700"
+                                            className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-red-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-red-700"
                                         >
                                             Reject
                                         </motion.button>
@@ -1198,7 +1198,7 @@ const CompanyInternshipsPage = () => {
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => handleApplicationAction(app.id, 'hire')}
-                                            className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
+                                            className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-green-700"
                                         >
                                             Accept
                                         </motion.button>
@@ -1206,7 +1206,7 @@ const CompanyInternshipsPage = () => {
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => handleApplicationAction(app.id, 'reject')}
-                                            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700"
+                                            className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-red-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-red-700"
                                         >
                                             Reject
                                         </motion.button>
@@ -1444,18 +1444,18 @@ const CompanyInternshipsPage = () => {
     return (
         <div className="min-h-screen bg-gray-50 overflow-x-hidden">
             {/* Mobile Header */}
-            <div className="md:hidden bg-white border-b border-gray-200 text-gray-900 p-4 sticky top-0 z-40 shadow-md">
+            <div className="md:hidden bg-white border-b border-gray-200 text-gray-900 p-3 sticky top-0 z-40 shadow-md">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 min-w-0 flex-1">
                         <button
                             onClick={() => navigate('/')}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
                         >
-                            <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
-                        <h1 className="text-xl font-bold text-gray-900">Company Dashboard</h1>
+                        <h1 className="text-base sm:text-lg font-bold text-gray-900 truncate">Company Dashboard</h1>
                     </div>
                     <button
                         onClick={() => {
@@ -1467,9 +1467,9 @@ const CompanyInternshipsPage = () => {
                             localStorage.removeItem('companyData');
                             navigate('/company/login');
                         }}
-                        className="px-3 py-1 bg-gray-100 text-gray-900 rounded-lg hover:bg-gray-200 transition-colors font-semibold border border-gray-300"
+                        className="px-2.5 py-1.5 bg-gray-100 text-gray-900 rounded-lg hover:bg-gray-200 transition-colors font-semibold border border-gray-300 text-xs sm:text-sm flex-shrink-0 ml-2"
                     >
-                        Edit
+                        Logout
                     </button>
                 </div>
             </div>
@@ -1509,13 +1509,13 @@ const CompanyInternshipsPage = () => {
 
             {/* Tab Navigation */}
             <div className="bg-gradient-to-br from-orange-50 to-orange-100/30 border-b border-gray-200">
-                <div className="px-4 md:px-6 max-w-7xl mx-auto">
-                    <div className="flex space-x-2 py-2 md:py-3">
+                <div className="px-3 sm:px-4 md:px-6 max-w-7xl mx-auto">
+                    <div className="flex space-x-1.5 sm:space-x-2 py-2 sm:py-2.5 md:py-3 overflow-x-auto scrollbar-hide">
                         {tabs.map((tab, index) => (
                             <motion.button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`relative py-2.5 md:py-3 text-xs md:text-sm font-semibold rounded-xl transition-all duration-300 whitespace-nowrap px-4 md:px-5 ${activeTab === tab.id
+                                className={`relative py-2 sm:py-2.5 md:py-3 text-[10px] sm:text-xs md:text-sm font-semibold rounded-lg sm:rounded-xl transition-all duration-300 whitespace-nowrap px-3 sm:px-4 md:px-5 flex-shrink-0 ${activeTab === tab.id
                                     ? 'text-white'
                                     : 'text-gray-800'
                                     }`}
@@ -1549,7 +1549,7 @@ const CompanyInternshipsPage = () => {
             </div>
 
             {/* Content */}
-            <div className="p-4 md:p-6 max-w-7xl mx-auto pb-20 md:pb-6">
+            <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto pb-20 md:pb-6">
                 {activeTab === 'dashboard' && renderDashboard()}
                 {activeTab === 'post' && renderPostJob()}
                 {activeTab === 'my-internships' && renderMyInternships()}

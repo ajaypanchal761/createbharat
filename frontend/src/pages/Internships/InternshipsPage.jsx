@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import BottomNavbar from '../../components/common/BottomNavbar';
 import { internshipAPI } from '../../utils/api';
@@ -16,6 +16,7 @@ const ClipboardIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="
 const UserIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>);
 
 const InternshipsPage = () => {
+  const navigate = useNavigate();
   const [apiInternships, setApiInternships] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -377,14 +378,14 @@ const InternshipsPage = () => {
       >
         <div className="flex items-center justify-between px-4 py-3">
           <motion.button
-            whileHover={{ scale: 1.1, rotate: 90 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setIsMobileMenuOpen(true)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate(-1)}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
-            title="Menu"
+            title="Back"
           >
             <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </motion.button>
 
@@ -426,6 +427,19 @@ const InternshipsPage = () => {
                 </svg>
               </motion.button>
             </Link>
+
+            {/* Menu Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+              title="Menu"
+            >
+              <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </motion.button>
           </div>
         </div>
       </motion.header>
@@ -1384,13 +1398,13 @@ const InternshipsPage = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 z-50 flex items-start justify-start"
+          className="fixed inset-0 bg-black/50 z-50 flex items-start justify-end"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <motion.div
-            initial={{ x: '-100%' }}
+            initial={{ x: '100%' }}
             animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
+            exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 20, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
             className="bg-white w-80 h-full shadow-2xl p-6"
