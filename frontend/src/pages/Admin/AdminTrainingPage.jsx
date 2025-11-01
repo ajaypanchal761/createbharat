@@ -622,12 +622,12 @@ const AdminTrainingPage = () => {
         <div className="min-h-screen bg-gray-50 flex flex-col items-center py-4 md:py-8 px-2 md:px-6">
             {/* Header */}
             <div className="w-full max-w-6xl mb-3 md:mb-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
                 <div>
                     <h1 className="text-xl md:text-3xl font-bold text-gray-900">Training Management</h1>
                     <p className="text-xs md:text-sm text-gray-600 mt-0.5 md:mt-1">Manage courses, modules, topics, and quizzes</p>
                 </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap md:flex-nowrap">
                         {view === VIEW.USER_PROGRESS ? (
                             <button
                                 type="button"

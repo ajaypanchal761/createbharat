@@ -57,6 +57,12 @@ const AdminHeader = ({ onToggleSidebar, sidebarOpen }) => {
                             <FaBars className="w-5 h-5" />
                         </button>
 
+                        {/* CreateBharat Logo - Mobile */}
+                        <div className="lg:hidden flex items-center space-x-2">
+                            <img src="/logo.png" alt="CreateBharat Logo" className="w-8 h-8 object-contain flex-shrink-0" />
+                            <span className="text-base font-bold text-gray-900">CreateBharat</span>
+                        </div>
+
                         {/* Desktop sidebar toggle */}
                         <button
                             onClick={onToggleSidebar}

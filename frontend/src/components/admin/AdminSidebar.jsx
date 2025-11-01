@@ -106,12 +106,10 @@ const AdminSidebar = ({ isOpen, isMobile, onClose }) => {
                 {/* Sidebar Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-200">
                     <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
-                            <span className="text-white text-lg font-bold">A</span>
-                        </div>
+                        <img src="/logo.png" alt="CreateBharat Logo" className="w-10 h-10 object-contain flex-shrink-0" />
                         <div className={`transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-                            <h2 className="text-lg font-bold text-gray-900">Admin Panel</h2>
-                            <p className="text-xs text-gray-500">CreateBharat</p>
+                            <h2 className="text-lg font-bold text-gray-900">CreateBharat</h2>
+                            <p className="text-xs text-gray-500">Admin Panel</p>
                         </div>
                     </div>
                     
