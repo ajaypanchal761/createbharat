@@ -590,7 +590,7 @@ const HomePage = () => {
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
-                    className="mx-4 mt-4 mb-6"
+                    className="mx-4 mt-4 mb-2"
                 >
                     <div className="relative h-32 overflow-hidden rounded-2xl shadow-2xl">
                         {bannersLoading ? (
@@ -642,13 +642,13 @@ const HomePage = () => {
                 </motion.section>
 
                 {/* Main Content */}
-                <div className="px-4 py-6 space-y-6">
+                <div className="px-4 pt-2 pb-6 space-y-4">
                     {/* Top Service Grid - 3x2 */}
                         <motion.div 
                         variants={staggerContainer}
                         initial="hidden"
                         animate="visible"
-                        className=" grid grid-cols-3 gap-4"
+                        className=" grid grid-cols-3 gap-3"
                     >
                         {[
                             { 
@@ -695,10 +695,10 @@ const HomePage = () => {
                                     transition: { duration: 0.1 }
                                 }}
                                 onClick={(e) => handleServiceClick(e, service.path)}
-                                className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl border border-gray-100 transition-all duration-300 cursor-pointer group overflow-hidden"
+                                className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col"
                             >
-                                {/* Image with hover effect */}
-                                <div className="w-full h-20 mb-3 rounded-xl overflow-hidden">
+                                {/* Image with hover effect - Fixed to edges */}
+                                <div className="w-full h-14 overflow-hidden">
                                     <motion.img 
                                                                     src={service.image} 
                                                                     alt={service.name} 
@@ -706,10 +706,12 @@ const HomePage = () => {
                                     />
                                 </div>
 
-                                {/* Service name */}
-                                <h3 className="text-sm font-bold text-gray-800 text-center leading-tight group-hover:text-blue-600 transition-colors duration-200">
-                                                                {service.name}
-                                </h3>
+                                {/* Service name - With padding */}
+                                <div className="px-3 pt-2 pb-2">
+                                    <h3 className="text-xs font-bold text-gray-800 text-center leading-tight group-hover:text-blue-600 transition-colors duration-200">
+                                                                        {service.name}
+                                    </h3>
+                                </div>
                             </motion.div>
                         ))}
                     </motion.div>
@@ -785,10 +787,10 @@ const HomePage = () => {
                                     transition: { duration: 0.1 }
                                 }}
                                 onClick={(e) => handleServiceClick(e, service.path)}
-                                className="relative rounded-2xl bg-white p-3 shadow-lg ring-1 ring-black/5 hover:shadow-xl hover:ring-blue-300 hover:ring-2 transition-all duration-300 cursor-pointer group"
+                                className="relative rounded-2xl bg-white shadow-lg ring-1 ring-black/5 hover:shadow-xl hover:ring-blue-300 hover:ring-2 transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col"
                             >
                                 <motion.div 
-                                    className="w-full h-20 mb-3 rounded-xl overflow-hidden"
+                                    className="w-full h-14 overflow-hidden"
                                     whileHover={{ scale: 1.05 }}
                                     transition={{ duration: 0.3 }}
                                     >
@@ -801,18 +803,20 @@ const HomePage = () => {
                                     />
                                 </motion.div>
                                 
-                                <motion.h3 
-                                    className="text-sm font-semibold text-gray-800 text-center leading-tight break-words hyphens-auto"
-                                    whileHover={{ 
-                                        color: "#2563EB",
-                                        scale: 1.02,
-                                        y: -1
-                                    }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    {service.name}
-                                </motion.h3>
-                                    </motion.div>
+                                <div className="px-2.5 pt-2 pb-2.5">
+                                    <motion.h3 
+                                        className="text-xs font-semibold text-gray-800 text-center leading-tight break-words hyphens-auto"
+                                        whileHover={{ 
+                                            color: "#2563EB",
+                                            scale: 1.02,
+                                            y: -1
+                                        }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        {service.name}
+                                    </motion.h3>
+                                </div>
+                            </motion.div>
                         ))}
                         </motion.div>
 
@@ -1481,32 +1485,16 @@ const HomePage = () => {
                                 <ul className="space-y-2 text-gray-400">
                                     <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
                                     <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
-                                    <li><Link to="/careers" className="hover:text-white transition-colors">Careers</Link></li>
-                                    <li><Link to="/blog" className="hover:text-white transition-colors">Blog</Link></li>
                                 </ul>
           </div>
                             
                             <div>
                                 <h4 className="text-lg font-semibold mb-4">Support</h4>
                                 <ul className="space-y-2 text-gray-400">
-                                    <li><Link to="/help" className="hover:text-white transition-colors">Help Center</Link></li>
                                     <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
                                     <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
                                     <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
                                 </ul>
-                                
-                                {/* Admin Access Button - Mobile Friendly */}
-                                <div className="mt-6 pt-4 border-t border-gray-800">
-                                    <button
-                                        onClick={() => navigate('/admin/login')}
-                                        className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 text-sm"
-                                    >
-                                        👨‍💼 Admin Access
-                                    </button>
-                                    <p className="text-xs text-gray-500 mt-2 text-center">
-                                        For administrators only
-                                    </p>
-                                </div>
                             </div>
                         </div>
                         

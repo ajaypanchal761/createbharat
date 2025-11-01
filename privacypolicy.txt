@@ -1,0 +1,204 @@
+Privacy policy 
+Welcome to CreateBharat, a digital initiative by CreateBharat Foundation, a registered non-profit organization committed to empowering youth, entrepreneurs, and startups in India through education, mentorship, training, and development.
+
+Your privacy is important to us. This Privacy Policy explains how we collect, use, share, and protect your personal information when you use our mobile app, website, or any related services (“Platform”).
+
+By accessing or using CreateBharat, you agree to this Privacy Policy.
+
+⸻
+
+1️⃣ Information We Collect
+
+We collect information to provide better services to all users. The data collected may include:
+
+(A) Personal Information
+
+When you register or use the app, we may collect:
+	•	Full Name
+	•	Mobile Number
+	•	Email Address
+	•	Gender, Age (optional)
+	•	City / State
+	•	Business / Organization Name (if applicable)
+	•	Profile Photo (optional)
+
+(B) Usage Information
+	•	How you interact with the app (buttons clicked, pages visited, etc.)
+	•	Date and time of access
+	•	Device type, model, operating system, and app version
+	•	IP address (for security and analytics)
+
+(C) Documents & Uploads (optional)
+
+If you apply for any service (training, legal, or loan-related), we may collect:
+	•	Business registration proof (MSME, GST, etc.)
+	•	Resume or internship documents
+	•	Business plans, pitch decks, or reports
+	•	Government ID proofs (only when explicitly required and consented)
+
+⸻
+
+2️⃣ How We Use Your Information
+
+We use the collected information strictly for improving user experience and service delivery.
+
+Your information is used to:
+	•	Create and manage your user account
+	•	Provide training, mentorship, and internship services
+	•	Process payments and generate certificates
+	•	Offer personalized business recommendations
+	•	Contact you for service updates, reminders, and support
+	•	Improve our platform and develop new features
+	•	Comply with legal obligations and prevent misuse
+
+💡 Note: We do not sell, rent, or trade your personal data to any third party.
+
+⸻
+
+3️⃣ Data Sharing and Disclosure
+
+Your personal data is shared only when required and with your explicit consent.
+
+(A) With Verified Partners
+
+We may share limited details with:
+	•	Mentors and trainers (for mentorship sessions)
+	•	Partner banks (for current account or loan facilitation)
+	•	Chartered Accountants / Legal advisors (for MSME, GST, Trademark filings)
+	•	Internship or training partner organizations
+
+All partners sign a confidentiality agreement before receiving user data.
+
+(B) With Government Agencies
+
+Only when you request a government-linked service (MSME, PMEGP, Startup India, etc.),
+we may share relevant information directly through official portals for verification.
+
+(C) With Legal Authorities
+
+If required by law, court order, or government investigation,
+we may disclose your data to comply with applicable Indian laws.
+
+⸻
+
+4️⃣ Payment & Transaction Security
+	•	All payments are processed through secure, RBI-approved payment gateways (e.g. Razorpay, Cashfree, Paytm).
+	•	CreateBharat does not store your credit/debit card details, CVV, or UPI PIN.
+	•	All financial transactions are encrypted and PCI-DSS compliant.
+
+If a payment fails, the amount is automatically refunded within 7 working days as per bank policy.
+
+⸻
+
+5️⃣ Data Protection & Storage
+
+We take appropriate technical and organizational measures to secure your information:
+	•	SSL encryption for all communications
+	•	Secure cloud hosting with firewall & DDoS protection
+	•	Access control – only authorized team members can access your data
+	•	Regular security audits & data backups
+
+Data is stored on secure servers located in India and governed by Indian data protection laws.
+
+⸻
+
+6️⃣ Your Rights as a User
+
+You have full control over your personal information.
+You can at any time:
+	1.	Access your personal data through your profile
+	2.	Edit / Update incorrect information
+	3.	Request Deletion of your data (by emailing us)
+	4.	Withdraw Consent for non-mandatory data sharing
+	5.	Opt-Out of promotional messages or newsletters
+
+To request deletion or modification, contact:
+📧 createbharatofficial@gmail.com
+
+We will process such requests within 7–10 business days.
+
+⸻
+
+7️⃣ Cookies & Tracking Technologies
+	•	Our app and website may use cookies or analytics tools (Google Analytics, Firebase)
+to understand usage patterns and improve functionality.
+	•	Cookies do not store personal data and can be disabled via device settings.
+
+⸻
+
+8️⃣ Third-Party Links & Services
+
+Our platform may contain links to third-party websites (government portals, learning platforms, payment gateways, etc.).
+
+CreateBharat is not responsible for the privacy practices or content of such external sites.
+We encourage you to read their privacy policies before sharing information.
+
+⸻
+
+9️⃣ Children’s Privacy
+
+CreateBharat is intended for users aged 16 years and above.
+If a user below this age uses the platform, it must be under parental or institutional supervision.
+We do not knowingly collect information from minors without consent.
+
+⸻
+
+🔟 Data Retention Policy
+
+We retain your data only as long as necessary:
+	•	For service delivery
+	•	For legal or audit purposes
+	•	Or until you request deletion
+
+Once deleted, your information is permanently erased from our active systems within 30 days.
+
+⸻
+
+1️⃣1️⃣ Communication Policy
+
+By using CreateBharat, you consent to receive:
+	•	Transactional messages (training updates, OTPs, status updates)
+	•	Administrative notifications (policy updates, system alerts)
+	•	Optional marketing or educational messages (can opt out anytime)
+
+You can unsubscribe from promotional communications by clicking “Unsubscribe” in the email or contacting us directly.
+
+⸻
+
+1️⃣2️⃣ Data Breach Policy
+
+In case of any data breach or unauthorized access:
+	•	We will notify affected users within 72 hours
+	•	Take immediate corrective action
+	•	Report to relevant authorities if required under the IT Act
+
+⸻
+
+1️⃣3️⃣ Changes to This Policy
+
+CreateBharat Foundation reserves the right to modify or update this Privacy Policy at any time.
+The revised version will be posted on the app and website with an updated “Last Modified” date.
+
+Continued use of the platform after updates constitutes your acceptance of the new terms.
+
+⸻
+
+1️⃣4️⃣ Contact Us
+
+If you have any questions, feedback, or complaints about our Privacy Policy or data handling, please contact:
+
+📧 createbharatofficial@gmail.com
+🌐 www.createbharat.com
+⸻
+
+1️⃣5️⃣ Legal Jurisdiction
+
+All matters relating to privacy and data protection shall be governed under:
+	•	Information Technology Act, 2000 (India)
+	•	Rules under IT (Reasonable Security Practices and Procedures), 2011
+	•	Jurisdiction: Jamshedpur, Jharkhand, India
+
+⸻
+
+✅ Copyright © 2025 – CreateBharat Foundation.
+All Rights Reserved.

@@ -661,72 +661,17 @@ const CompanyInternshipsPage = () => {
             className="space-y-6"
         >
             <div className="relative">
-                {/* Premium Border Effect */}
-                <motion.div
-                    className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-3xl opacity-75"
-                    animate={{
-                        background: [
-                            'linear-gradient(45deg, #3B82F6, #8B5CF6, #6366F1)',
-                            'linear-gradient(45deg, #8B5CF6, #6366F1, #3B82F6)',
-                            'linear-gradient(45deg, #6366F1, #3B82F6, #8B5CF6)',
-                            'linear-gradient(45deg, #3B82F6, #8B5CF6, #6366F1)'
-                        ]
-                    }}
-                    transition={{
-                        duration: 4,
-                        repeat: Infinity,
-                        ease: "linear"
-                    }}
-                />
-
-                {/* Rotating Border */}
-                <motion.div
-                    className="absolute -inset-1 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-3xl"
-                    animate={{
-                        rotate: 360
-                    }}
-                    transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: "linear"
-                    }}
-                />
-
                 {/* Inner Container */}
-                <div className="relative bg-white rounded-3xl p-8 shadow-2xl">
-                    {/* Form Header with Premium Effects */}
+                <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-gray-200">
+                    {/* Form Header */}
                     <motion.div
-                        className="relative mb-8"
+                        className="mb-8"
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
                     >
-                        {/* Header Background Effect */}
-                        <motion.div
-                            className="absolute inset-0 bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 rounded-2xl"
-                            animate={{
-                                opacity: [0.5, 0.8, 0.5]
-                            }}
-                            transition={{
-                                duration: 3,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                            }}
-                        />
-
-                        <h3 className="relative text-3xl font-bold text-gray-800 text-center py-4">
+                        <h3 className="text-3xl font-bold text-gray-800 text-center py-4">
                             {editingInternship ? 'Edit Internship' : 'Post New Internship'}
-                            <motion.div
-                                className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"
-                                animate={{
-                                    scaleX: [0.8, 1.2, 0.8]
-                                }}
-                                transition={{
-                                    duration: 2,
-                                    repeat: Infinity,
-                                    ease: "easeInOut"
-                                }}
-                            />
                         </h3>
                         {editingInternship && (
                             <div className="text-center mt-2">
@@ -968,75 +913,19 @@ const CompanyInternshipsPage = () => {
                             />
                             <p className="text-xs text-gray-500 mt-1">Internships with expired deadlines will not be shown to users</p>
                         </div>
-                        {/* Premium Submit Button */}
-                        <motion.div
-                            className="relative mt-8"
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                        >
-                            {/* Button Border Effect */}
-                            <motion.div
-                                className={`absolute -inset-1 rounded-2xl ${(isPostingJob || isUpdatingInternship)
-                                    ? 'bg-gray-400'
-                                    : 'bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600'
-                                    }`}
-                                animate={!(isPostingJob || isUpdatingInternship) ? {
-                                    background: [
-                                        'linear-gradient(45deg, #3B82F6, #8B5CF6, #6366F1)',
-                                        'linear-gradient(45deg, #8B5CF6, #6366F1, #3B82F6)',
-                                        'linear-gradient(45deg, #6366F1, #3B82F6, #8B5CF6)',
-                                        'linear-gradient(45deg, #3B82F6, #8B5CF6, #6366F1)'
-                                    ]
-                                } : {}}
-                                transition={{
-                                    duration: 2,
-                                    repeat: Infinity,
-                                    ease: "linear"
-                                }}
-                            />
-
-                            {/* Shimmer Effect */}
-                            {!isPostingJob && (
-                                <motion.div
-                                    className="absolute -inset-1 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-2xl"
-                                    animate={{
-                                        x: ['-100%', '100%']
-                                    }}
-                                    transition={{
-                                        duration: 2,
-                                        repeat: Infinity,
-                                        repeatDelay: 1,
-                                        ease: "easeInOut"
-                                    }}
-                                />
-                            )}
-
-                            <motion.button
+                        {/* Submit Button */}
+                        <div className="mt-8 flex justify-center md:justify-start">
+                            <button
                                 type="submit"
                                 disabled={isPostingJob || isUpdatingInternship}
-                                className={`relative w-full md:w-auto md:px-12 py-4 px-8 rounded-2xl font-bold text-lg transition-all duration-300 ${(isPostingJob || isUpdatingInternship)
+                                className={`w-full md:w-auto md:px-12 py-4 px-8 rounded-xl font-bold text-lg transition-all duration-300 ${(isPostingJob || isUpdatingInternship)
                                     ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white shadow-2xl'
+                                    : 'bg-orange-600 text-white hover:bg-orange-700 shadow-lg'
                                     }`}
-                                whileHover={!(isPostingJob || isUpdatingInternship) ? {
-                                    boxShadow: "0 20px 40px rgba(59, 130, 246, 0.4)",
-                                    y: -2
-                                } : {}}
                             >
-                                <motion.span
-                                    animate={(isPostingJob || isUpdatingInternship) ? {
-                                        opacity: [0.5, 1, 0.5]
-                                    } : {}}
-                                    transition={{
-                                        duration: 1,
-                                        repeat: Infinity,
-                                        ease: "easeInOut"
-                                    }}
-                                >
-                                    {isPostingJob ? 'Posting...' : isUpdatingInternship ? 'Updating...' : editingInternship ? 'Update Internship' : 'Post Internship'}
-                                </motion.span>
-                            </motion.button>
-                        </motion.div>
+                                {isPostingJob ? 'Posting...' : isUpdatingInternship ? 'Updating...' : editingInternship ? 'Update Internship' : 'Post Internship'}
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -1542,20 +1431,20 @@ const CompanyInternshipsPage = () => {
     const companyName = localStorage.getItem('companyName') || 'Your Company';
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 overflow-x-hidden">
             {/* Mobile Header */}
-            <div className="md:hidden bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 sticky top-0 z-40">
+            <div className="md:hidden bg-white border-b border-gray-200 text-gray-900 p-4 sticky top-0 z-40 shadow-md">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                         <button
                             onClick={() => navigate('/')}
-                            className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         >
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
-                        <h1 className="text-xl font-bold">Company Dashboard</h1>
+                        <h1 className="text-xl font-bold text-gray-900">Company Dashboard</h1>
                     </div>
                     <button
                         onClick={() => {
@@ -1567,7 +1456,7 @@ const CompanyInternshipsPage = () => {
                             localStorage.removeItem('companyData');
                             navigate('/company/login');
                         }}
-                        className="px-3 py-1 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors font-semibold backdrop-blur-sm"
+                        className="px-3 py-1 bg-gray-100 text-gray-900 rounded-lg hover:bg-gray-200 transition-colors font-semibold border border-gray-300"
                     >
                         Edit
                     </button>
@@ -1610,7 +1499,7 @@ const CompanyInternshipsPage = () => {
             {/* Tab Navigation */}
             <div className="bg-gradient-to-br from-orange-50 to-orange-100/30 border-b border-gray-200">
                 <div className="px-4 md:px-6 max-w-7xl mx-auto">
-                    <div className="flex space-x-2 overflow-x-auto scrollbar-hide py-2 md:py-3">
+                    <div className="flex space-x-2 py-2 md:py-3">
                         {tabs.map((tab, index) => (
                             <motion.button
                                 key={tab.id}

@@ -89,20 +89,20 @@ const GSTRegistrationTypePage = () => {
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="sticky top-0 z-50 bg-gradient-to-r from-orange-400 to-orange-500 shadow-lg md:hidden"
+        className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-md md:hidden"
       >
         <div className="flex items-center justify-between px-4 py-3">
           <motion.button 
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => navigate('/legal')}
-            className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </motion.button>
-          <h1 className="text-xl font-bold text-white">GST Registration Type</h1>
+          <h1 className="text-xl font-bold text-gray-900">GST Registration Type</h1>
           <div className="w-10"></div>
         </div>
       </motion.header>

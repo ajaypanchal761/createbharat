@@ -88,9 +88,9 @@ const CompanyLoginPage = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100"
+      className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center p-4"
     >
-      <div className="min-h-screen bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div className="w-full max-w-md bg-white shadow-xl overflow-hidden rounded-2xl">
         {/* Header Section */}
         <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 p-5 relative overflow-hidden">
           {/* Back Button */}

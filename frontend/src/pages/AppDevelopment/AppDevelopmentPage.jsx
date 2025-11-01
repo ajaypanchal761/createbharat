@@ -268,141 +268,186 @@ const AppDevelopmentPage = () => {
     );
 
     const renderClientPage = () => (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-50">
+        <>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-50">
             {/* Mobile-Optimized Header */}
-            <motion.div 
+            <motion.header 
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="bg-white/95 backdrop-blur-md shadow-md border-b border-gray-200 sticky top-0 z-40 md:bg-white/80 md:backdrop-blur-lg md:shadow-lg"
+                className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40 md:shadow-md"
             >
-                <div className="px-4 md:max-w-7xl md:mx-auto md:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-14 md:h-16 lg:h-20">
-                        <div className="flex items-center space-x-2 md:space-x-3 lg:space-x-4">
-                            <div className="w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg md:rounded-xl lg:rounded-2xl flex items-center justify-center shadow-md">
-                                <span className="text-xl md:text-2xl lg:text-3xl">📱</span>
-                            </div>
+                <div className="px-3 md:max-w-7xl md:mx-auto md:px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-12 md:h-16">
+                        <div className="flex items-center space-x-2 md:space-x-3">
+                            <Link
+                                to="/"
+                                className="p-1.5 md:p-2 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors flex-shrink-0"
+                            >
+                                <svg className="w-5 h-5 md:w-6 md:h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </Link>
                             <div>
-                                <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800">App Development</h1>
-                                <p className="text-xs md:text-sm text-gray-600 hidden sm:block">Professional Development Services</p>
+                                <h1 className="text-base md:text-xl font-bold text-gray-900">App Development</h1>
+                                <p className="text-[10px] md:text-sm text-gray-600 hidden sm:block">Professional Services</p>
                             </div>
                         </div>
-                        <Link
-                            to="/"
-                            className="px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-lg md:rounded-xl hover:from-gray-200 hover:to-gray-300 transition-all duration-200 text-xs md:text-sm lg:text-base font-medium shadow-sm whitespace-nowrap"
-                        >
-                            <span className="hidden sm:inline">← Back to Home</span>
-                            <span className="sm:hidden">←</span>
-                        </Link>
                     </div>
                 </div>
-            </motion.div>
+            </motion.header>
 
-            {/* Hero Section - Mobile Optimized */}
-            <div className="px-4 md:max-w-7xl md:mx-auto md:px-6 lg:px-8 pt-6 md:pt-8 lg:pt-12 pb-4 md:pb-6 lg:pb-8">
-                <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    variants={staggerContainer}
-                    className="text-center mb-6 md:mb-8 lg:mb-12"
-                >
-                    <motion.h2
-                        variants={fadeInUp}
-                        className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-3 md:mb-4 lg:mb-6 leading-tight"
+            {/* Hero Section - Enhanced */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-blue-50 md:from-orange-50/80 md:via-white md:to-blue-50/80">
+                <div className="relative px-4 md:max-w-7xl md:mx-auto md:px-6 lg:px-8 pt-8 md:pt-16 pb-6 md:pb-12">
+                    <motion.div
+                        initial="hidden"
+                        animate="visible"
+                        variants={staggerContainer}
+                        className="text-center mb-6 md:mb-12"
                     >
-                        Transform Your Ideas Into
-                        <span className="block bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent mt-2">
-                            Powerful Applications
-                        </span>
-                    </motion.h2>
-                    <motion.div variants={fadeInUp}>
-                        <motion.button
-                            whileHover={{ scale: 1.03 }}
-                            whileTap={{ scale: 0.97 }}
-                            onClick={() => setShowProjectForm(true)}
-                            className="px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl md:rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 text-sm sm:text-base md:text-lg w-full sm:w-auto min-w-[200px]"
-                        >
-                            🚀 Start Your Project
-                        </motion.button>
-                    </motion.div>
-                </motion.div>
-
-                {/* Services Grid - Mobile Optimized */}
-                <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    variants={staggerContainer}
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8 lg:mb-12"
-                >
-                    {services.map((service, index) => (
                         <motion.div
-                            key={index}
                             variants={fadeInUp}
-                            whileHover={{ scale: 1.02, y: -4 }}
-                            className="group relative overflow-hidden"
+                            className="inline-block px-4 py-1.5 md:px-6 md:py-2 bg-gradient-to-r from-orange-100 to-blue-100 rounded-full mb-4 md:mb-6 border border-orange-200/50"
                         >
-                            <div className={`relative bg-gradient-to-br ${service.bgColor} rounded-xl md:rounded-2xl p-5 md:p-6 lg:p-8 border-2 border-white shadow-md hover:shadow-xl transition-all duration-300 h-full`}>
-                                {/* Icon */}
-                                <div className={`w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 bg-gradient-to-r ${service.color} rounded-xl md:rounded-2xl flex items-center justify-center mb-4 md:mb-6 shadow-lg`}>
-                                    <span className="text-2xl md:text-3xl lg:text-4xl">{service.icon}</span>
-                                </div>
-
-                                {/* Content */}
-                                <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 mb-2 md:mb-3">
-                                    {service.title}
-                                </h3>
-                                <p className="text-sm md:text-base text-gray-600 mb-3 md:mb-4 lg:mb-6 leading-relaxed">
-                                    {service.description}
-                                </p>
-
-                                {/* Features */}
-                                <ul className="space-y-1.5 md:space-y-2">
-                                    {service.features.map((feature, idx) => (
-                                        <li key={idx} className="flex items-center text-xs md:text-sm text-gray-700">
-                                            <svg className="w-4 h-4 md:w-5 md:h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            <span>{feature}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
+                            <span className="text-xs md:text-sm font-semibold text-gray-700">Professional App Development</span>
                         </motion.div>
-                    ))}
-                </motion.div>
+                        <motion.h2
+                            variants={fadeInUp}
+                            className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-3 md:mb-6 leading-tight"
+                        >
+                            Transform Ideas Into
+                            <span className="block mt-2 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent">
+                                Powerful Applications
+                            </span>
+                        </motion.h2>
+                        <motion.p
+                            variants={fadeInUp}
+                            className="text-sm md:text-lg text-gray-600 mb-6 md:mb-8 max-w-2xl mx-auto leading-relaxed"
+                        >
+                            Build scalable, high-performance apps with cutting-edge technology and expert guidance
+                        </motion.p>
+                        <motion.div variants={fadeInUp}>
+                            <motion.button
+                                whileHover={{ scale: 1.05, y: -2 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => setShowProjectForm(true)}
+                                className="px-8 py-3 md:px-10 md:py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl md:rounded-2xl shadow-lg hover:shadow-2xl hover:from-orange-600 hover:to-red-600 transition-all duration-300 text-sm md:text-base transform"
+                            >
+                                Start Your Project
+                                <svg className="inline-block w-4 h-4 md:w-5 md:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                            </motion.button>
+                        </motion.div>
+                    </motion.div>
+                </div>
+            </div>
 
-                {/* Stats Section - Mobile Optimized */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    className="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl md:rounded-2xl lg:rounded-3xl p-5 md:p-6 lg:p-8 mb-6 md:mb-8 lg:mb-12 shadow-xl"
-                >
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                        {[
-                            { number: '500+', label: 'Apps Delivered' },
-                            { number: '98%', label: 'Client Satisfaction' },
-                            { number: '24/7', label: 'Support Available' },
-                            { number: '10+', label: 'Years Experience' }
-                        ].map((stat, index) => (
+                {/* Services Grid - Enhanced */}
+                <div className="px-4 md:max-w-7xl md:mx-auto md:px-6 lg:px-8 py-6 md:py-12">
+                    <motion.div
+                        initial="hidden"
+                        animate="visible"
+                        variants={staggerContainer}
+                        className="mb-6 md:mb-10"
+                    >
+                        <h3 className="text-xl md:text-3xl font-bold text-gray-900 text-center mb-2 md:mb-3">
+                            Our Services
+                        </h3>
+                        <p className="text-sm md:text-base text-gray-600 text-center max-w-2xl mx-auto">
+                            Comprehensive app development solutions tailored to your needs
+                        </p>
+                    </motion.div>
+                    <motion.div
+                        initial="hidden"
+                        animate="visible"
+                        variants={staggerContainer}
+                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8"
+                    >
+                        {services.map((service, index) => (
                             <motion.div
                                 key={index}
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ duration: 0.3, delay: 0.3 + index * 0.1 }}
-                                className="text-center"
+                                variants={fadeInUp}
+                                whileHover={{ y: -8, scale: 1.02 }}
+                                className="group relative"
                             >
-                                <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-1 md:mb-2">
-                                    {stat.number}
-                                </div>
-                                <div className="text-xs sm:text-sm md:text-base text-white/90 font-medium leading-tight">
-                                    {stat.label}
+                                <div className={`relative bg-white rounded-xl md:rounded-2xl p-5 md:p-6 border border-gray-200 shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col overflow-hidden`}>
+                                    {/* Gradient Accent */}
+                                    <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${service.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+                                    
+                                    {/* Content */}
+                                    <h3 className={`text-base md:text-xl font-bold text-gray-900 mb-2 md:mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r ${service.color} transition-all duration-300`}>
+                                        {service.title}
+                                    </h3>
+                                    <p className="text-xs md:text-sm text-gray-600 mb-4 md:mb-5 leading-relaxed flex-grow">
+                                        {service.description}
+                                    </p>
+
+                                    {/* Features */}
+                                    <ul className="space-y-2 mt-auto pt-3 md:pt-4 border-t border-gray-100">
+                                        {service.features.map((feature, idx) => (
+                                            <li key={idx} className="flex items-center text-xs md:text-sm text-gray-700">
+                                                <div className={`w-5 h-5 md:w-6 md:h-6 rounded-lg bg-gradient-to-r ${service.color} opacity-10 flex items-center justify-center mr-2 flex-shrink-0`}>
+                                                    <svg className="w-3 h-3 md:w-4 md:h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </div>
+                                                <span className="font-medium">{feature}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
                             </motion.div>
                         ))}
-                    </div>
-                </motion.div>
-            </div>
+                    </motion.div>
+                </div>
+
+                {/* Stats Section - Enhanced */}
+                <div className="px-4 md:max-w-7xl md:mx-auto md:px-6 lg:px-8 py-8 md:py-12">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                        className="relative overflow-hidden bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 rounded-2xl md:rounded-3xl p-6 md:p-8 lg:p-12 shadow-2xl"
+                    >
+                        {/* Decorative Elements */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+                        
+                        <div className="relative">
+                            <h3 className="text-xl md:text-2xl font-bold text-white mb-6 md:mb-8 text-center">
+                                Trusted by Thousands
+                            </h3>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
+                                {[
+                                    { number: '500+', label: 'Apps Delivered', icon: '📱' },
+                                    { number: '98%', label: 'Client Satisfaction', icon: '⭐' },
+                                    { number: '24/7', label: 'Support Available', icon: '🔄' },
+                                    { number: '10+', label: 'Years Experience', icon: '🎯' }
+                                ].map((stat, index) => (
+                                    <motion.div
+                                        key={index}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
+                                        whileHover={{ scale: 1.05, y: -5 }}
+                                        className="text-center bg-white/10 backdrop-blur-sm rounded-xl p-4 md:p-5 border border-white/20"
+                                    >
+                                        <div className="text-2xl md:text-3xl mb-2">{stat.icon}</div>
+                                        <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-1 md:mb-2">
+                                            {stat.number}
+                                        </div>
+                                        <div className="text-xs sm:text-sm md:text-base text-white/95 font-semibold leading-tight">
+                                            {stat.label}
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+        </div>
 
             {/* Project Form Modal - Mobile Optimized */}
             {showProjectForm && (
@@ -421,10 +466,10 @@ const AppDevelopmentPage = () => {
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Modal Header - Sticky on Mobile */}
-                        <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 z-10 flex items-center justify-between">
+                        <div className="sticky top-0 bg-white border-b border-gray-200 px-3 sm:px-6 lg:px-8 py-3 sm:py-4 z-10 flex items-center justify-between">
                             <div>
-                                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Project Details</h3>
-                                <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Let's bring your idea to life</p>
+                                <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Project Details</h3>
+                                <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 mt-0.5">Let's bring your idea to life</p>
                             </div>
                             <motion.button
                                 whileHover={{ rotate: 90, scale: 1.1 }}
@@ -439,10 +484,10 @@ const AppDevelopmentPage = () => {
                         </div>
 
                         {/* Modal Content */}
-                        <form onSubmit={handleProjectSubmit} className="flex-1 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <form onSubmit={handleProjectSubmit} className="flex-1 px-3 sm:px-6 lg:px-8 py-3 sm:py-5 space-y-3 sm:space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <div>
-                                    <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-2">
+                                    <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
                                         Project Name *
                                     </label>
                                     <input
@@ -451,12 +496,12 @@ const AppDevelopmentPage = () => {
                                         value={projectFormData.projectName}
                                         onChange={handleProjectFormChange}
                                         required
-                                        className="w-full px-4 py-3 sm:py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm sm:text-base"
-                                        placeholder="e.g., E-commerce Mobile App"
+                                        className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-xs sm:text-sm"
+                                        placeholder="E-commerce Mobile App"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-2">
+                                    <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
                                         Platform *
                                     </label>
                                     <select
@@ -464,7 +509,7 @@ const AppDevelopmentPage = () => {
                                         value={projectFormData.platform}
                                         onChange={handleProjectFormChange}
                                         required
-                                        className="w-full px-4 py-3 sm:py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm sm:text-base"
+                                        className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-xs sm:text-sm"
                                     >
                                         <option value="">Select Platform</option>
                                         <option value="ios">iOS</option>
@@ -477,7 +522,7 @@ const AppDevelopmentPage = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-2">
+                                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
                                     Project Description *
                                 </label>
                                 <textarea
@@ -485,36 +530,36 @@ const AppDevelopmentPage = () => {
                                     value={projectFormData.description}
                                     onChange={handleProjectFormChange}
                                     required
-                                    rows={4}
-                                    className="w-full px-4 py-3 sm:py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm sm:text-base"
-                                    placeholder="Describe your app idea, target audience, and main features..."
+                                    rows={3}
+                                    className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-xs sm:text-sm resize-none"
+                                    placeholder="Describe your app idea..."
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-2">
+                                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
                                     Key Features
                                 </label>
                                 <textarea
                                     name="features"
                                     value={projectFormData.features}
                                     onChange={handleProjectFormChange}
-                                    rows={3}
-                                    className="w-full px-4 py-3 sm:py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm sm:text-base"
-                                    placeholder="List the main features you want in your app..."
+                                    rows={2}
+                                    className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-xs sm:text-sm resize-none"
+                                    placeholder="List main features..."
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <div>
-                                    <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-2">
+                                    <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
                                         Budget Range
                                     </label>
                                     <select
                                         name="budget"
                                         value={projectFormData.budget}
                                         onChange={handleProjectFormChange}
-                                        className="w-full px-4 py-3 sm:py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm sm:text-base"
+                                        className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-xs sm:text-sm"
                                     >
                                         <option value="">Select Budget</option>
                                         <option value="under-10k">Under ₹10,000</option>
@@ -525,14 +570,14 @@ const AppDevelopmentPage = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-2">
+                                    <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
                                         Timeline
                                     </label>
                                     <select
                                         name="timeline"
                                         value={projectFormData.timeline}
                                         onChange={handleProjectFormChange}
-                                        className="w-full px-4 py-3 sm:py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm sm:text-base"
+                                        className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-xs sm:text-sm"
                                     >
                                         <option value="">Select Timeline</option>
                                         <option value="1-month">1 Month</option>
@@ -544,11 +589,11 @@ const AppDevelopmentPage = () => {
                                 </div>
                             </div>
 
-                            <div className="border-t-2 border-gray-200 pt-4 sm:pt-6">
-                                <h4 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Contact Information</h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                            <div className="border-t border-gray-200 pt-3 sm:pt-4">
+                                <h4 className="text-sm sm:text-base font-bold text-gray-900 mb-3 sm:mb-4">Contact Information</h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
-                                        <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-2">
+                                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
                                             Full Name *
                                         </label>
                                         <input
@@ -557,12 +602,12 @@ const AppDevelopmentPage = () => {
                                             value={projectFormData.clientName}
                                             onChange={handleProjectFormChange}
                                             required
-                                            className="w-full px-4 py-3 sm:py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm sm:text-base"
+                                            className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-xs sm:text-sm"
                                             placeholder="Your full name"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-2">
+                                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
                                             Email *
                                         </label>
                                         <input
@@ -571,12 +616,12 @@ const AppDevelopmentPage = () => {
                                             value={projectFormData.email}
                                             onChange={handleProjectFormChange}
                                             required
-                                            className="w-full px-4 py-3 sm:py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm sm:text-base"
+                                            className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-xs sm:text-sm"
                                             placeholder="your@email.com"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-2">
+                                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
                                             Phone *
                                         </label>
                                         <input
@@ -585,12 +630,12 @@ const AppDevelopmentPage = () => {
                                             value={projectFormData.phone}
                                             onChange={handleProjectFormChange}
                                             required
-                                            className="w-full px-4 py-3 sm:py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm sm:text-base"
+                                            className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-xs sm:text-sm"
                                             placeholder="+91 9876543210"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-2">
+                                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">
                                             Company (Optional)
                                         </label>
                                         <input
@@ -598,41 +643,41 @@ const AppDevelopmentPage = () => {
                                             name="company"
                                             value={projectFormData.company}
                                             onChange={handleProjectFormChange}
-                                            className="w-full px-4 py-3 sm:py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm sm:text-base"
-                                            placeholder="Your company name"
+                                            className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-xs sm:text-sm"
+                                            placeholder="Company name"
                                         />
                                     </div>
                                 </div>
                             </div>
 
                             {/* Modal Footer - Sticky on Mobile */}
-                            <div className="sticky bottom-0 bg-white border-t border-gray-200 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
+                            <div className="sticky bottom-0 bg-white border-t border-gray-200 -mx-3 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 py-3 sm:py-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
                                 <motion.button
                                     type="button"
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
+                                    whileHover={{ scale: 1.01 }}
+                                    whileTap={{ scale: 0.99 }}
                                     onClick={() => setShowProjectForm(false)}
-                                    className="flex-1 px-6 py-3 sm:py-4 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-all duration-300 text-sm sm:text-base"
+                                    className="flex-1 px-4 py-2 sm:py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all duration-300 text-xs sm:text-sm"
                                 >
                                     Cancel
                                 </motion.button>
                                 <motion.button
                                     type="submit"
                                     disabled={submitting}
-                                    whileHover={{ scale: submitting ? 1 : 1.02 }}
-                                    whileTap={{ scale: submitting ? 1 : 0.98 }}
-                                    className={`flex-1 px-6 py-3 sm:py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 text-sm sm:text-base ${
+                                    whileHover={{ scale: submitting ? 1 : 1.01 }}
+                                    whileTap={{ scale: submitting ? 1 : 0.99 }}
+                                    className={`flex-1 px-4 py-2 sm:py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-xs sm:text-sm ${
                                         submitting ? 'opacity-50 cursor-not-allowed' : ''
                                     }`}
                                 >
-                                    {submitting ? '⏳ Submitting...' : '🚀 Submit Project'}
+                                    {submitting ? '⏳ Submitting...' : '🚀 Submit'}
                                 </motion.button>
                             </div>
                         </form>
                     </motion.div>
                 </motion.div>
             )}
-        </div>
+        </>
     );
 
     // Always show the client page without requiring login

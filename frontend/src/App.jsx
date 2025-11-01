@@ -45,6 +45,10 @@ import CASignupPage from './pages/CA/CASignupPage';
 import CADashboard from './pages/CA/CADashboard';
 import AnalyticsPage from './pages/Analytics/AnalyticsPage';
 import TermsPage from './pages/Legal/TermsPage';
+import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
+import PrivacyPage from './pages/PrivacyPage';
+import FAQPage from './pages/FAQPage';
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminLoansPage from './pages/Admin/AdminLoansPage';
@@ -120,6 +124,10 @@ function App() {
                     <Route path="/mentors/profile" element={<MentorProfilePage />} />
                     <Route path="/analytics" element={<AnalyticsPage />} />
                     <Route path="/terms" element={<TermsPage />} />
+                    <Route path="/about" element={<AboutPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/privacy" element={<PrivacyPage />} />
+                    <Route path="/faq" element={<FAQPage />} />
                     <Route path="/mobile-login" element={<LoginPage />} />
                     <Route path="/admin" element={<AdminLayout />}>
                       <Route path="dashboard" element={<AdminDashboard />} />

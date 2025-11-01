@@ -123,7 +123,7 @@ const LoansPage = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="md:hidden flex items-center justify-between px-4 py-4 bg-gradient-to-r from-orange-400 to-orange-500 shadow-lg sticky top-0 z-50"
+        className="md:hidden flex items-center justify-between px-4 py-4 bg-white border-b border-gray-200 shadow-md sticky top-0 z-50"
       >
         <motion.div
           whileHover={{ scale: 1.05 }}
@@ -133,10 +133,10 @@ const LoansPage = () => {
           <motion.button
             whileHover={{ scale: 1.1, x: -2, rotate: -5 }}
             whileTap={{ scale: 0.9 }}
-            className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-300"
+            className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-300"
           >
             <Link to="/" className="flex items-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
@@ -145,7 +145,7 @@ const LoansPage = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-2xl font-bold text-white"
+            className="text-2xl font-bold text-gray-900"
           >
             Government Loans
           </motion.h1>
@@ -186,42 +186,34 @@ const LoansPage = () => {
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
+          className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-5"
         >
           {(isLoading ? Array.from({ length: 8 }).map((_, index) => ({ skeleton: true, id: index })) : governmentLoans).map((loan, index) => (
             <motion.div
               key={loan.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ scale: 1.05, y: -8 }}
-              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: 30, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ 
+                duration: 0.5, 
+                delay: index * 0.08,
+                type: "spring",
+                stiffness: 100
+              }}
+              whileHover={{ y: -8, scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
               className="group relative"
             >
-              {/* Animated Border */}
-              <motion.div
-                className="absolute -inset-0.5 bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 rounded-2xl blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"
-                animate={{
-                  background: [
-                    "linear-gradient(45deg, #f97316, #ef4444, #ec4899)",
-                    "linear-gradient(45deg, #ec4899, #f97316, #ef4444)",
-                    "linear-gradient(45deg, #ef4444, #ec4899, #f97316)"
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-              />
-
-              <Link to={`/loans/${loan.id}`}>
-                <div className={`relative bg-gradient-to-br ${loan.bgColor} backdrop-blur-lg rounded-2xl p-4 md:p-5 shadow-lg border border-white/40 overflow-hidden h-52 md:h-48 hover:shadow-xl transition-all duration-300`}>
-                  {/* Image */}
-                  <div className="relative mb-3 md:mb-4">
+              <Link to={`/loans/${loan.id}`} className="block">
+                <div className={`relative bg-white rounded-2xl p-0 shadow-md border border-gray-200 overflow-hidden h-full flex flex-col min-h-[120px] md:min-h-[160px] transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1`}>
+                  {/* Image Container */}
+                  <div className="relative flex-shrink-0">
                     <motion.div
-                      whileHover={{ scale: 1.05, rotate: 1 }}
-                      transition={{ duration: 0.3 }}
-                      className="w-full h-16 md:h-20 rounded-lg overflow-hidden shadow-md"
+                      whileHover={{ scale: 1.02 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className="relative w-full h-12 md:h-16 overflow-hidden group-hover:shadow-md transition-shadow duration-300"
                     >
                       {loan.skeleton ? (
-                        <div className="w-full h-full bg-gray-200 animate-pulse rounded" />
+                        <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse" />
                       ) : (
                         <img
                           src={loan.image}
@@ -230,81 +222,81 @@ const LoansPage = () => {
                         />
                       )}
                     </motion.div>
-                    {/* Gradient Overlay */}
-                    <motion.div
-                      whileHover={{ opacity: 0.4 }}
-                      className={`absolute inset-0 bg-gradient-to-t ${loan.color} opacity-30 rounded-lg transition-opacity duration-300`}
-                    ></motion.div>
                   </div>
-
-                  {/* Title */}
-                  <motion.h3
-                    whileHover={{ scale: 1.02 }}
-                    className={`font-bold ${loan.textColor} text-sm md:text-base mb-2 group-hover:text-gray-800 transition-colors line-clamp-1`}
-                  >
-                    {loan.skeleton ? 'Loading...' : loan.title}
-                  </motion.h3>
-
-                  {/* Description */}
-                  <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4 line-clamp-2 leading-relaxed">
-                    {loan.skeleton ? 'Please wait while we load the schemes...' : loan.description}
-                  </p>
-
-                  {/* Action Buttons */}
-                  <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                    {/* Status Button */}
-                    {getLoanStatus(loan.id) && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate('/loans/status');
-                        }}
-                        className="cursor-pointer"
-                      >
-                        <div className={`px-2 md:px-3 py-1 md:py-1.5 rounded-full border ${getLoanStatus(loan.id).bg} ${getLoanStatus(loan.id).border} border-2 shadow-sm hover:shadow-md transition-all duration-300`}>
-                          <span className={`text-xs md:text-sm font-semibold ${getLoanStatus(loan.id).color} flex items-center gap-1`}>
-                            <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span className="hidden sm:inline">{getLoanStatus(loan.id).text}</span>
-                            <span className="sm:hidden">Status</span>
-                          </span>
-                        </div>
-                      </motion.div>
-                    )}
-                    
-                    {/* Action Button */}
-                    <motion.div
-                      whileHover={{ scale: 1.15, rotate: 8 }}
-                      whileTap={{ scale: 0.9 }}
-                      className={`w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r ${loan.color} rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300`}
+                  {/* Content Section */}
+                  <div className="relative z-10 flex flex-col flex-grow min-h-0 p-2 md:p-3">
+                    {/* Title */}
+                    <motion.h3
+                      whileHover={{ x: 1 }}
+                      className={`font-bold text-gray-900 text-xs md:text-sm mb-0.5 line-clamp-2 flex-shrink-0`}
                     >
-                      <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </motion.div>
+                      {loan.skeleton ? (
+                        <div className="h-3 md:h-4 bg-gray-200 rounded animate-pulse" />
+                      ) : (
+                        loan.title
+                      )}
+                    </motion.h3>
+
+                    {/* Description - Fixed height */}
+                    <div className="h-[28px] md:h-[32px] mb-1 flex-shrink-0">
+                      <p className="text-[10px] md:text-xs text-gray-600 line-clamp-2 leading-tight">
+                        {loan.skeleton ? (
+                          <>
+                            <div className="h-2 md:h-3 bg-gray-200 rounded animate-pulse mb-1" />
+                            <div className="h-2 md:h-3 bg-gray-200 rounded animate-pulse w-3/4" />
+                          </>
+                        ) : (
+                          loan.description || 'Explore this government loan scheme for your business needs'
+                        )}
+                      </p>
+                    </div>
+
+                    {/* Spacer to push button to bottom */}
+                    <div className="flex-grow"></div>
+
+                    {/* Action Section - Always at bottom */}
+                    <div className="flex justify-end items-center pt-1 md:pt-1.5 border-t border-gray-100 mt-auto flex-shrink-0">
+                      {/* Status Badge - Only show if status exists */}
+                      {getLoanStatus(loan.id) && (
+                        <motion.div
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            navigate('/loans/status');
+                          }}
+                          className="cursor-pointer mr-auto"
+                        >
+                          <div className={`px-2 md:px-2.5 py-1 md:py-1 rounded-full ${getLoanStatus(loan.id).bg} border ${getLoanStatus(loan.id).border} shadow-sm hover:shadow-md transition-all duration-300`}>
+                            <span className={`text-[10px] md:text-xs font-semibold ${getLoanStatus(loan.id).color} flex items-center gap-1`}>
+                              <svg className="w-2.5 h-2.5 md:w-3 md:h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span className="hidden sm:inline">{getLoanStatus(loan.id).text}</span>
+                              <span className="sm:hidden">✓</span>
+                            </span>
+                          </div>
+                        </motion.div>
+                      )}
+                      
+                      {/* CTA Button */}
+                      <motion.div
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`relative w-8 h-8 md:w-11 md:h-11 rounded-xl bg-gradient-to-r ${loan.color} flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group/btn`}
+                      >
+                        {/* Shine effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
+                        <svg className="w-4 h-4 md:w-5 md:h-5 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                      </motion.div>
+                    </div>
                   </div>
 
-                  {/* Hover Glow Effect */}
-                  <motion.div
-                    className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r ${loan.color}20`}
-                    initial={false}
-                    animate={{
-                      scale: [1, 1.05, 1]
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                    style={{
-                      filter: 'blur(15px)'
-                    }}
-                  />
                 </div>
               </Link>
             </motion.div>
