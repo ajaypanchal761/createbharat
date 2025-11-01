@@ -3,6 +3,7 @@ const Internship = require('../models/internship');
 const Company = require('../models/company');
 const User = require('../models/user');
 const { uploadToGridFS, getFromGridFS } = require('../utils/gridfs');
+const { sendApplicationStatusEmail } = require('../services/emailService');
 const axios = require('axios');
 
 // @desc    Apply to internship
@@ -294,6 +295,30 @@ const updateApplicationStatus = async (req, res) => {
     }
 
     await application.save();
+
+    // Populate application data for email
+    await application.populate([
+      { path: 'internship', select: 'title companyName' },
+      { path: 'user', select: 'firstName lastName email' },
+      { path: 'company', select: 'companyName' }
+    ]);
+
+    // Send email notification to user
+    try {
+      const internshipTitle = application.internship?.title || 'Internship Position';
+      const companyName = application.company?.companyName || 'Company';
+      
+      await sendApplicationStatusEmail(
+        application,
+        status,
+        companyName,
+        internshipTitle
+      );
+      console.log(`Email notification sent for application ${application._id} status: ${status}`);
+    } catch (emailError) {
+      console.error('Error sending email notification:', emailError);
+      // Don't fail the request if email fails
+    }
 
     res.status(200).json({
       success: true,

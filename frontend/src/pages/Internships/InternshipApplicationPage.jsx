@@ -331,7 +331,7 @@ const InternshipApplicationPage = () => {
 
               <motion.div variants={fadeInUp} className="flex flex-wrap gap-3">
                 <span className="px-3 py-2 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
-                  {internship.stipend}{internship.stipendPerMonth}
+{internship.stipend && internship.stipend.endsWith('/month') ? internship.stipend : `${internship.stipend || ''}${internship.stipendPerMonth === '/month' || !internship.stipendPerMonth ? '/month' : internship.stipendPerMonth}`}
                 </span>
                 <span className="px-3 py-2 bg-green-100 text-green-800 text-sm font-medium rounded-full">
                   {internship.location}

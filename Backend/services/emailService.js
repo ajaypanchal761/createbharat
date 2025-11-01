@@ -193,9 +193,106 @@ const sendBookingRejectedEmail = async (booking, mentor, user) => {
   return await sendEmail(user.email, emailTemplate.subject, emailTemplate.html);
 };
 
+// Email template for application status updates
+const getApplicationStatusEmailTemplate = (application, status, companyName, internshipTitle) => {
+  const userName = application.name || `${application.user?.firstName || ''} ${application.user?.lastName || ''}`.trim() || 'Applicant';
+  const userEmail = application.email || application.user?.email || '';
+  
+  let subject = '';
+  let headerColor = '';
+  let headerText = '';
+  let message = '';
+  
+  switch (status) {
+    case 'shortlisted':
+      subject = `Application Update - Under Review for ${internshipTitle}`;
+      headerColor = '#f59e0b'; // amber-500
+      headerText = 'Application Under Review';
+      message = `Great news! Your application for the position <strong>${internshipTitle}</strong> at <strong>${companyName}</strong> is now under review. Our team will carefully evaluate your application and get back to you soon.`;
+      break;
+    case 'hired':
+      subject = `Congratulations! Application Accepted for ${internshipTitle}`;
+      headerColor = '#10b981'; // green-500
+      headerText = '🎉 Application Accepted!';
+      message = `Congratulations! We are pleased to inform you that your application for the position <strong>${internshipTitle}</strong> at <strong>${companyName}</strong> has been accepted!<br><br>We are excited to have you join our team. You will receive further details about the next steps shortly.`;
+      break;
+    case 'rejected':
+      subject = `Application Update - ${internshipTitle} at ${companyName}`;
+      headerColor = '#ef4444'; // red-500
+      headerText = 'Application Update';
+      message = `Thank you for your interest in the position <strong>${internshipTitle}</strong> at <strong>${companyName}</strong>.<br><br>After careful consideration, we regret to inform you that we have decided not to move forward with your application at this time. We appreciate the time you took to apply and wish you the best in your job search.`;
+      break;
+    default:
+      subject = `Application Update - ${internshipTitle}`;
+      headerColor = '#6b7280'; // gray-500
+      headerText = 'Application Update';
+      message = `Your application for <strong>${internshipTitle}</strong> at <strong>${companyName}</strong> has been updated.`;
+  }
+
+  return {
+    subject: subject,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: ${headerColor}; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+          .content { background-color: #f9fafb; padding: 30px; border-radius: 0 0 5px 5px; }
+          .info-box { background-color: white; padding: 15px; margin: 15px 0; border-radius: 5px; border-left: 4px solid ${headerColor}; }
+          .info-label { font-weight: bold; color: #374151; }
+          .info-value { color: #1f2937; margin-left: 10px; }
+          .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>${headerText}</h1>
+          </div>
+          <div class="content">
+            <p>Dear ${userName},</p>
+            
+            <p>${message}</p>
+            
+            <div class="info-box">
+              <div><span class="info-label">Position:</span><span class="info-value">${internshipTitle}</span></div>
+              <div style="margin-top: 10px;"><span class="info-label">Company:</span><span class="info-value">${companyName}</span></div>
+              <div style="margin-top: 10px;"><span class="info-label">Status:</span><span class="info-value">${status === 'shortlisted' ? 'Under Review' : status === 'hired' ? 'Accepted' : 'Rejected'}</span></div>
+            </div>
+
+            <p style="margin-top: 25px;">If you have any questions, please feel free to contact us.</p>
+            
+            <div class="footer">
+              <p>Best regards,<br>CreateBharat Team</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+};
+
+// Send application status email
+const sendApplicationStatusEmail = async (application, status, companyName, internshipTitle) => {
+  const emailTemplate = getApplicationStatusEmailTemplate(application, status, companyName, internshipTitle);
+  const userEmail = application.email || application.user?.email;
+  
+  if (!userEmail) {
+    console.warn('User email not found, skipping email notification');
+    return { success: false, error: 'User email not found' };
+  }
+  
+  return await sendEmail(userEmail, emailTemplate.subject, emailTemplate.html);
+};
+
 module.exports = {
   sendEmail,
   sendBookingAcceptedEmail,
-  sendBookingRejectedEmail
+  sendBookingRejectedEmail,
+  sendApplicationStatusEmail
 };
 

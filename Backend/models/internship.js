@@ -89,31 +89,16 @@ const internshipSchema = new mongoose.Schema({
     maxlength: [50, 'Each skill cannot exceed 50 characters']
   }],
 
-  perks: [{
-    type: String,
-    maxlength: [200, 'Each perk cannot exceed 200 characters']
-  }],
-
   aboutCompany: {
     type: String,
     maxlength: [1000, 'About company cannot exceed 1000 characters']
   },
-
-  applicationProcess: [{
-    type: String,
-    maxlength: [300, 'Each process step cannot exceed 300 characters']
-  }],
 
   // Additional Information
   openings: {
     type: Number,
     default: 1,
     min: 1
-  },
-
-  applicants: {
-    type: Number,
-    default: 0
   },
 
   // Status Fields
@@ -142,12 +127,6 @@ const internshipSchema = new mongoose.Schema({
     default: Date.now
   },
 
-  // Application Link
-  applicationLink: {
-    type: String,
-    default: ''
-  },
-
   // Styling (for frontend)
   color: {
     type: String,
@@ -162,17 +141,7 @@ const internshipSchema = new mongoose.Schema({
   // Dates
   applicationDeadline: {
     type: Date,
-    default: null
-  },
-
-  startDate: {
-    type: Date,
-    default: null
-  },
-
-  endDate: {
-    type: Date,
-    default: null
+    required: [true, 'Application deadline is required']
   }
 }, {
   timestamps: true,
@@ -204,13 +173,6 @@ internshipSchema.virtual('postedDateFormatted').get(function () {
   return `${Math.floor(diffDays / 365)} years ago`;
 });
 
-// Virtual for applicants count
-internshipSchema.virtual('applicantsCount', {
-  ref: 'Application',
-  localField: '_id',
-  foreignField: 'internship',
-  count: true
-});
 
 module.exports = mongoose.model('Internship', internshipSchema);
 

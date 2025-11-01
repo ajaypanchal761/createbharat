@@ -648,7 +648,7 @@ const HomePage = () => {
                         variants={staggerContainer}
                         initial="hidden"
                         animate="visible"
-                        className=" grid grid-cols-3 gap-3"
+                        className="grid grid-cols-3 gap-2.5 justify-items-center"
                     >
                         {[
                             { 
@@ -695,10 +695,10 @@ const HomePage = () => {
                                     transition: { duration: 0.1 }
                                 }}
                                 onClick={(e) => handleServiceClick(e, service.path)}
-                                className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col"
+                                className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col w-full h-full min-h-[80px]"
                             >
                                 {/* Image with hover effect - Fixed to edges */}
-                                <div className="w-full h-14 overflow-hidden">
+                                <div className="w-full h-16 overflow-hidden">
                                     <motion.img 
                                                                     src={service.image} 
                                                                     alt={service.name} 
@@ -707,7 +707,7 @@ const HomePage = () => {
                                 </div>
 
                                 {/* Service name - With padding */}
-                                <div className="px-3 pt-2 pb-2">
+                                <div className="px-3 pt-2 pb-2.5 flex-1 flex items-center justify-center">
                                     <h3 className="text-xs font-bold text-gray-800 text-center leading-tight group-hover:text-blue-600 transition-colors duration-200">
                                                                         {service.name}
                                     </h3>
@@ -746,7 +746,7 @@ const HomePage = () => {
                         variants={staggerContainer}
                         initial="hidden"
                         animate="visible"
-                        className="grid grid-cols-4 gap-3"
+                        className="grid grid-cols-4 gap-2.5 justify-items-center"
                     >
                         {[
                             { 
@@ -787,10 +787,10 @@ const HomePage = () => {
                                     transition: { duration: 0.1 }
                                 }}
                                 onClick={(e) => handleServiceClick(e, service.path)}
-                                className="relative rounded-2xl bg-white shadow-lg ring-1 ring-black/5 hover:shadow-xl hover:ring-blue-300 hover:ring-2 transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col"
+                                className="relative rounded-2xl bg-white shadow-lg ring-1 ring-black/5 hover:shadow-xl hover:ring-blue-300 hover:ring-2 transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col w-full h-full min-h-[75px]"
                             >
                                 <motion.div 
-                                    className="w-full h-14 overflow-hidden"
+                                    className="w-full h-16 overflow-hidden"
                                     whileHover={{ scale: 1.05 }}
                                     transition={{ duration: 0.3 }}
                                     >
@@ -803,7 +803,7 @@ const HomePage = () => {
                                     />
                                 </motion.div>
                                 
-                                <div className="px-2.5 pt-2 pb-2.5">
+                                <div className="px-2.5 pt-2 pb-2.5 flex-1 flex items-center justify-center">
                                     <motion.h3 
                                         className="text-xs font-semibold text-gray-800 text-center leading-tight break-words hyphens-auto"
                                         whileHover={{ 
@@ -959,35 +959,35 @@ const HomePage = () => {
             <div className="hidden md:block min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
                 {/* Desktop Header */}
                 <header className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
-                    <div className="max-w-7xl mx-auto px-8 py-6">
+                    <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <Link to="/" className="flex items-center gap-5">
-                                    <img src="/logo.png" alt="CreateBharat" className="w-20 h-20 object-contain" />
-                                    <div>
-                                        <h1 className="text-2xl font-bold text-gray-900">CreateBharat</h1>
-                                        <p className="text-sm text-gray-600 font-medium">Empowering Your Dreams</p>
+                            <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+                                <Link to="/" className="flex items-center gap-2 md:gap-3 lg:gap-5">
+                                    <img src="/logo.png" alt="CreateBharat" className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 object-contain flex-shrink-0" />
+                                    <div className="min-w-0">
+                                        <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 truncate">CreateBharat</h1>
+                                        <p className="text-xs md:text-sm text-gray-600 font-medium truncate hidden md:block">Empowering Your Dreams</p>
                                     </div>
                         </Link>
             </div>
 
-                            <nav className="hidden lg:flex items-center space-x-8">
-                                <Link to="/" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Home</Link>
-                                <Link to="/loans" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Loans</Link>
-                                <Link to="/internships" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Internships</Link>
-                                <Link to="/legal" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Legal</Link>
-                                <Link to="/mentors" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Mentors</Link>
-                                <Link to="/training" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Training</Link>
-                                <Link to="/app-development" className="text-gray-700 hover:text-blue-600 font-semibold transition-colors">Web Development</Link>
+                            <nav className="hidden lg:flex items-center space-x-1 xl:space-x-2 2xl:space-x-4 flex-wrap justify-center flex-1 mx-2 md:mx-4">
+                                <Link to="/" className="px-2 lg:px-3 xl:px-4 2xl:px-6 py-2 lg:py-2.5 xl:py-3 text-xs lg:text-xs xl:text-sm text-gray-700 hover:text-blue-600 font-semibold transition-colors whitespace-nowrap rounded-lg hover:bg-gray-50">Home</Link>
+                                <Link to="/loans" className="px-2 lg:px-3 xl:px-4 2xl:px-6 py-2 lg:py-2.5 xl:py-3 text-xs lg:text-xs xl:text-sm text-gray-700 hover:text-blue-600 font-semibold transition-colors whitespace-nowrap rounded-lg hover:bg-gray-50">Loans</Link>
+                                <Link to="/internships" className="px-2 lg:px-3 xl:px-4 2xl:px-6 py-2 lg:py-2.5 xl:py-3 text-xs lg:text-xs xl:text-sm text-gray-700 hover:text-blue-600 font-semibold transition-colors whitespace-nowrap rounded-lg hover:bg-gray-50">Internships</Link>
+                                <Link to="/legal" className="px-2 lg:px-3 xl:px-4 2xl:px-6 py-2 lg:py-2.5 xl:py-3 text-xs lg:text-xs xl:text-sm text-gray-700 hover:text-blue-600 font-semibold transition-colors whitespace-nowrap rounded-lg hover:bg-gray-50">Legal</Link>
+                                <Link to="/mentors" className="px-2 lg:px-3 xl:px-4 2xl:px-6 py-2 lg:py-2.5 xl:py-3 text-xs lg:text-xs xl:text-sm text-gray-700 hover:text-blue-600 font-semibold transition-colors whitespace-nowrap rounded-lg hover:bg-gray-50">Mentors</Link>
+                                <Link to="/training" className="px-2 lg:px-3 xl:px-4 2xl:px-6 py-2 lg:py-2.5 xl:py-3 text-xs lg:text-xs xl:text-sm text-gray-700 hover:text-blue-600 font-semibold transition-colors whitespace-nowrap rounded-lg hover:bg-gray-50">Training</Link>
+                                <Link to="/app-development" className="px-2 lg:px-3 xl:px-4 2xl:px-6 py-2 lg:py-2.5 xl:py-3 text-xs lg:text-xs xl:text-sm text-gray-700 hover:text-blue-600 font-semibold transition-colors whitespace-nowrap rounded-lg hover:bg-gray-50">Web Development</Link>
                             </nav>
                             
-                            <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+                                <div className="flex items-center gap-1.5 md:gap-3">
                                     {isAuthenticated() ? (
                                         <>
                                             <Link 
                                                 to="/profile"
-                                                className="px-6 py-2 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-50 transition-all duration-300 border border-blue-200"
+                                                className="px-3 md:px-6 py-2 bg-white text-blue-600 font-semibold text-xs md:text-sm rounded-lg hover:bg-gray-50 transition-all duration-300 border border-blue-200 whitespace-nowrap"
                                             >
                                                 Profile
                                             </Link>
@@ -996,7 +996,7 @@ const HomePage = () => {
                                                 userLogout();
                                                 navigate('/');
                                             }}
-                                            className="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all duration-300"
+                                            className="px-3 md:px-6 py-2 bg-red-600 text-white font-semibold text-xs md:text-sm rounded-lg hover:bg-red-700 transition-all duration-300 whitespace-nowrap"
                                         >
                                             Logout
                                     </button>
@@ -1004,7 +1004,7 @@ const HomePage = () => {
                                     ) : (
                                     <button 
                                             onClick={() => navigate('/login')}
-                                        className="px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300"
+                                        className="px-3 md:px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold text-xs md:text-sm rounded-lg hover:shadow-lg transition-all duration-300 whitespace-nowrap"
                                     >
                                             Login
                                     </button>

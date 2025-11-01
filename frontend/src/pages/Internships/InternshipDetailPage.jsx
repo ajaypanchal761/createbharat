@@ -174,7 +174,7 @@ const InternshipDetailPage = () => {
                     <span className="text-2xl">💰</span>
                     <div>
                       <p className="text-sm text-gray-500">Stipend</p>
-                      <p className="font-semibold text-gray-900">{internship.stipend}{internship.stipendPerMonth}</p>
+                      <p className="font-semibold text-gray-900">{internship.stipend && internship.stipend.endsWith('/month') ? internship.stipend : `${internship.stipend || ''}${internship.stipendPerMonth === '/month' || !internship.stipendPerMonth ? '/month' : internship.stipendPerMonth}`}</p>
                     </div>
                   </div>
 
@@ -272,7 +272,7 @@ const InternshipDetailPage = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600 mb-1">Monthly Stipend</p>
-                      <p className="text-2xl font-bold text-gray-900">{internship.stipend}{internship.stipendPerMonth}</p>
+                      <p className="text-2xl font-bold text-gray-900">{internship.stipend && internship.stipend.endsWith('/month') ? internship.stipend : `${internship.stipend || ''}${internship.stipendPerMonth === '/month' || !internship.stipendPerMonth ? '/month' : internship.stipendPerMonth}`}</p>
                     </div>
                     <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                       <span className="text-2xl">💰</span>
@@ -381,7 +381,7 @@ const InternshipDetailPage = () => {
           >
             <div className="flex items-center gap-3">
               <span className="text-2xl">💰</span>
-              <span className="text-gray-700">{internship.stipend}{internship.stipendPerMonth}</span>
+              <span className="text-gray-700">{internship.stipend && internship.stipend.endsWith('/month') ? internship.stipend : `${internship.stipend || ''}${internship.stipendPerMonth === '/month' || !internship.stipendPerMonth ? '/month' : internship.stipendPerMonth}`}</span>
             </div>
 
             <div className="flex items-center gap-3">
@@ -493,7 +493,7 @@ const InternshipDetailPage = () => {
             <h2 className="text-lg font-semibold text-gray-900 mb-3">Salary breakup</h2>
             <div className="bg-gray-50 rounded-lg p-3">
               <p className="text-sm text-gray-700">
-                Monthly Stipend: {internship.stipend}{internship.stipendPerMonth}
+                Monthly Stipend: {internship.stipend && internship.stipend.endsWith('/month') ? internship.stipend : `${internship.stipend || ''}${internship.stipendPerMonth === '/month' || !internship.stipendPerMonth ? '/month' : internship.stipendPerMonth}`}
               </p>
             </div>
           </motion.div>

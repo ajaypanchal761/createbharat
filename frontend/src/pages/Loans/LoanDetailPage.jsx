@@ -18,6 +18,7 @@ const LoanDetailPage = () => {
   const [loan, setLoan] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showVideo, setShowVideo] = useState(false);
 
   // Extract YouTube video ID from URL
   const getYouTubeVideoId = (url) => {
@@ -27,8 +28,29 @@ const LoanDetailPage = () => {
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
+  // Get YouTube embed URL from regular URL
+  const getYouTubeEmbedUrl = (url) => {
+    if (!url) return null;
+    
+    // If already an embed URL, return as is
+    if (url.includes('youtube.com/embed/')) {
+      return url;
+    }
+    
+    // Extract video ID from various YouTube URL formats
+    const videoId = getYouTubeVideoId(url);
+    
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    
+    // If can't parse, return original URL (might be other video platform)
+    return url;
+  };
+
   // Get YouTube thumbnail URL
   const getYouTubeThumbnail = (videoId) => {
+    if (!videoId) return null;
     return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
   };
 
@@ -343,14 +365,17 @@ const LoanDetailPage = () => {
                     <div className="aspect-video md:aspect-[16/9] flex items-center justify-center relative">
                       {loan.videoUrl ? (() => {
                         const videoId = getYouTubeVideoId(loan.videoUrl);
-                        if (videoId) {
+                        const embedUrl = getYouTubeEmbedUrl(loan.videoUrl);
+                        const thumbnailUrl = getYouTubeThumbnail(videoId);
+                        
+                        if (!showVideo && videoId && thumbnailUrl) {
                           return (
                             <div
                               className="relative w-full h-full cursor-pointer group"
-                              onClick={() => window.open(loan.videoUrl, '_blank')}
+                              onClick={() => setShowVideo(true)}
                             >
                               <img
-                                src={getYouTubeThumbnail(videoId)}
+                                src={thumbnailUrl}
                                 alt={`${loan.name} Video Thumbnail`}
                                 className="w-full h-full object-cover rounded-2xl"
                               />
@@ -371,6 +396,16 @@ const LoanDetailPage = () => {
                                 YouTube
                               </div>
                             </div>
+                          );
+                        } else if (showVideo && embedUrl) {
+                          return (
+                            <iframe
+                              src={embedUrl}
+                              className="w-full h-full rounded-2xl"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              title={`${loan.name} Video`}
+                            />
                           );
                         } else {
                           return (
@@ -782,14 +817,17 @@ const LoanDetailPage = () => {
                 <div className="aspect-video flex items-center justify-center relative">
                   {loan.videoUrl ? (() => {
                     const videoId = getYouTubeVideoId(loan.videoUrl);
-                    if (videoId) {
+                    const embedUrl = getYouTubeEmbedUrl(loan.videoUrl);
+                    const thumbnailUrl = getYouTubeThumbnail(videoId);
+                    
+                    if (!showVideo && videoId && thumbnailUrl) {
                       return (
                         <div
                           className="relative w-full h-full cursor-pointer group"
-                          onClick={() => window.open(loan.videoUrl, '_blank')}
+                          onClick={() => setShowVideo(true)}
                         >
                           <img
-                            src={getYouTubeThumbnail(videoId)}
+                            src={thumbnailUrl}
                             alt={`${loan.name} Video Thumbnail`}
                             className="w-full h-full object-cover rounded-2xl"
                           />
@@ -810,6 +848,16 @@ const LoanDetailPage = () => {
                             YouTube
                           </div>
                         </div>
+                      );
+                    } else if (showVideo && embedUrl) {
+                      return (
+                        <iframe
+                          src={embedUrl}
+                          className="w-full h-full rounded-2xl"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          title={`${loan.name} Video`}
+                        />
                       );
                     } else {
                       return (

@@ -44,13 +44,22 @@ const createInternship = async (req, res) => {
       responsibilities = [],
       skills = [],
       isRemote = false,
-      openings = 1
+      openings = 1,
+      applicationDeadline = null
     } = req.body || {};
 
     // Process requirements - ensure it's an array
     const processedRequirements = Array.isArray(requirements)
       ? requirements.filter(r => r && r.trim()).map(r => r.trim())
       : [];
+
+    // Validate required fields
+    if (!title || !location || !duration || !stipend || !category || !description || !applicationDeadline) {
+      return res.status(400).json({
+        success: false,
+        message: 'All required fields including application deadline must be provided'
+      });
+    }
 
     // Prepare internship data with explicit field mapping
     const internshipData = {
@@ -66,6 +75,7 @@ const createInternship = async (req, res) => {
       skills: Array.isArray(skills) ? skills : [],
       isRemote: isRemote === true || isRemote === 'true',
       openings: parseInt(openings) || 1,
+      applicationDeadline: applicationDeadline ? new Date(applicationDeadline) : null,
       company: company._id,
       companyName: company.companyName
     };
@@ -159,6 +169,7 @@ const getAllInternships = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const internships = await Internship.find(filter)
+      .select('-perks -applicationProcess -applicants -applicationLink -startDate -endDate')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit))
@@ -195,11 +206,8 @@ const getAllInternships = async (req, res) => {
 const getInternship = async (req, res) => {
   try {
     const internship = await Internship.findById(req.params.id)
-      .populate('company', 'companyName industry companySize website description logo socialLinks')
-      .populate({
-        path: 'applicants',
-        select: 'name email phone status appliedAt'
-      });
+      .select('-perks -applicationProcess -applicants -applicationLink -startDate -endDate')
+      .populate('company', 'companyName industry companySize website description logo socialLinks');
 
     if (!internship) {
       return res.status(404).json({
@@ -229,6 +237,7 @@ const getInternship = async (req, res) => {
 const getMyInternships = async (req, res) => {
   try {
     const internships = await Internship.find({ company: req.company.id })
+      .select('-perks -applicationProcess -applicants -applicationLink -startDate -endDate')
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -268,10 +277,27 @@ const updateInternship = async (req, res) => {
       });
     }
 
+    console.log('Update request body:', JSON.stringify(req.body, null, 2));
+    console.log('Current internship stipend:', internship.stipend);
+
     // Process requirements if provided - ensure it's an array
     if (req.body.requirements !== undefined) {
       req.body.requirements = Array.isArray(req.body.requirements)
         ? req.body.requirements.filter(r => r && r.trim()).map(r => r.trim())
+        : [];
+    }
+
+    // Process skills if provided - ensure it's an array
+    if (req.body.skills !== undefined) {
+      req.body.skills = Array.isArray(req.body.skills)
+        ? req.body.skills.filter(s => s && s.trim()).map(s => s.trim())
+        : [];
+    }
+
+    // Process responsibilities if provided - ensure it's an array
+    if (req.body.responsibilities !== undefined) {
+      req.body.responsibilities = Array.isArray(req.body.responsibilities)
+        ? req.body.responsibilities.filter(r => r && r.trim()).map(r => r.trim())
         : [];
     }
 
@@ -280,7 +306,11 @@ const updateInternship = async (req, res) => {
       internship[key] = req.body[key];
     });
 
+    console.log('After setting values, internship stipend:', internship.stipend);
+
     await internship.save();
+
+    console.log('After save, internship stipend:', internship.stipend);
 
     res.status(200).json({
       success: true,

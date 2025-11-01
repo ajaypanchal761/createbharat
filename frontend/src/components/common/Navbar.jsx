@@ -70,19 +70,19 @@ const Navbar = () => {
           : 'bg-white shadow-2xl border-b border-gray-200/60'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="flex items-center justify-between h-24">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-20 md:h-24">
           {/* Brand with public logo */}
-          <div className="flex items-center space-x-4">
-            <Link to="/" className="flex items-center space-x-5">
-              <img src="/logo.png" alt="CreateBharat Logo" className="w-20 h-20 object-contain" />
-              <div className="flex flex-col">
-                <span className={`font-bold text-2xl leading-tight ${
+          <div className="flex items-center space-x-2 md:space-x-4 flex-shrink-0">
+            <Link to="/" className="flex items-center space-x-2 md:space-x-3 lg:space-x-5">
+              <img src="/logo.png" alt="CreateBharat Logo" className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 object-contain flex-shrink-0" />
+              <div className="flex flex-col min-w-0">
+                <span className={`font-bold text-lg md:text-xl lg:text-2xl leading-tight truncate ${
                   scrolled ? 'text-gray-900' : 'text-gray-900'
                 }`}>
                   CreateBharat
                 </span>
-                <span className={`text-sm font-medium ${
+                <span className={`text-xs md:text-sm font-medium truncate hidden md:block ${
                   scrolled ? 'text-gray-600' : 'text-gray-600'
                 }`}>
                   Empowering Entrepreneurs
@@ -92,7 +92,7 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation (webview) - simplified, no active tab styling */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden lg:flex items-center space-x-1 xl:space-x-2 2xl:space-x-4 flex-wrap justify-center flex-1 mx-2 md:mx-4">
             {navLinks.map((link) => (
               <div key={link.name} className="relative">
                 {link.path === '/legal' && location.pathname === '/legal' ? (
@@ -101,22 +101,22 @@ const Navbar = () => {
                       setActiveLegalTab('services');
                       window.dispatchEvent(new CustomEvent('navbarLegalTabChange', { detail: { tab: 'services' } }));
                     }}
-                    className={`group relative px-6 py-3 rounded-2xl text-sm font-semibold ${
+                    className={`group relative px-2 xl:px-4 2xl:px-6 py-2 xl:py-3 rounded-xl 2xl:rounded-2xl text-xs xl:text-sm font-semibold whitespace-nowrap transition-colors hover:text-orange-600 ${
                       scrolled ? 'text-gray-700' : 'text-gray-700'
                     }`}
                   >
-                    <span className="flex items-center space-x-2">
+                    <span className="flex items-center space-x-1 xl:space-x-2">
                       <span>{link.name}</span>
                     </span>
                   </button>
                 ) : (
                   <Link
                     to={link.path}
-                    className={`group relative px-6 py-3 rounded-2xl text-sm font-semibold ${
+                    className={`group relative px-2 xl:px-4 2xl:px-6 py-2 xl:py-3 rounded-xl 2xl:rounded-2xl text-xs xl:text-sm font-semibold whitespace-nowrap transition-colors hover:text-orange-600 ${
                       scrolled ? 'text-gray-700' : 'text-gray-700'
                     }`}
                   >
-                    <span className="flex items-center space-x-2">
+                    <span className="flex items-center space-x-1 xl:space-x-2">
                       <span>{link.name}</span>
                     </span>
                   </Link>
@@ -126,9 +126,9 @@ const Navbar = () => {
           </div>
 
           {/* Right Side Actions */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden lg:flex items-center space-x-2 xl:space-x-4 flex-shrink-0">
             {/* CTA Buttons */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1.5 xl:space-x-3">
               {/* Status Tab - only show on /legal page */}
               {location.pathname === '/legal' && (
                 <button
@@ -136,7 +136,7 @@ const Navbar = () => {
                     setActiveLegalTab('status');
                     window.dispatchEvent(new CustomEvent('navbarLegalTabChange', { detail: { tab: 'status' } }));
                   }}
-                  className={`px-6 py-3 rounded-2xl font-bold text-sm shadow-lg transition-all ${
+                  className={`px-3 xl:px-6 py-2 xl:py-3 rounded-xl xl:rounded-2xl font-bold text-xs xl:text-sm shadow-lg transition-all whitespace-nowrap ${
                     activeLegalTab === 'status'
                       ? scrolled
                         ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 hover:shadow-xl'
@@ -150,10 +150,10 @@ const Navbar = () => {
                 </button>
               )}
               {isAuthenticated() ? (
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-1.5 xl:space-x-3">
                   <Link
                     to="/profile"
-                    className={`px-6 py-3 rounded-2xl font-bold text-sm shadow-lg ${
+                    className={`px-3 xl:px-6 py-2 xl:py-3 rounded-xl xl:rounded-2xl font-bold text-xs xl:text-sm shadow-lg whitespace-nowrap transition-colors ${
                       scrolled
                         ? 'bg-white text-orange-600 hover:bg-gray-50 hover:shadow-xl border border-orange-200'
                         : 'bg-white text-orange-600 hover:bg-gray-50 hover:shadow-xl'
@@ -163,7 +163,7 @@ const Navbar = () => {
                   </Link>
                   <button
                     onClick={() => { logout(); navigate('/'); }}
-                    className={`px-6 py-3 rounded-2xl font-bold text-sm shadow-lg ${
+                    className={`px-3 xl:px-6 py-2 xl:py-3 rounded-xl xl:rounded-2xl font-bold text-xs xl:text-sm shadow-lg whitespace-nowrap transition-colors ${
                       scrolled
                         ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 hover:shadow-xl'
                         : 'bg-red-600 text-white hover:bg-red-700 hover:shadow-xl'
@@ -189,10 +189,10 @@ const Navbar = () => {
                   )}
                 </div>
               ) : (
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-1.5 xl:space-x-3">
                   <Link
                     to="/login"
-                    className={`px-6 py-3 rounded-2xl font-bold text-sm shadow-lg ${
+                    className={`px-3 xl:px-6 py-2 xl:py-3 rounded-xl xl:rounded-2xl font-bold text-xs xl:text-sm shadow-lg whitespace-nowrap transition-colors ${
                       scrolled
                         ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 hover:shadow-xl'
                         : 'bg-white text-orange-600 hover:bg-gray-50 hover:shadow-xl'
