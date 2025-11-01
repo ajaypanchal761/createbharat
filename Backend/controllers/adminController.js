@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const MentorBooking = require('../models/mentorBooking');
 const Mentor = require('../models/mentor');
 const User = require('../models/user');
+const Company = require('../models/company');
+const CA = require('../models/ca');
 const LoanScheme = require('../models/loanScheme');
 const TrainingCourse = require('../models/trainingCourse');
 const UserTrainingProgress = require('../models/userTrainingProgress');
@@ -991,6 +993,234 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
+// @desc    Get all mentors (Admin management)
+// @route   GET /api/admin/mentors
+// @access  Private/Admin
+const getAllMentorsForAdmin = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 100;
+    const skip = (page - 1) * limit;
+
+    const mentors = await Mentor.find({})
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Mentor.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      count: mentors.length,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      data: mentors
+    });
+
+  } catch (error) {
+    console.error('Admin get all mentors error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Get all companies (Admin management)
+// @route   GET /api/admin/companies
+// @access  Private/Admin
+const getAllCompaniesForAdmin = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 100;
+    const skip = (page - 1) * limit;
+
+    const companies = await Company.find({})
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Company.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      count: companies.length,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      data: companies
+    });
+
+  } catch (error) {
+    console.error('Admin get all companies error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Get all CAs (Admin management)
+// @route   GET /api/admin/cas
+// @access  Private/Admin
+const getAllCAsForAdmin = async (req, res) => {
+  try {
+    const cas = await CA.find({})
+      .select('-password')
+      .sort({ createdAt: -1 });
+
+    const total = cas.length;
+
+    res.status(200).json({
+      success: true,
+      count: cas.length,
+      total,
+      data: cas
+    });
+
+  } catch (error) {
+    console.error('Admin get all CAs error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Deactivate company (Admin management)
+// @route   PATCH /api/admin/companies/:id/deactivate
+// @access  Private/Admin
+const deactivateCompanyForAdmin = async (req, res) => {
+  try {
+    const company = await Company.findById(req.params.id);
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found'
+      });
+    }
+
+    company.isActive = !company.isActive;
+    await company.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Company ${company.isActive ? 'activated' : 'deactivated'} successfully`,
+      data: company
+    });
+
+  } catch (error) {
+    console.error('Admin deactivate company error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Delete company (Admin management)
+// @route   DELETE /api/admin/companies/:id
+// @access  Private/Admin
+const deleteCompanyForAdmin = async (req, res) => {
+  try {
+    const company = await Company.findById(req.params.id);
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found'
+      });
+    }
+
+    await Company.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Company deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Admin delete company error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Deactivate mentor (Admin management)
+// @route   PATCH /api/admin/mentors/:id/deactivate
+// @access  Private/Admin
+const deactivateMentorForAdmin = async (req, res) => {
+  try {
+    const mentor = await Mentor.findById(req.params.id);
+
+    if (!mentor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Mentor not found'
+      });
+    }
+
+    mentor.isActive = !mentor.isActive;
+    await mentor.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Mentor ${mentor.isActive ? 'activated' : 'deactivated'} successfully`,
+      data: mentor
+    });
+
+  } catch (error) {
+    console.error('Admin deactivate mentor error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Delete mentor (Admin management)
+// @route   DELETE /api/admin/mentors/:id
+// @access  Private/Admin
+const deleteMentorForAdmin = async (req, res) => {
+  try {
+    const mentor = await Mentor.findById(req.params.id);
+
+    if (!mentor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Mentor not found'
+      });
+    }
+
+    await Mentor.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Mentor deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Admin delete mentor error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   loginAdmin,
   getMe,
@@ -1007,6 +1237,13 @@ module.exports = {
   updateUserForAdmin,
   deleteUserForAdmin,
   deactivateUserForAdmin,
-  getDashboardStats
+  getDashboardStats,
+  getAllMentorsForAdmin,
+  getAllCompaniesForAdmin,
+  getAllCAsForAdmin,
+  deactivateCompanyForAdmin,
+  deleteCompanyForAdmin,
+  deactivateMentorForAdmin,
+  deleteMentorForAdmin
 };
 

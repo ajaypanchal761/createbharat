@@ -16,7 +16,14 @@ const {
   updateUserForAdmin,
   deleteUserForAdmin,
   deactivateUserForAdmin,
-  getDashboardStats
+  getDashboardStats,
+  getAllMentorsForAdmin,
+  getAllCompaniesForAdmin,
+  getAllCAsForAdmin,
+  deactivateCompanyForAdmin,
+  deleteCompanyForAdmin,
+  deactivateMentorForAdmin,
+  deleteMentorForAdmin
 } = require('../controllers/adminController');
 const { getAdminPaymentHistory } = require('../controllers/legalSubmissionController');
 const { protect, authorize, protect: adminProtect } = require('../middleware/adminAuth');
@@ -71,6 +78,17 @@ router.get('/legal-payments', adminProtect, getAdminPaymentHistory);
 
 // Dashboard Statistics (Admin access)
 router.get('/dashboard/stats', adminProtect, getDashboardStats);
+
+// Profile Management Routes (Admin access)
+router.get('/mentors', adminProtect, getAllMentorsForAdmin);
+router.patch('/mentors/:id/deactivate', adminProtect, deactivateMentorForAdmin);
+router.delete('/mentors/:id', adminProtect, deleteMentorForAdmin);
+
+router.get('/companies', adminProtect, getAllCompaniesForAdmin);
+router.patch('/companies/:id/deactivate', adminProtect, deactivateCompanyForAdmin);
+router.delete('/companies/:id', adminProtect, deleteCompanyForAdmin);
+
+router.get('/cas', adminProtect, getAllCAsForAdmin);
 
 module.exports = router;
 

@@ -283,6 +283,78 @@ export const adminAPI = {
       },
     });
   },
+
+  // Get all mentors (Admin management)
+  getAllMentors: async (token, params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/admin/mentors${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Get all companies (Admin management)
+  getAllCompanies: async (token, params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/admin/companies${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Get all CAs (Admin management)
+  getAllCAs: async (token) => {
+    return apiCall('/admin/cas', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Deactivate company (Admin management)
+  deactivateCompany: async (token, companyId) => {
+    return apiCall(`/admin/companies/${companyId}/deactivate`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Delete company (Admin management)
+  deleteCompany: async (token, companyId) => {
+    return apiCall(`/admin/companies/${companyId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Deactivate mentor (Admin management)
+  deactivateMentor: async (token, mentorId) => {
+    return apiCall(`/admin/mentors/${mentorId}/deactivate`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Delete mentor (Admin management)
+  deleteMentor: async (token, mentorId) => {
+    return apiCall(`/admin/mentors/${mentorId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
 };
 
 // Loans (Public) API calls
