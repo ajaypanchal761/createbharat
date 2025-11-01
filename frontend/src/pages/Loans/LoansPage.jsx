@@ -239,16 +239,16 @@ const LoansPage = () => {
 
                     {/* Description - Fixed height */}
                     <div className="h-[28px] md:h-[32px] mb-1 flex-shrink-0">
-                      <p className="text-[10px] md:text-xs text-gray-600 line-clamp-2 leading-tight">
-                        {loan.skeleton ? (
-                          <>
-                            <div className="h-2 md:h-3 bg-gray-200 rounded animate-pulse mb-1" />
-                            <div className="h-2 md:h-3 bg-gray-200 rounded animate-pulse w-3/4" />
-                          </>
-                        ) : (
-                          loan.description || 'Explore this government loan scheme for your business needs'
-                        )}
-                      </p>
+                      {loan.skeleton ? (
+                        <>
+                          <div className="h-2 md:h-3 bg-gray-200 rounded animate-pulse mb-1" />
+                          <div className="h-2 md:h-3 bg-gray-200 rounded animate-pulse w-3/4" />
+                        </>
+                      ) : (
+                        <p className="text-[10px] md:text-xs text-gray-600 line-clamp-2 leading-tight">
+                          {loan.description || 'Explore this government loan scheme for your business needs'}
+                        </p>
+                      )}
                     </div>
 
                     {/* Spacer to push button to bottom */}

@@ -91,7 +91,6 @@ const AdminDashboard = () => {
     const [allBookings, setAllBookings] = useState([]);
     const [showAllBookings, setShowAllBookings] = useState(false);
     const [loadingBookings, setLoadingBookings] = useState(false);
-    const [recentActivity, setRecentActivity] = useState([]);
     const [revenueTrend, setRevenueTrend] = useState([]);
 
     useEffect(() => {
@@ -123,7 +122,6 @@ const AdminDashboard = () => {
                     });
                     
                     setRecentBookings(response.data.recentBookings || []);
-                    setRecentActivity(response.data.recentActivity || []);
                     setRevenueTrend(response.data.revenueTrend || []);
                 }
             } catch (error) {
@@ -298,51 +296,6 @@ const AdminDashboard = () => {
             </div>
             )}
 
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-1 gap-3 md:gap-6">
-                {/* Recent Activity */}
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                    className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200"
-                >
-                    <div className="flex items-center justify-between mb-4 md:mb-6">
-                        <h2 className="text-lg md:text-xl font-bold text-gray-900">Recent Activity</h2>
-                    </div>
-                    <div className="space-y-2 md:space-y-4">
-                        {recentActivity.length === 0 ? (
-                            <div className="text-center text-gray-500 py-4">No recent activity</div>
-                        ) : (
-                            recentActivity.map((activity, index) => {
-                            const Icon = activity.icon || FaClock;
-                            return (
-                                <motion.div
-                                        key={index}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                                    className="flex items-center space-x-3 md:space-x-4 p-3 md:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
-                                >
-                                    <div className={`w-8 h-8 md:w-10 md:h-10 ${activity.color || 'bg-gray-200'} bg-gray-100 rounded-lg flex items-center justify-center`}>
-                                        <Icon className="w-4 h-4 md:w-5 md:h-5" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-xs md:text-sm font-medium text-gray-900 truncate">
-                                            {activity.message}
-                                        </p>
-                                        <p className="text-[10px] md:text-xs text-gray-500 flex items-center">
-                                            <FaClock className="w-2.5 h-2.5 md:w-3 md:h-3 mr-1" />
-                                            {activity.time}
-                                        </p>
-                                    </div>
-                                </motion.div>
-                            );
-                            })
-                        )}
-                    </div>
-                </motion.div>
-            </div>
 
             {/* Mentor Bookings Section */}
             <motion.div

@@ -61,6 +61,10 @@ const applicationSchema = new mongoose.Schema({
       type: String,
       default: null
     },
+    fileId: {
+      type: String,
+      default: null
+    },
     fileName: {
       type: String,
       default: null

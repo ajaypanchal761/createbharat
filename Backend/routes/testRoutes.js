@@ -1,6 +1,7 @@
 const express = require('express');
 const { testSMSConnection, getSMSBalance, sendOTP } = require('../utils/notifications');
 const { protect, authorize } = require('../middleware/auth');
+const { cloudinary } = require('../utils/cloudinary');
 
 const router = express.Router();
 
@@ -80,6 +81,30 @@ const sendTestOTP = async (req, res) => {
     });
   }
 };
+
+// @desc    Test Cloudinary configuration (Public for debugging)
+// @route   GET /api/test/cloudinary-config
+// @access  Public (for debugging)
+router.get('/cloudinary-config', (req, res) => {
+  try {
+    const config = cloudinary.config();
+    res.status(200).json({
+      success: true,
+      message: 'Cloudinary configuration retrieved',
+      data: {
+        cloud_name: config.cloud_name ? 'SET' : 'NOT SET',
+        api_key: config.api_key ? 'SET' : 'NOT SET',
+        api_secret: config.api_secret ? 'SET' : 'NOT SET'
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get Cloudinary config',
+      error: error.message
+    });
+  }
+});
 
 // All routes require admin access
 router.use(protect);

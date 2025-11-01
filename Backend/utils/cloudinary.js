@@ -69,8 +69,7 @@ const uploadResumeToCloudinary = async (filePath, folder = 'resumes', public_id 
       resource_type: 'raw', // Use 'raw' for PDF/DOC files
       use_filename: true,
       unique_filename: false,
-      access_mode: 'public', // Ensure public access for viewing/downloading
-      type: 'upload' // Explicit upload type for public access
+      access_mode: 'public' // Ensure public access for viewing/downloading
     };
 
     if (public_id) {
@@ -81,7 +80,6 @@ const uploadResumeToCloudinary = async (filePath, folder = 'resumes', public_id 
       folder: uploadOptions.folder,
       resource_type: uploadOptions.resource_type,
       access_mode: uploadOptions.access_mode,
-      type: uploadOptions.type,
       hasPublicId: !!uploadOptions.public_id
     });
     console.log('⚠️ IMPORTANT: access_mode is set to "public" - file will be downloadable');
@@ -94,9 +92,16 @@ const uploadResumeToCloudinary = async (filePath, folder = 'resumes', public_id 
       resource_type: result.resource_type,
       format: result.format,
       bytes: result.bytes,
-      access_mode: result.access_mode || 'public' // Check if returned in result
+      access_mode: result.access_mode || 'NOT RETURNED'
     });
-    console.log('✅ Resume uploaded successfully with PUBLIC access mode');
+    
+    // Verify upload succeeded
+    if (!result.secure_url) {
+      throw new Error('Cloudinary upload failed: no secure_url returned');
+    }
+    
+    console.log('✅ Resume uploaded successfully');
+    console.log('📋 Uploaded with access_mode:', result.access_mode || 'default (may be public)');
     console.log('=== CLOUDINARY RESUM UPLOAD SUCCESS ===');
 
     // Delete local file after upload
@@ -145,6 +150,7 @@ const deleteFromCloudinary = async (public_id) => {
 module.exports = {
   uploadToCloudinary,
   uploadResumeToCloudinary,
-  deleteFromCloudinary
+  deleteFromCloudinary,
+  cloudinary // Export configured cloudinary instance
 };
 

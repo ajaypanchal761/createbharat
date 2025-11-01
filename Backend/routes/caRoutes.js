@@ -10,6 +10,7 @@ const {
   getCAProfile,
   updateCAProfile
 } = require('../controllers/caController');
+const { getCAServices } = require('../controllers/legalServiceController');
 const { protect: adminProtect } = require('../middleware/adminAuth');
 const { protect: caProtect } = require('../middleware/caAuth');
 
@@ -63,6 +64,9 @@ router.delete('/admin', adminProtect, deleteCA);
 router.post('/login', loginValidation, loginCA);
 router.get('/profile', caProtect, getCAProfile);
 router.put('/profile', caProtect, profileUpdateValidation, updateCAProfile);
+
+// CA routes - Legal services
+router.get('/legal-services', caProtect, getCAServices);
 
 module.exports = router;
 
