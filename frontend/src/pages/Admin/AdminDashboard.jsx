@@ -81,16 +81,6 @@ const AdminDashboard = () => {
         trainingModules: 0,
         mentors: 0
     });
-    const [mentorBookings, setMentorBookings] = useState({
-        total: 0,
-        pending: 0,
-        active: 0,
-        completed: 0
-    });
-    const [recentBookings, setRecentBookings] = useState([]);
-    const [allBookings, setAllBookings] = useState([]);
-    const [showAllBookings, setShowAllBookings] = useState(false);
-    const [loadingBookings, setLoadingBookings] = useState(false);
     const [revenueTrend, setRevenueTrend] = useState([]);
 
     useEffect(() => {
@@ -114,14 +104,6 @@ const AdminDashboard = () => {
                         mentors: response.data.stats.mentors || 0
                     });
                     
-                    setMentorBookings({
-                        total: response.data.mentorBookings.total || 0,
-                        pending: response.data.mentorBookings.pending || 0,
-                        active: response.data.mentorBookings.active || 0,
-                        completed: response.data.mentorBookings.completed || 0
-                    });
-                    
-                    setRecentBookings(response.data.recentBookings || []);
                     setRevenueTrend(response.data.revenueTrend || []);
                 }
             } catch (error) {
@@ -134,32 +116,6 @@ const AdminDashboard = () => {
         fetchDashboardStats();
     }, []);
 
-    const handleViewAllBookings = async () => {
-        if (showAllBookings) {
-            setShowAllBookings(false);
-        } else {
-            try {
-                setLoadingBookings(true);
-                const token = localStorage.getItem('adminToken');
-                if (!token) {
-                    console.error('Admin token not found');
-                    return;
-                }
-                const response = await adminAPI.getAllMentorBookings(token);
-                
-                if (response.success) {
-                    setAllBookings(response.data || []);
-                    setShowAllBookings(true);
-                }
-            } catch (error) {
-                console.error('Error fetching all bookings:', error);
-            } finally {
-                setLoadingBookings(false);
-            }
-        }
-    };
-
-    const displayedBookings = showAllBookings ? allBookings : recentBookings;
 
     const kpiCards = [
         {
@@ -296,66 +252,6 @@ const AdminDashboard = () => {
             </div>
             )}
 
-
-            {/* Mentor Bookings Section */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-                className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200"
-            >
-                <div className="flex items-center justify-between mb-4 md:mb-6">
-                    <h3 className="text-lg md:text-xl font-bold text-gray-900 flex items-center gap-2">
-                        <FaUsers className="text-orange-600 text-base md:text-lg" />
-                        <span className="truncate">Mentor Bookings Overview</span>
-                    </h3>
-                    <button 
-                        onClick={handleViewAllBookings}
-                        disabled={loadingBookings}
-                        className="text-orange-600 hover:text-orange-700 font-semibold text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {loadingBookings ? 'Loading...' : showAllBookings ? 'Show Less' : 'View All'}
-                    </button>
-                </div>
-                
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
-                    {[
-                        { label: 'Total Bookings', value: mentorBookings.total, color: 'blue' },
-                        { label: 'Active', value: mentorBookings.active, color: 'green' },
-                        { label: 'Completed', value: mentorBookings.completed, color: 'purple' }
-                    ].map((stat, idx) => (
-                        <div key={idx} className={`bg-${stat.color}-50 rounded-lg md:rounded-xl p-3 md:p-4 border border-${stat.color}-100`}>
-                            <div className="text-xl md:text-2xl font-bold mb-1">{stat.value}</div>
-                            <div className="text-xs md:text-sm text-gray-600">{stat.label}</div>
-                        </div>
-                    ))}
-                </div>
-                
-                <div className="space-y-2 md:space-y-3">
-                    {displayedBookings.length === 0 ? (
-                        <div className="text-center text-gray-500 py-4">No bookings found</div>
-                    ) : (
-                    displayedBookings.map((booking, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <div className="flex-1 min-w-0">
-                                <div className="font-semibold text-xs md:text-sm text-gray-900 truncate">{booking.mentor}</div>
-                                <div className="text-[10px] md:text-sm text-gray-600 truncate">{booking.student} • {booking.date}</div>
-                            </div>
-                            <div className="flex items-center gap-2 md:gap-4 ml-2">
-                                <div className="text-xs md:text-sm text-gray-600">{booking.amount}</div>
-                                <span className={`px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-medium ${
-                                    booking.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                                    booking.status === 'active' ? 'bg-green-100 text-green-700' :
-                                    'bg-blue-100 text-blue-700'
-                                }`}>
-                                    {booking.status}
-                                </span>
-                            </div>
-                        </div>
-                    ))
-                    )}
-                </div>
-            </motion.div>
 
             {/* Revenue Chart Section */}
             <motion.div

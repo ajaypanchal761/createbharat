@@ -61,6 +61,8 @@ import AdminPaymentsPage from './pages/Admin/AdminPaymentsPage';
 import AdminBannerPage from './pages/Admin/AdminBannerPage';
 import AdminLeadsPage from './pages/Admin/AdminLeadsPage';
 import AdminBankLeadsPage from './pages/Admin/AdminBankLeadsPage';
+import AdminProfilePage from './pages/Admin/AdminProfilePage';
+import AdminSettingsPage from './pages/Admin/AdminSettingsPage';
 import ProfilePage from './pages/Profile/ProfilePage';
 import CompanyInternshipsPage from './pages/Company/CompanyInternshipsPage';
 import CompanyLoginPage from './pages/Company/CompanyLoginPage';
@@ -130,6 +132,7 @@ function App() {
                     <Route path="/faq" element={<FAQPage />} />
                     <Route path="/mobile-login" element={<LoginPage />} />
                     <Route path="/admin" element={<AdminLayout />}>
+                      <Route index element={<AdminDashboard />} />
                       <Route path="dashboard" element={<AdminDashboard />} />
                       <Route path="loans" element={<AdminLoansPage />} />
                       <Route path="training" element={<AdminTrainingPage />} />
@@ -139,6 +142,8 @@ function App() {
                       <Route path="banners" element={<AdminBannerPage />} />
                       <Route path="leads" element={<AdminLeadsPage />} />
                       <Route path="bank-leads" element={<AdminBankLeadsPage />} />
+                      <Route path="profile" element={<AdminProfilePage />} />
+                      <Route path="settings" element={<AdminSettingsPage />} />
                     </Route>
                     <Route path="/ca/dashboard" element={<CADashboard />} />
                     <Route path="/profile" element={<ProfilePage />} />

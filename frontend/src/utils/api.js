@@ -188,6 +188,21 @@ export const adminAPI = {
     });
   },
 
+  // Change admin password
+  changePassword: async (token, passwordData) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/admin/change-password', {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(passwordData),
+    });
+  },
+
   // Get dashboard statistics
   getDashboardStats: async (token) => {
     if (!token || token === 'null' || token === 'undefined') {
@@ -1324,7 +1339,7 @@ export const adminTrainingAPI = {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    
+
     // If image file is provided, use FormData
     if (imageFile) {
       const formData = new FormData();
@@ -1353,13 +1368,13 @@ export const adminTrainingAPI = {
       });
     } else {
       // No image file, send as JSON
-    return apiCall('/admin/training/courses', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-      body: JSON.stringify(courseData),
-    });
+      return apiCall('/admin/training/courses', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${cleanToken}`,
+        },
+        body: JSON.stringify(courseData),
+      });
     }
   },
 
@@ -1369,7 +1384,7 @@ export const adminTrainingAPI = {
       throw new Error('Authentication token is missing. Please login again.');
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    
+
     // If image file is provided, use FormData
     if (imageFile) {
       const formData = new FormData();
@@ -1398,13 +1413,13 @@ export const adminTrainingAPI = {
       });
     } else {
       // No image file, send as JSON
-    return apiCall(`/admin/training/courses/${courseId}`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-      body: JSON.stringify(courseData),
-    });
+      return apiCall(`/admin/training/courses/${courseId}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${cleanToken}`,
+        },
+        body: JSON.stringify(courseData),
+      });
     }
   },
 

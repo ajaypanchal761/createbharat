@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaSpinner, FaCheckCircle, FaClock, FaExclamationTriangle, FaCreditCard, FaGraduationCap, FaUserTie } from 'react-icons/fa';
+import { FaSpinner, FaCheckCircle, FaClock, FaExclamationTriangle, FaCreditCard, FaGraduationCap, FaUserTie, FaBalanceScale } from 'react-icons/fa';
 import { adminPaymentsAPI } from '../../utils/api';
 
 const AdminPaymentsPage = () => {
@@ -11,7 +11,8 @@ const AdminPaymentsPage = () => {
         completed: 0,
         pending: 0,
         certificates: 0,
-        mentors: 0
+        mentors: 0,
+        legal: 0
     });
     const [filterType, setFilterType] = useState('');
     const [filterStatus, setFilterStatus] = useState('');
@@ -35,7 +36,8 @@ const AdminPaymentsPage = () => {
                     completed: 0,
                     pending: 0,
                     certificates: 0,
-                    mentors: 0
+                    mentors: 0,
+                    legal: 0
                 });
             } else {
                 setError(response.message || 'Failed to fetch payments');
@@ -58,6 +60,8 @@ const AdminPaymentsPage = () => {
                 return <FaGraduationCap className="w-5 h-5" />;
             case 'mentor':
                 return <FaUserTie className="w-5 h-5" />;
+            case 'legal':
+                return <FaBalanceScale className="w-5 h-5" />;
             default:
                 return <FaCreditCard className="w-5 h-5" />;
         }
@@ -104,7 +108,7 @@ const AdminPaymentsPage = () => {
             </div>
 
             {/* Summary Cards */}
-            <div className="w-full max-w-7xl grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="w-full max-w-7xl grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                 <div className="bg-white rounded-xl shadow-lg p-4 border-l-4 border-blue-500">
                     <div className="text-xs md:text-sm text-gray-600 mb-1">Total Payments</div>
                     <div className="text-lg md:text-2xl font-bold text-gray-900">₹{totals.total.toLocaleString()}</div>
@@ -120,6 +124,10 @@ const AdminPaymentsPage = () => {
                 <div className="bg-white rounded-xl shadow-lg p-4 border-l-4 border-orange-500">
                     <div className="text-xs md:text-sm text-gray-600 mb-1">Mentor Sessions</div>
                     <div className="text-lg md:text-2xl font-bold text-gray-900">₹{totals.mentors.toLocaleString()}</div>
+                </div>
+                <div className="bg-white rounded-xl shadow-lg p-4 border-l-4 border-red-500">
+                    <div className="text-xs md:text-sm text-gray-600 mb-1">Legal Services</div>
+                    <div className="text-lg md:text-2xl font-bold text-gray-900">₹{totals.legal.toLocaleString()}</div>
                 </div>
             </div>
 
@@ -137,6 +145,7 @@ const AdminPaymentsPage = () => {
                             <option value="">All Types</option>
                             <option value="certificate">Training Certificates</option>
                             <option value="mentor">Mentor Sessions</option>
+                            <option value="legal">Legal Services</option>
                         </select>
                     </div>
                     <div>
@@ -203,7 +212,9 @@ const AdminPaymentsPage = () => {
                                                 <td className="px-4 py-3 whitespace-nowrap">
                                                     <div className="flex items-center space-x-2">
                                                         <div className={`p-2 rounded-lg ${
-                                                            payment.type === 'certificate' ? 'bg-purple-100 text-purple-600' : 'bg-orange-100 text-orange-600'
+                                                            payment.type === 'certificate' ? 'bg-purple-100 text-purple-600' :
+                                                            payment.type === 'legal' ? 'bg-red-100 text-red-600' :
+                                                            'bg-orange-100 text-orange-600'
                                                         }`}>
                                                             {getPaymentIcon(payment.type)}
                                                         </div>
@@ -219,6 +230,12 @@ const AdminPaymentsPage = () => {
                                                             <div className="font-medium">{payment.details.courseTitle}</div>
                                                             <div className="text-xs text-gray-500">Provider: {payment.details.courseProvider}</div>
                                                             <div className="text-xs text-gray-500">Progress: {payment.details.progress}%</div>
+                                                        </div>
+                                                    ) : payment.type === 'legal' ? (
+                                                        <div className="text-sm text-gray-900">
+                                                            <div className="font-medium">{payment.details.serviceName}</div>
+                                                            <div className="text-xs text-gray-500">Category: {payment.details.serviceCategory}</div>
+                                                            <div className="text-xs text-gray-500">Status: {payment.details.submissionStatus}</div>
                                                         </div>
                                                     ) : (
                                                         <div className="text-sm text-gray-900">

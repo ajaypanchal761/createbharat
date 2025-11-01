@@ -8,8 +8,7 @@ import {
     FaUser, 
     FaSignOutAlt,
     FaChevronDown,
-    FaCog,
-    FaQuestionCircle
+    FaCog
 } from 'react-icons/fa';
 
 const AdminHeader = ({ onToggleSidebar, sidebarOpen }) => {
@@ -212,17 +211,13 @@ const AdminHeader = ({ onToggleSidebar, sidebarOpen }) => {
                                             </div>
                                         </div>
                                         <div className="py-2">
-                                            <button className="flex items-center space-x-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            <button onClick={() => { navigate('/admin/profile'); setShowUserMenu(false); }} className="flex items-center space-x-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                 <FaUser className="w-4 h-4" />
                                                 <span>Profile</span>
                                             </button>
-                                            <button className="flex items-center space-x-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            <button onClick={() => { navigate('/admin/settings'); setShowUserMenu(false); }} className="flex items-center space-x-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                 <FaCog className="w-4 h-4" />
                                                 <span>Settings</span>
-                                            </button>
-                                            <button className="flex items-center space-x-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                                <FaQuestionCircle className="w-4 h-4" />
-                                                <span>Help & Support</span>
                                             </button>
                                             <hr className="my-2" />
                                             <button

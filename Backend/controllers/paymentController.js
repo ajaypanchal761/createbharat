@@ -1,8 +1,10 @@
 const UserTrainingProgress = require('../models/userTrainingProgress');
 const MentorBooking = require('../models/mentorBooking');
+const LegalSubmission = require('../models/legalSubmission');
 const User = require('../models/user');
 const TrainingCourse = require('../models/trainingCourse');
 const Mentor = require('../models/mentor');
+const LegalService = require('../models/legalService');
 
 // @desc    Get all payments (Admin)
 // @route   GET /api/admin/payments
@@ -55,22 +57,22 @@ const getAllPayments = async (req, res) => {
       }
     });
 
-    // 2. Get Mentor Booking Payments (only completed by default)
-    const mentorBookingQuery = {
-      paymentStatus: 'completed'
-    };
-    
-    if (status) {
-      mentorBookingQuery.paymentStatus = status;
-    }
-    if (startDate || endDate) {
-      mentorBookingQuery.paidAt = {};
-      if (startDate) mentorBookingQuery.paidAt.$gte = new Date(startDate);
-      if (endDate) mentorBookingQuery.paidAt.$lte = new Date(endDate);
-    }
-    if (type === 'certificate') {
-      // Skip mentor bookings if only certificates requested
-    } else {
+    // 2. Get Mentor Booking Payments (only completed bookings with completed payments by default)
+    if (type !== 'certificate' && type !== 'legal') {
+      const mentorBookingQuery = {
+        paymentStatus: 'completed',
+        status: 'completed' // Only show completed bookings
+      };
+      
+      if (status) {
+        mentorBookingQuery.paymentStatus = status;
+      }
+      if (startDate || endDate) {
+        mentorBookingQuery.paidAt = {};
+        if (startDate) mentorBookingQuery.paidAt.$gte = new Date(startDate);
+        if (endDate) mentorBookingQuery.paidAt.$lte = new Date(endDate);
+      }
+
       const mentorBookings = await MentorBooking.find(mentorBookingQuery)
         .populate('user', 'firstName lastName email phone')
         .populate('mentor', 'firstName lastName title company specialization')
@@ -94,7 +96,52 @@ const getAllPayments = async (req, res) => {
               mentorSpecialization: booking.mentor?.specialization || 'N/A',
               sessionType: booking.sessionType || 'N/A',
               duration: booking.duration || 'N/A',
-              bookingStatus: booking.status || 'pending'
+              bookingStatus: booking.status || 'completed'
+            }
+          });
+        }
+      });
+    }
+
+    // 3. Get Legal Service Payments (only completed submissions with completed payments by default)
+    if (type !== 'certificate' && type !== 'mentor') {
+      const legalSubmissionQuery = {
+        paymentStatus: 'completed',
+        status: 'completed' // Only show completed submissions
+      };
+      
+      if (status) {
+        legalSubmissionQuery.paymentStatus = status;
+      }
+      if (startDate || endDate) {
+        legalSubmissionQuery.paidAt = {};
+        if (startDate) legalSubmissionQuery.paidAt.$gte = new Date(startDate);
+        if (endDate) legalSubmissionQuery.paidAt.$lte = new Date(endDate);
+      }
+
+      const legalSubmissions = await LegalSubmission.find(legalSubmissionQuery)
+        .populate('user', 'firstName lastName email phone')
+        .populate('service', 'name icon category')
+        .sort({ paidAt: -1, createdAt: -1 })
+        .lean();
+
+      legalSubmissions.forEach(submission => {
+        if (submission.paymentStatus && submission.paymentAmount) {
+          allPayments.push({
+            _id: submission._id,
+            paymentId: submission.razorpayPaymentId || submission.transactionId || null,
+            type: 'legal',
+            typeLabel: 'Legal Service',
+            user: submission.user,
+            amount: submission.paymentAmount,
+            status: submission.paymentStatus,
+            paidAt: submission.paidAt,
+            createdAt: submission.createdAt,
+            details: {
+              serviceName: submission.serviceName || submission.service?.name || 'Legal Service',
+              serviceIcon: submission.service?.icon || '⚖️',
+              serviceCategory: submission.service?.category || submission.category || 'Legal',
+              submissionStatus: submission.status || 'completed'
             }
           });
         }
@@ -114,7 +161,8 @@ const getAllPayments = async (req, res) => {
       completed: allPayments.filter(p => p.status === 'completed').reduce((sum, p) => sum + (p.amount || 0), 0),
       pending: allPayments.filter(p => p.status === 'pending').reduce((sum, p) => sum + (p.amount || 0), 0),
       certificates: allPayments.filter(p => p.type === 'certificate').reduce((sum, p) => sum + (p.amount || 0), 0),
-      mentors: allPayments.filter(p => p.type === 'mentor').reduce((sum, p) => sum + (p.amount || 0), 0)
+      mentors: allPayments.filter(p => p.type === 'mentor').reduce((sum, p) => sum + (p.amount || 0), 0),
+      legal: allPayments.filter(p => p.type === 'legal').reduce((sum, p) => sum + (p.amount || 0), 0)
     };
 
     res.status(200).json({

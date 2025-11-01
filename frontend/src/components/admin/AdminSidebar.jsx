@@ -82,6 +82,10 @@ const AdminSidebar = ({ isOpen, isMobile, onClose }) => {
     ];
 
     const isActive = (path) => {
+        // Special handling for dashboard - also match /admin exactly
+        if (path === '/admin/dashboard') {
+            return location.pathname === path || location.pathname === '/admin';
+        }
         return location.pathname === path || location.pathname.startsWith(path + '/');
     };
 
@@ -123,7 +127,7 @@ const AdminSidebar = ({ isOpen, isMobile, onClose }) => {
                 </div>
 
                 {/* Navigation Menu */}
-                <nav className="p-4 space-y-2">
+                <nav className="p-4 space-y-2 overflow-y-auto h-[calc(100vh-80px)]">
                     {menuItems.map((item, index) => {
                         const Icon = item.icon;
                         const active = isActive(item.path);
