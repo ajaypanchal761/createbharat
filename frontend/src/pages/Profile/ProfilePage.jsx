@@ -305,7 +305,7 @@ const ProfilePage = () => {
                 </div>
             </motion.div>
 
-            <div className="p-4 md:p-8">
+            <div className="p-4 md:p-8 pt-4">
                 <div className="max-w-2xl mx-auto">
                     {/* Gradient Header Background */}
                     <div className="hidden md:block relative bg-gradient-to-br from-pink-500 via-purple-500 to-red-500 rounded-3xl h-32 mb-8 overflow-hidden">
@@ -316,7 +316,7 @@ const ProfilePage = () => {
                     </div>
 
                     {/* Profile Picture Section */}
-                    <div className="relative flex justify-center -mt-8 md:-mt-16 mb-6">
+                    <div className="relative flex justify-center mt-2 md:-mt-16 mb-6">
                         <div className="relative">
                             <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
                                 {profileImageUrl ? (
@@ -517,7 +517,7 @@ const ProfilePage = () => {
                 </div>
             </motion.div>
 
-            <div className="p-3 md:p-8">
+            <div className="p-3 md:p-8 pt-4">
                 <div className="max-w-4xl mx-auto">
                     {/* User Info Section */}
                     <motion.div
