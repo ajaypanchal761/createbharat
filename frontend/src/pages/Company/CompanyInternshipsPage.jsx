@@ -299,7 +299,7 @@ const CompanyInternshipsPage = () => {
     };
 
     const handleDownloadResume = async (application) => {
-        if (!application.resume || (!application.resume.url && !application.resume.fileId)) {
+        if (!application.resume || !application.resume.url) {
             alert('Resume not available');
             return;
         }
@@ -1154,8 +1154,8 @@ const CompanyInternshipsPage = () => {
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => handleDownloadResume(app)}
-                                    disabled={!app.resume?.url && !app.resume?.fileId}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${(app.resume?.url || app.resume?.fileId)
+                                    disabled={!app.resume?.url}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${app.resume?.url
                                         ? 'bg-blue-600 text-white hover:bg-blue-700'
                                         : 'bg-gray-400 text-gray-200 cursor-not-allowed'
                                         }`}

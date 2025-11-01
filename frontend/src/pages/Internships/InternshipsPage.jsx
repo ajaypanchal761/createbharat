@@ -51,9 +51,9 @@ const InternshipsPage = () => {
           const normalized = response.data.internships.map(i => {
             const formattedStipend = formatStipend(i.stipend, i.stipendPerMonth);
             return {
-              ...i,
-              id: i._id || i.id,
-              company: i.companyName || i.company?.companyName || 'Company',
+            ...i,
+            id: i._id || i.id,
+            company: i.companyName || i.company?.companyName || 'Company',
               companyName: i.companyName || i.company?.companyName || 'Company',
               location: i.location || 'Location not specified',
               duration: i.duration || 'Duration not specified',
@@ -63,9 +63,9 @@ const InternshipsPage = () => {
               category: i.category || 'Category not specified',
               description: i.description || '',
               title: i.title || i.name || `${i.companyName || 'Company'} Internship`,
-              postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
-              icon: i.icon || '💼',
-              color: i.color || 'from-blue-500 to-cyan-500'
+            postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
+            icon: i.icon || '💼',
+            color: i.color || 'from-blue-500 to-cyan-500'
             };
           });
           setApiInternships(normalized);
@@ -80,7 +80,7 @@ const InternshipsPage = () => {
 
     // Debounce search with 500ms delay
     const timeoutId = setTimeout(() => {
-      loadInternships();
+    loadInternships();
     }, 500);
 
     return () => clearTimeout(timeoutId);
@@ -105,9 +105,9 @@ const InternshipsPage = () => {
   const allInternships = apiInternships.map(i => {
     const formattedStipend = formatStipend(i.stipend, i.stipendPerMonth);
     return {
-      ...i,
-      id: i._id || i.id,
-      company: i.companyName || i.company?.companyName || 'Company',
+    ...i,
+    id: i._id || i.id,
+    company: i.companyName || i.company?.companyName || 'Company',
       companyName: i.companyName || i.company?.companyName || 'Company',
       location: i.location || 'Location not specified',
       duration: i.duration || 'Duration not specified',
@@ -117,9 +117,9 @@ const InternshipsPage = () => {
       category: i.category || 'Category not specified',
       description: i.description || '',
       title: i.title || i.name || `${i.companyName || 'Company'} Internship`,
-      postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
-      icon: i.icon || '💼',
-      color: i.color || 'from-blue-500 to-cyan-500'
+    postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
+    icon: i.icon || '💼',
+    color: i.color || 'from-blue-500 to-cyan-500'
     };
   });
 
@@ -221,9 +221,9 @@ const InternshipsPage = () => {
         const normalized = response.data.internships.map(i => {
           const formattedStipend = formatStipend(i.stipend, i.stipendPerMonth);
           return {
-            ...i,
-            id: i._id || i.id,
-            company: i.companyName || i.company?.companyName || 'Company',
+          ...i,
+          id: i._id || i.id,
+          company: i.companyName || i.company?.companyName || 'Company',
             companyName: i.companyName || i.company?.companyName || 'Company',
             location: i.location || 'Location not specified',
             duration: i.duration || 'Duration not specified',
@@ -233,9 +233,9 @@ const InternshipsPage = () => {
             category: i.category || 'Category not specified',
             description: i.description || '',
             title: i.title || i.name || `${i.companyName || 'Company'} Internship`,
-            postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
-            icon: i.icon || '💼',
-            color: i.color || 'from-blue-500 to-cyan-500'
+          postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
+          icon: i.icon || '💼',
+          color: i.color || 'from-blue-500 to-cyan-500'
           };
         });
 
@@ -633,7 +633,7 @@ const InternshipsPage = () => {
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <span>🕐</span>
                             <span>{internship.type}</span>
-                          </div>
+                        </div>
                           {internship.category && (
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                               <span>🏷️</span>

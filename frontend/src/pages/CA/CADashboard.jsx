@@ -30,6 +30,37 @@ const CADashboard = () => {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  // Check CA authentication on mount
+  useEffect(() => {
+    const checkAuth = () => {
+      const caToken = localStorage.getItem('caToken');
+      const isCALoggedIn = localStorage.getItem('isCALoggedIn');
+      
+      // Clean token check
+      const cleanToken = caToken?.trim().replace(/^["']|["']$/g, '');
+      
+      // If no token or not logged in, redirect to login
+      if (!cleanToken || cleanToken === 'null' || cleanToken === 'undefined' || isCALoggedIn !== 'true') {
+        // Clear any stale data
+        localStorage.removeItem('caToken');
+        localStorage.removeItem('isCALoggedIn');
+        localStorage.removeItem('userType');
+        localStorage.removeItem('caEmail');
+        localStorage.removeItem('caName');
+        localStorage.removeItem('caData');
+        
+        // Redirect to login
+        navigate('/ca/login', { replace: true });
+        return;
+      }
+      
+      setIsCheckingAuth(false);
+    };
+
+    checkAuth();
+  }, [navigate]);
 
   // Legal Services State
   const [legalServices, setLegalServices] = useState([
@@ -834,111 +865,120 @@ const CADashboard = () => {
   const totalSubmissions = userSubmissions.length;
   const pendingSubmissions = userSubmissions.filter(s => s.status === 'pending').length;
 
+  // Show loading while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 overflow-x-hidden">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                <span className="text-white text-xl">⚖️</span>
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-12 sm:h-14 md:h-16">
+            <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 min-w-0 flex-1">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                <span className="text-white text-base sm:text-lg md:text-xl">⚖️</span>
               </div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">CA Dashboard</h1>
-                <p className="text-xs text-gray-500">Legal Services Management</p>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 truncate">CA Dashboard</h1>
+                <p className="text-[10px] sm:text-xs text-gray-500 hidden sm:block">Legal Services Management</p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                {localStorage.getItem('caEmail') || 'ca@example.com'}
-              </span>
+            <div className="flex items-center space-x-1.5 sm:space-x-2 md:space-x-4 flex-shrink-0">
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-xs sm:text-sm"
               >
-                <FaSignOutAlt />
-                <span>Logout</span>
+                <FaSignOutAlt className="text-sm sm:text-base" />
+                <span className="hidden xs:inline sm:inline">Logout</span>
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* Stats Cards */}
         <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8"
         >
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border border-gray-100">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Total Services</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{totalServices}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-gray-600 text-xs sm:text-sm font-medium">Total Services</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{totalServices}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <FaGavel className="text-blue-600 text-xl" />
+              <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-blue-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 ml-2">
+                <FaGavel className="text-blue-600 text-base sm:text-lg md:text-xl" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border border-gray-100">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Total Submissions</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{totalSubmissions}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-gray-600 text-xs sm:text-sm font-medium">Total Submissions</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{totalSubmissions}</p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <FaFileUpload className="text-green-600 text-xl" />
+              <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-green-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 ml-2">
+                <FaFileUpload className="text-green-600 text-base sm:text-lg md:text-xl" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border border-gray-100 sm:col-span-2 md:col-span-1">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Pending</p>
-                <p className="text-3xl font-bold text-orange-600 mt-2">{pendingSubmissions}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-gray-600 text-xs sm:text-sm font-medium">Pending</p>
+                <p className="text-2xl sm:text-3xl font-bold text-orange-600 mt-1 sm:mt-2">{pendingSubmissions}</p>
               </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                <FaUsers className="text-orange-600 text-xl" />
+              <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-orange-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 ml-2">
+                <FaUsers className="text-orange-600 text-base sm:text-lg md:text-xl" />
               </div>
             </div>
           </div>
         </Motion.div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-2xl shadow-lg mb-6">
-          <div className="flex border-b border-gray-200">
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg mb-4 sm:mb-6">
+          <div className="flex border-b border-gray-200 overflow-x-auto">
             <button
               onClick={() => setActiveTab('services')}
-              className={`flex-1 py-4 text-center font-medium transition-colors ${activeTab === 'services'
+              className={`flex-1 min-w-[100px] sm:min-w-0 py-3 sm:py-4 text-center font-medium transition-colors text-xs sm:text-sm ${activeTab === 'services'
                 ? 'text-blue-600 border-b-2 border-blue-600'
                 : 'text-gray-600 hover:text-gray-900'
                 }`}
             >
-              Legal Services
+              <span className="whitespace-nowrap">Legal Services</span>
             </button>
             <button
               onClick={() => setActiveTab('submissions')}
-              className={`flex-1 py-4 text-center font-medium transition-colors ${activeTab === 'submissions'
+              className={`flex-1 min-w-[100px] sm:min-w-0 py-3 sm:py-4 text-center font-medium transition-colors text-xs sm:text-sm ${activeTab === 'submissions'
                 ? 'text-blue-600 border-b-2 border-blue-600'
                 : 'text-gray-600 hover:text-gray-900'
                 }`}
             >
-              User Submissions
+              <span className="whitespace-nowrap">Submissions</span>
             </button>
             <button
               onClick={() => setActiveTab('profile')}
-              className={`flex-1 py-4 text-center font-medium transition-colors ${activeTab === 'profile'
+              className={`flex-1 min-w-[100px] sm:min-w-0 py-3 sm:py-4 text-center font-medium transition-colors text-xs sm:text-sm ${activeTab === 'profile'
                 ? 'text-blue-600 border-b-2 border-blue-600'
                 : 'text-gray-600 hover:text-gray-900'
                 }`}
             >
-              Profile
+              <span className="whitespace-nowrap">Profile</span>
             </button>
           </div>
         </div>
@@ -948,15 +988,15 @@ const CADashboard = () => {
           <Motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-white rounded-2xl shadow-lg p-6"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-5 md:p-6"
           >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Legal Services</h2>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">Legal Services</h2>
               <button
                 onClick={addService}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                className="flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded-lg sm:rounded-xl hover:bg-blue-700 transition-colors text-xs sm:text-sm w-full sm:w-auto justify-center"
               >
-                <FaPlus />
+                <FaPlus className="text-sm sm:text-base" />
                 <span>Add Service</span>
               </button>
             </div>
@@ -968,45 +1008,47 @@ const CADashboard = () => {
             )}
 
             {isServicesLoading ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Loading services...</p>
+              <div className="text-center py-8 sm:py-12">
+                <p className="text-gray-600 text-sm sm:text-base">Loading services...</p>
               </div>
             ) : legalServices.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">No services found. Click "Add Service" to create one.</p>
+              <div className="text-center py-8 sm:py-12">
+                <p className="text-gray-600 text-xs sm:text-sm">No services found. Click "Add Service" to create one.</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {legalServices.map((service) => (
                   <div
                     key={service.id}
-                    className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all"
+                    className="border border-gray-200 rounded-lg sm:rounded-xl p-3 sm:p-4 hover:shadow-md transition-all"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="text-3xl">{service.icon}</div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{service.name}</h3>
-                          <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                            <span>📂 {service.category}</span>
-                            <span>💰 {service.price}</span>
-                            <span>⏱️ {service.duration}</span>
-                            <span>📊 {service.submissions} submissions</span>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+                      <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
+                        <div className="text-2xl sm:text-3xl flex-shrink-0">{service.icon}</div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{service.name}</h3>
+                          <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-4 gap-y-1 text-xs sm:text-sm text-gray-600 mt-1">
+                            <span className="whitespace-nowrap">📂 {service.category}</span>
+                            <span className="whitespace-nowrap">💰 {service.price}</span>
+                            <span className="whitespace-nowrap">⏱️ {service.duration}</span>
+                            <span className="whitespace-nowrap">📊 {service.submissions} submissions</span>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 self-end sm:self-center">
                         <button
                           onClick={() => editService(service.id)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                          className="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          aria-label="Edit service"
                         >
-                          <FaEdit />
+                          <FaEdit className="text-sm sm:text-base" />
                         </button>
                         <button
                           onClick={() => deleteService(service.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                          className="p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          aria-label="Delete service"
                         >
-                          <FaTrash />
+                          <FaTrash className="text-sm sm:text-base" />
                         </button>
                       </div>
                     </div>
@@ -1022,13 +1064,13 @@ const CADashboard = () => {
           <Motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-white rounded-2xl shadow-lg p-6"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-5 md:p-6"
           >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">User Submissions</h2>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">User Submissions</h2>
               <button
                 onClick={fetchSubmissions}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm w-full sm:w-auto"
                 disabled={isSubmissionsLoading}
               >
                 {isSubmissionsLoading ? 'Loading...' : 'Refresh'}
@@ -1042,34 +1084,34 @@ const CADashboard = () => {
             )}
 
             {isSubmissionsLoading ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Loading submissions...</p>
+              <div className="text-center py-8 sm:py-12">
+                <p className="text-gray-600 text-sm sm:text-base">Loading submissions...</p>
               </div>
             ) : userSubmissions.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">No submissions found.</p>
+              <div className="text-center py-8 sm:py-12">
+                <p className="text-gray-600 text-xs sm:text-sm">No submissions found.</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {userSubmissions.map((submission) => (
                   <div
                     key={submission.id}
-                    className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all"
+                    className="border border-gray-200 rounded-lg sm:rounded-xl p-3 sm:p-4 hover:shadow-md transition-all"
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{submission.userName}</h3>
-                        <p className="text-sm text-gray-600 mt-1">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{submission.userName}</h3>
+                        <p className="text-xs sm:text-sm text-gray-600 mt-1 truncate">
                           Service: {submission.serviceName}
                         </p>
-                        <div className="flex items-center space-x-4 text-xs text-gray-500 mt-2">
-                          <span>📅 {submission.submittedDate}</span>
-                          {submission.userEmail && <span>📧 {submission.userEmail}</span>}
-                          {submission.userPhone && <span>📱 {submission.userPhone}</span>}
+                        <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-4 gap-y-1 text-[10px] sm:text-xs text-gray-500 mt-2">
+                          <span className="whitespace-nowrap">📅 {submission.submittedDate}</span>
+                          {submission.userEmail && <span className="whitespace-nowrap truncate max-w-[150px] sm:max-w-none">📧 {submission.userEmail}</span>}
+                          {submission.userPhone && <span className="whitespace-nowrap">📱 {submission.userPhone}</span>}
                         </div>
                       </div>
-                      <div className="flex flex-col items-end space-y-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${submission.status === 'pending'
+                      <div className="flex flex-col sm:flex-row items-start sm:items-end space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+                        <span className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap ${submission.status === 'pending'
                           ? 'bg-orange-100 text-orange-600'
                           : submission.status === 'in-progress'
                             ? 'bg-blue-100 text-blue-600'
@@ -1080,8 +1122,8 @@ const CADashboard = () => {
                           {submission.status.charAt(0).toUpperCase() + submission.status.slice(1).replace('-', ' ')}
                         </span>
                         {submission.documents && submission.documents.length > 0 && (
-                          <div className="text-xs text-gray-500">
-                            📄 {submission.documents.length} documents uploaded
+                          <div className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap">
+                            📄 {submission.documents.length} documents
                           </div>
                         )}
                         <button
@@ -1091,9 +1133,9 @@ const CADashboard = () => {
                             // Fetch full submission details from API
                             await fetchSubmissionDetails(submission.id);
                           }}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm w-full sm:w-auto whitespace-nowrap"
                         >
-                          View Details & Documents
+                          View Details
                         </button>
                       </div>
                     </div>
@@ -1109,31 +1151,31 @@ const CADashboard = () => {
           <Motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-white rounded-2xl shadow-lg p-6"
+            className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-5 md:p-6"
           >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Profile</h2>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">Profile</h2>
               {!isEditing ? (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                  className="flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded-lg sm:rounded-xl hover:bg-blue-700 transition-colors text-xs sm:text-sm w-full sm:w-auto justify-center"
                 >
-                  <FaEdit />
+                  <FaEdit className="text-sm sm:text-base" />
                   <span>Edit Profile</span>
                 </button>
               ) : (
-                <div className="flex items-center space-x-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
                   <button
                     onClick={handleProfileCancel}
                     disabled={isLoading}
-                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
+                    className="px-3 sm:px-4 py-1.5 sm:py-2 text-gray-700 bg-gray-100 rounded-lg sm:rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50 text-xs sm:text-sm"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleProfileSave}
                     disabled={isLoading}
-                    className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50"
+                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white rounded-lg sm:rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50 text-xs sm:text-sm"
                   >
                     {isLoading ? 'Saving...' : 'Save Changes'}
                   </button>
@@ -1148,15 +1190,15 @@ const CADashboard = () => {
             )}
 
             {isFetching ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Loading profile...</p>
+              <div className="text-center py-8 sm:py-12">
+                <p className="text-gray-600 text-sm sm:text-base">Loading profile...</p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {/* Basic Information */}
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-5 md:p-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Basic Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
                       {isEditing ? (
@@ -1341,7 +1383,7 @@ const CADashboard = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 max-h-[90vh] overflow-y-auto"
+              className="w-full max-w-4xl bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 p-4 sm:p-5 md:p-6 max-h-[90vh] overflow-y-auto mx-2 sm:mx-0"
               onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => {
                 // Prevent modal from closing on Escape key while typing
@@ -1350,8 +1392,8 @@ const CADashboard = () => {
                 }
               }}
             >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Create New Legal Service</h2>
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Create New Legal Service</h2>
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
@@ -1691,13 +1733,13 @@ const CADashboard = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 max-h-[90vh] overflow-y-auto"
+              className="w-full max-w-4xl bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 p-4 sm:p-5 md:p-6 max-h-[90vh] overflow-y-auto mx-2 sm:mx-0"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Submission Details</h2>
-                  <p className="text-sm text-gray-600 mt-1">{selectedSubmission.serviceName}</p>
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <div className="min-w-0 flex-1 pr-2">
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">Submission Details</h2>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-1 truncate">{selectedSubmission.serviceName}</p>
                 </div>
                 <button
                   onClick={() => setShowSubmissionDetail(false)}

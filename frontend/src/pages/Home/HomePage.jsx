@@ -5,6 +5,8 @@ import BottomNavbar from '../../components/common/BottomNavbar';
 import { useUser } from '../../contexts/UserContext';
 import LoginPage from '../Auth/LoginPage';
 import { bannerAPI, bankAccountAPI } from '../../utils/api';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 import techImage from '../../assets/techImage.webp';
 import mentorImage from '../../assets/mentor.png';
 import legalImage from '../../assets/legal.png';
@@ -164,6 +166,25 @@ const HomePage = () => {
         checkMobileAndFirstVisit();
         window.addEventListener('resize', checkMobileAndFirstVisit);
         return () => window.removeEventListener('resize', checkMobileAndFirstVisit);
+    }, []);
+
+    // Initialize AOS for animations
+    useEffect(() => {
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true,
+            offset: 100,
+            disable: function() {
+                // Disable on desktop (only for mobile)
+                return window.innerWidth > 768;
+            }
+        });
+        
+        // Refresh AOS when content changes
+        return () => {
+            AOS.refresh();
+        };
     }, []);
 
     // Banner navigation functions
@@ -445,24 +466,17 @@ const HomePage = () => {
             {/* Mobile View - New Design */}
             <div id="hero" className="md:hidden min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 pb-20">
                 {/* Header */}
-                        <motion.header 
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="bg-white shadow-md sticky top-0 z-50"
-                >
+                <header className="bg-white shadow-md sticky top-0 z-50">
                     <div className="px-4 py-4">
                         <div className="flex items-center justify-between">
-                            <motion.button 
+                            <button 
                                 className="p-2 text-gray-800"
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                                 </svg>
-                            </motion.button>
+                            </button>
                             <div className="flex items-center space-x-2">
                                 <img src="/logo.png" alt="CreateBharat" className="h-14 w-14" />
                                 <div>
@@ -473,19 +487,14 @@ const HomePage = () => {
                             <div className="w-10"></div>
                         </div>
                     </div>
-                        </motion.header>
+                </header>
                         
                 {/* Mobile Menu */}
-                <AnimatePresence>
-                    {isMobileMenuOpen && (
-                        <motion.div 
-                            initial={{ opacity: 0, x: -300 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -300 }}
-                            transition={{ duration: 0.3, ease: "easeOut" }}
-                            className="fixed inset-y-0 left-0 w-64 bg-white shadow-2xl border-r border-gray-200 z-50 overflow-y-auto"
-                            onClick={(e) => e.stopPropagation()}
-                        >
+                {isMobileMenuOpen && (
+                    <div 
+                        className="fixed inset-y-0 left-0 w-64 bg-white shadow-2xl border-r border-gray-200 z-50 overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                             <div className="p-6">
                                 {/* Close button */}
                                 <button
@@ -570,53 +579,38 @@ const HomePage = () => {
                                 </div>
                             </div>
                         </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                    </div>
+                )}
                 
                 {/* Overlay for mobile menu */}
                 {isMobileMenuOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
+                    <div
                         className="fixed inset-0 bg-black/50 z-40"
                         onClick={() => setIsMobileMenuOpen(false)}
                     />
                 )}
 
                 {/* Auto-Scrolling Banner */}
-                <motion.section
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                    className="mx-4 mt-4 mb-2"
-                >
+                <section className="mx-4 mt-4 mb-2" data-aos="fade-down">
                     <div className="relative h-32 overflow-hidden rounded-2xl shadow-2xl">
                         {bannersLoading ? (
                             <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
                             </div>
                         ) : banners.length > 0 ? (
-                            <AnimatePresence mode="wait">
-                                        <motion.div 
-                                    key={banners[currentBannerIndex]?._id || currentBannerIndex}
-                                            initial={{ opacity: 0, x: 100 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: -100 }}
-                                            transition={{ duration: 0.5 }}
-                                        className="absolute inset-0"
-                                        onTouchStart={onTouchStart}
-                                        onTouchMove={onTouchMove}
-                                        onTouchEnd={onTouchEnd}
-                                    >
-                                        <img 
-                                        src={banners[currentBannerIndex]?.imageUrl || banners[currentBannerIndex]?.image} 
-                                        alt={banners[currentBannerIndex]?.title || 'Banner'}
-                                            className="absolute inset-0 w-full h-full object-cover"
-                                        />
-                                        </motion.div>
-                            </AnimatePresence>
+                            <div 
+                                key={banners[currentBannerIndex]?._id || currentBannerIndex}
+                                className="absolute inset-0"
+                                onTouchStart={onTouchStart}
+                                onTouchMove={onTouchMove}
+                                onTouchEnd={onTouchEnd}
+                            >
+                                <img 
+                                    src={banners[currentBannerIndex]?.imageUrl || banners[currentBannerIndex]?.image} 
+                                    alt={banners[currentBannerIndex]?.title || 'Banner'}
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                />
+                            </div>
                         ) : (
                             <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                                 <p className="text-gray-500 text-sm">No banners available</p>
@@ -639,17 +633,12 @@ const HomePage = () => {
                             </div>
                         )}
                     </div>
-                </motion.section>
+                </section>
 
                 {/* Main Content */}
                 <div className="px-4 pt-2 pb-6 space-y-4">
                     {/* Top Service Grid - 3x2 */}
-                        <motion.div 
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="grid grid-cols-3 gap-2.5 justify-items-center"
-                    >
+                    <div className="grid grid-cols-3 gap-2.5 justify-items-center" data-aos="fade-up" data-aos-delay="100">
                         {[
                             { 
                                 name: 'Loans', 
@@ -682,26 +671,18 @@ const HomePage = () => {
                                 path: '/app-development'
                             }
                         ].map((service, index) => (
-                                            <motion.div 
+                            <div 
                                 key={service.name}
-                                variants={bounceIn}
-                                                whileHover={{ 
-                                    scale: 1.05,
-                                    y: -5,
-                                    transition: { duration: 0.2 }
-                                }}
-                                whileTap={{ 
-                                    scale: 0.95,
-                                    transition: { duration: 0.1 }
-                                }}
                                 onClick={(e) => handleServiceClick(e, service.path)}
                                 className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col w-full h-full min-h-[80px]"
+                                data-aos="fade-up"
+                                data-aos-delay={`${(index % 3) * 50}`}
                             >
                                 {/* Image with hover effect - Fixed to edges */}
                                 <div className="w-full h-16 overflow-hidden">
-                                    <motion.img 
-                                                                    src={service.image} 
-                                                                    alt={service.name} 
+                                    <img 
+                                        src={service.image} 
+                                        alt={service.name} 
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                     />
                                 </div>
@@ -709,45 +690,33 @@ const HomePage = () => {
                                 {/* Service name - With padding */}
                                 <div className="px-3 pt-2 pb-2.5 flex-1 flex items-center justify-center">
                                     <h3 className="text-xs font-bold text-gray-800 text-center leading-tight group-hover:text-blue-600 transition-colors duration-200">
-                                                                        {service.name}
+                                        {service.name}
                                     </h3>
                                 </div>
-                            </motion.div>
+                            </div>
                         ))}
-                    </motion.div>
+                    </div>
 
                     {/* Bank Account Service Card - Direct without wrapper */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.4 }}
-                                className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-5 md:p-4 mb-4 shadow-lg ring-1 ring-white/10 w-full"
-                            >
-                                <div className="flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-3 flex-1">
-                                        <span className="text-4xl md:text-3xl">🏦</span>
-                                        <div className="flex-1">
-                                            <h3 className="font-bold text-white text-lg md:text-base">Bank Account Opening</h3>
-                                        </div>
-                                    </div>
-                                    <motion.button
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={() => setShowBankAccountForm(true)}
-                                        className="px-5 py-2.5 md:px-4 md:py-2 bg-white text-blue-600 font-semibold rounded-lg text-sm whitespace-nowrap flex-shrink-0"
-                                    >
-                                        Fill Form
-                                    </motion.button>
+                    <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-5 md:p-4 mb-4 shadow-lg ring-1 ring-white/10 w-full" data-aos="fade-left" data-aos-delay="200">
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 flex-1">
+                                <span className="text-4xl md:text-3xl">🏦</span>
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-white text-lg md:text-base">Bank Account Opening</h3>
                                 </div>
-                            </motion.div>
+                            </div>
+                            <button
+                                onClick={() => setShowBankAccountForm(true)}
+                                className="px-5 py-2.5 md:px-4 md:py-2 bg-white text-blue-600 font-semibold rounded-lg text-sm whitespace-nowrap flex-shrink-0"
+                            >
+                                Fill Form
+                            </button>
+                        </div>
+                    </div>
 
                     {/* Middle Service Grid - 4 Columns */}
-                        <motion.div 
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="grid grid-cols-4 gap-2.5 justify-items-center"
-                    >
+                    <div className="grid grid-cols-4 gap-2.5 justify-items-center" data-aos="fade-up" data-aos-delay="300">
                         {[
                             { 
                                 name: 'EDP Outline', 
@@ -770,131 +739,63 @@ const HomePage = () => {
                                 path: '/app-development'
                             }
                         ].map((service, index) => (
-                             <motion.div 
+                            <div 
                                 key={service.name}
-                                variants={rotateIn}
-                                whileHover={{ 
-                                    scale: 1.08, 
-                                    rotateY: 5,
-                                    rotateX: 3,
-                                    boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
-                                    transition: { duration: 0.3, ease: "easeOut" }
-                                }}
-                                whileTap={{ 
-                                    scale: 0.92,
-                                    rotateY: 0,
-                                    rotateX: 0,
-                                    transition: { duration: 0.1 }
-                                }}
                                 onClick={(e) => handleServiceClick(e, service.path)}
                                 className="relative rounded-2xl bg-white shadow-lg ring-1 ring-black/5 hover:shadow-xl hover:ring-blue-300 hover:ring-2 transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col w-full h-full min-h-[75px]"
+                                data-aos="zoom-in"
+                                data-aos-delay={`${(index % 4) * 50}`}
                             >
-                                <motion.div 
-                                    className="w-full h-16 overflow-hidden"
-                                    whileHover={{ scale: 1.05 }}
-                                    transition={{ duration: 0.3 }}
-                                    >
-                                        <motion.img 
-                                            src={service.image} 
-                                            alt={service.name} 
+                                <div className="w-full h-16 overflow-hidden">
+                                    <img 
+                                        src={service.image} 
+                                        alt={service.name} 
                                         className="w-full h-full object-cover"
-                                        whileHover={{ scale: 1.1 }}
-                                        transition={{ duration: 0.4 }}
                                     />
-                                </motion.div>
+                                </div>
                                 
                                 <div className="px-2.5 pt-2 pb-2.5 flex-1 flex items-center justify-center">
-                                    <motion.h3 
-                                        className="text-xs font-semibold text-gray-800 text-center leading-tight break-words hyphens-auto"
-                                        whileHover={{ 
-                                            color: "#2563EB",
-                                            scale: 1.02,
-                                            y: -1
-                                        }}
-                                        transition={{ duration: 0.2 }}
-                                    >
+                                    <h3 className="text-xs font-semibold text-gray-800 text-center leading-tight break-words hyphens-auto">
                                         {service.name}
-                                    </motion.h3>
+                                    </h3>
                                 </div>
-                            </motion.div>
+                            </div>
                         ))}
-                        </motion.div>
+                    </div>
 
                     {/* Bottom Banner */}
-                        <motion.div 
-                        variants={slideInLeft}
-                            initial="hidden"
-                        animate="visible"
-                        className="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-2xl p-6 relative overflow-hidden shadow-lg ring-1 ring-blue-200"
-                    >
-                        {/* Animated Background Text */}
-                                    <motion.div 
-                            className="absolute inset-0 flex items-center justify-center opacity-5"
-                            animate={{ 
-                                scale: [1, 1.05, 1],
-                                rotate: [0, 1, 0]
-                            }}
-                            transition={{ 
-                                duration: 8, 
-                                repeat: Infinity, 
-                                ease: "easeInOut" 
-                            }}
-                        >
-                            <span className="text-6xl font-bold text-gray-400">BUSINESS IDEAS</span>
-                        </motion.div>
-
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-2xl p-6 relative overflow-hidden shadow-lg ring-1 ring-blue-200" data-aos="fade-right" data-aos-delay="400">
                         <div className="relative z-10 flex items-center justify-between">
                             <div className="flex-1">
-                            <motion.h2 
-                                    className="text-lg font-bold text-gray-800 mb-2"
-                                    initial={{ opacity: 0, x: -30 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.3 }}
-                                >
+                                <h2 className="text-lg font-bold text-gray-800 mb-2">
                                     Business Ideas
-                            </motion.h2>
-                                <motion.p 
-                                    className="text-sm text-gray-600"
-                                    initial={{ opacity: 0, x: -30 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.4 }}
-                                >
+                                </h2>
+                                <p className="text-sm text-gray-600">
                                     Explore opportunities
-                                </motion.p>
+                                </p>
                             </div>
-                            <motion.button
-                                            whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
+                            <button
                                 onClick={(e) => handleServiceClick(e, '/mentors')}
                                 className="px-8 py-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 transition-all duration-300"
                             >
                                 Learn More
-                            </motion.button>
-                                    </div>
-                        </motion.div>
+                            </button>
+                        </div>
+                    </div>
 
                     {/* Trending Services */}
-                        <motion.div 
-                        variants={staggerContainer}
-                            initial="hidden"
-                        animate="visible"
-                        className="bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 rounded-2xl p-6"
-                    >
-                        <motion.h2 
-                            variants={fadeInUp}
-                            className="text-xl font-bold text-gray-900 mb-4"
-                        >
+                    <div className="bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 rounded-2xl p-6" data-aos="zoom-in" data-aos-delay="500">
+                        <h2 className="text-xl font-bold text-gray-900 mb-4">
                             Trending Services
-                        </motion.h2>
+                        </h2>
                         <div className="grid grid-cols-2 gap-2">
                             {trendingItems.slice(0, 4).map((item, index) => (
-                            <motion.div 
+                                <div 
                                     key={item.id}
-                                variants={fadeInUp}
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
                                     onClick={(e) => handleServiceClick(e, item.path)}
                                     className="bg-white rounded-xl p-4 shadow-lg ring-1 ring-black/5 cursor-pointer hover:shadow-xl hover:ring-blue-300 transition-all duration-300"
+                                    data-aos="fade-up"
+                                    data-aos-delay={`${index * 100}`}
                                 >
                                     <div className="flex flex-col space-y-1">
                                         <h3 className="text-sm font-semibold text-gray-900 leading-tight">{item.title}</h3>
@@ -905,36 +806,28 @@ const HomePage = () => {
                                             </span>
                                         </div>
                                     </div>
-                                    </motion.div>
+                                </div>
                             ))}
-                                    </div>
-                        </motion.div>
+                        </div>
+                    </div>
                    </div>
 
                    {/* Success Stories Section */}
-                   <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-2xl p-6 mb-6"
-                    >
-                        <motion.h2 
-                            variants={fadeInUp}
-                            className="text-xl font-bold text-gray-900 mb-4"
-                        >
+                   <div className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-2xl p-6 mb-6" data-aos="flip-up" data-aos-delay="600">
+                        <h2 className="text-xl font-bold text-gray-900 mb-4">
                             Success Stories
-                        </motion.h2>
+                        </h2>
                         <div className="grid grid-cols-1 gap-4">
                             {[
                                 { name: 'Rajesh Kumar', story: 'Got ₹5L MUDRA loan', achievement: 'Started Restaurant', image: '👨‍🍳' },
                                 { name: 'Priya Sharma', story: 'Completed Training', achievement: 'Got Job at TCS', image: '👩‍💼' },
                                 { name: 'Amit Singh', story: 'Legal Help', achievement: 'Business Registration', image: '👨‍💼' }
                             ].map((story, index) => (
-                                <motion.div 
+                                <div 
                                     key={story.name}
-                                    variants={fadeInUp}
-                                    whileHover={{ scale: 1.02 }}
                                     className="bg-white rounded-xl p-4 shadow-md flex items-center space-x-3"
+                                    data-aos="slide-right"
+                                    data-aos-delay={`${index * 100}`}
                                 >
                                     <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-2xl">
                                         {story.image}
@@ -944,10 +837,10 @@ const HomePage = () => {
                                         <p className="text-sm text-gray-600">{story.story}</p>
                                         <p className="text-xs text-green-600 font-medium">{story.achievement}</p>
                                     </div>
-                                </motion.div>
+                                </div>
                             ))}
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* Quick Actions Section removed as requested */}
             </div>

@@ -287,15 +287,7 @@ const LegalPage = () => {
           
           <h1 className="text-lg font-bold text-gray-900">Legal Services</h1>
           
-          <Link to="/ca/login">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-3 py-1.5 bg-gray-100 text-gray-900 text-xs font-semibold rounded-lg border border-gray-300 hover:bg-gray-200 transition-all"
-            >
-              CA Login
-            </motion.button>
-          </Link>
+          <div className="w-20"></div>
         </div>
       </motion.header>
 
@@ -346,18 +338,6 @@ const LegalPage = () => {
         >
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Legal Services</h1>
           <p className="text-sm md:text-base text-gray-600">Professional legal registration and compliance services</p>
-          {/* CA Login Button - Desktop */}
-          <div className="hidden md:block mt-4">
-            <Link to="/ca/login">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-lg"
-              >
-                CA Login
-              </motion.button>
-            </Link>
-          </div>
         </motion.div>
 
         {/* Services Grid - Debug */}
