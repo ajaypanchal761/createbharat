@@ -190,8 +190,8 @@ const CompanyInternshipsPage = () => {
 
             // Validate required fields
             if (!jobFormData.title || !jobFormData.location || !jobFormData.duration ||
-                !jobFormData.description || !jobFormData.category || !jobFormData.salary) {
-                alert('Please fill all required fields');
+                !jobFormData.description || !jobFormData.category || !jobFormData.salary || !jobFormData.applicationDeadline) {
+                alert('Please fill all required fields including application deadline');
                 setIsPostingJob(false);
                 return;
             }
@@ -459,12 +459,14 @@ const CompanyInternshipsPage = () => {
                 category: jobFormData.category || 'Technology',
                 description: jobFormData.description?.trim() || '',
                 requirements: requirements,
-                responsibilities: responsibilities,
-                skills: skills,
+                responsibilities: Array.isArray(responsibilities) && responsibilities.length > 0 ? responsibilities : [],
+                skills: Array.isArray(skills) && skills.length > 0 ? skills : [],
+                isRemote: jobFormData.location?.toLowerCase().includes('remote') || false,
                 openings: parseInt(jobFormData.openings) || 1,
-                applicationDeadline: jobFormData.applicationDeadline || null
+                applicationDeadline: jobFormData.applicationDeadline ? new Date(jobFormData.applicationDeadline).toISOString() : null
             };
 
+            console.log('Frontend sending update data:', JSON.stringify(internshipData, null, 2));
             const response = await internshipAPI.update(token, editingInternship._id, internshipData);
 
             if (response.success) {
@@ -635,7 +637,6 @@ const CompanyInternshipsPage = () => {
                             <div>
                                 <h4 className="font-semibold text-gray-800">{app.candidate}</h4>
                                 <p className="text-sm text-gray-600">{app.position}</p>
-                                <p className="text-xs text-gray-500">{app.experience} experience</p>
                             </div>
                             <div className="text-right">
                                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${app.status === 'New' ? 'bg-blue-100 text-blue-800' :
@@ -901,13 +902,16 @@ const CompanyInternshipsPage = () => {
                             <p className="text-xs text-gray-500 mt-1">Each line will be treated as a separate responsibility</p>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Application Deadline</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Application Deadline <span className="text-red-500">*</span>
+                            </label>
                             <input
                                 type="date"
                                 name="applicationDeadline"
                                 value={jobFormData.applicationDeadline}
                                 onChange={handleJobFormChange}
                                 min={new Date().toISOString().split('T')[0]}
+                                required
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="Select application deadline"
                             />
@@ -980,7 +984,14 @@ const CompanyInternshipsPage = () => {
                                     <div className="flex-1">
                                         <div className="flex items-start justify-between mb-2">
                                             <div>
-                                                <h4 className="text-xl font-bold text-gray-800 mb-1">{internship.title}</h4>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h4 className="text-xl font-bold text-gray-800">{internship.title}</h4>
+                                                    {internship.applicationDeadline && new Date(internship.applicationDeadline) < new Date() && (
+                                                        <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold border border-red-300">
+                                                            Deadline Expired
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 mb-2">
                                                     <span className="flex items-center">
                                                         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1160,7 +1171,7 @@ const CompanyInternshipsPage = () => {
                                             onClick={() => handleApplicationAction(app.id, 'shortlist')}
                                             className="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm font-medium hover:bg-yellow-700"
                                         >
-                                            Shortlist
+                                            Under Review
                                         </motion.button>
                                         <motion.button
                                             whileHover={{ scale: 1.05 }}
@@ -1168,7 +1179,7 @@ const CompanyInternshipsPage = () => {
                                             onClick={() => handleApplicationAction(app.id, 'hire')}
                                             className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
                                         >
-                                            Hire
+                                            Accept
                                         </motion.button>
                                         <motion.button
                                             whileHover={{ scale: 1.05 }}
@@ -1189,7 +1200,7 @@ const CompanyInternshipsPage = () => {
                                             onClick={() => handleApplicationAction(app.id, 'hire')}
                                             className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
                                         >
-                                            Hire
+                                            Accept
                                         </motion.button>
                                         <motion.button
                                             whileHover={{ scale: 1.05 }}

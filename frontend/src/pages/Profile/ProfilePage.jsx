@@ -499,12 +499,7 @@ const ProfilePage = () => {
                             </svg>
                         </button>
                         <h1 className="text-xl font-bold text-gray-800">My Profile</h1>
-                        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                        </button>
+                        <div className="w-10"></div>
                     </div>
                 </div>
             </motion.div>
@@ -518,26 +513,20 @@ const ProfilePage = () => {
                 <div className="max-w-7xl mx-auto px-8 py-6">
                     <div className="flex items-center justify-between">
                         <h1 className="text-3xl font-bold text-gray-800">My Profile</h1>
-                        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                        </button>
                     </div>
                 </div>
             </motion.div>
 
-            <div className="p-4 md:p-8">
+            <div className="p-3 md:p-8">
                 <div className="max-w-4xl mx-auto">
                     {/* User Info Section */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-2xl md:rounded-3xl shadow-lg p-6 md:p-8 mb-6"
+                        className="bg-white rounded-2xl md:rounded-3xl shadow-lg p-4 md:p-8 mb-4 md:mb-6"
                     >
-                        <div className="flex items-center space-x-4 md:space-x-6">
-                            <div className="w-16 h-16 md:w-24 md:h-24 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        <div className="flex items-center space-x-3 md:space-x-6">
+                            <div className="w-12 h-12 md:w-24 md:h-24 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                                 {profileImageUrl ? (
                                     <img 
                                         src={profileImageUrl} 
@@ -545,22 +534,22 @@ const ProfilePage = () => {
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
-                                    <svg className="w-8 h-8 md:w-12 md:h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-6 h-6 md:w-12 md:h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
                                 )}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h2 className="text-xl md:text-2xl font-bold text-gray-800 truncate">
+                                <h2 className="text-base md:text-2xl font-bold text-gray-800 truncate">
                                     {formData.firstName} {formData.lastName}
                                 </h2>
-                                <p className="text-sm md:text-base text-gray-600 truncate">{formData.email}</p>
+                                <p className="text-xs md:text-base text-gray-600 truncate">{formData.email}</p>
                             </div>
                             <button
                                 onClick={() => setShowEditProfile(true)}
-                                className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-colors"
+                                className="flex items-center gap-1.5 md:gap-2 px-3 md:px-6 py-1.5 md:py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg md:rounded-xl font-medium transition-colors text-xs md:text-base"
                             >
-                                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                 </svg>
                                 <span className="hidden md:inline">Edit Profile</span>
@@ -573,66 +562,130 @@ const ProfilePage = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="space-y-4"
+                        className="space-y-3 md:space-y-4"
                     >
                         {/* My Services */}
                         <div className="bg-white rounded-2xl md:rounded-3xl shadow-lg overflow-hidden">
-                            <div className="p-4 md:p-6">
-                                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-4">My Services</h3>
+                            <div className="p-3 md:p-6">
+                                <h3 className="text-base md:text-xl font-semibold text-gray-800 mb-3 md:mb-4">My Services</h3>
                                 <div className="space-y-1">
-                                    <Link to="/internships/applied" className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors">
-                                        <div className="flex items-center space-x-4">
-                                            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                                                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <Link to="/internships/applied" className="flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 rounded-lg md:rounded-xl transition-colors">
+                                        <div className="flex items-center space-x-3 md:space-x-4">
+                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0">
+                                                <svg className="w-4 h-4 md:w-6 md:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                                 </svg>
                                             </div>
-                                            <span className="text-gray-800 font-medium">Internships</span>
+                                            <span className="text-sm md:text-base text-gray-800 font-medium">Internships</span>
                                         </div>
-                                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                         </svg>
                                     </Link>
 
-                                    <Link to="/loans/status" className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors">
-                                        <div className="flex items-center space-x-4">
-                                            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                                                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <Link to="/loans/status" className="flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 rounded-lg md:rounded-xl transition-colors">
+                                        <div className="flex items-center space-x-3 md:space-x-4">
+                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0">
+                                                <svg className="w-4 h-4 md:w-6 md:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
                                             </div>
-                                            <span className="text-gray-800 font-medium">Loans</span>
+                                            <span className="text-sm md:text-base text-gray-800 font-medium">Loans</span>
                                         </div>
-                                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                         </svg>
                                     </Link>
 
-                                    <Link to="/training" className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors">
-                                        <div className="flex items-center space-x-4">
-                                            <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-                                                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <Link to="/training" className="flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 rounded-lg md:rounded-xl transition-colors">
+                                        <div className="flex items-center space-x-3 md:space-x-4">
+                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-orange-100 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0">
+                                                <svg className="w-4 h-4 md:w-6 md:h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
                                             </div>
-                                            <span className="text-gray-800 font-medium">Courses</span>
+                                            <span className="text-sm md:text-base text-gray-800 font-medium">Courses</span>
                                         </div>
-                                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                         </svg>
                                     </Link>
 
-                                    <Link to="/legal" className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors">
-                                        <div className="flex items-center space-x-4">
-                                            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                                                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <Link to="/legal" className="flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 rounded-lg md:rounded-xl transition-colors">
+                                        <div className="flex items-center space-x-3 md:space-x-4">
+                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-100 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0">
+                                                <svg className="w-4 h-4 md:w-6 md:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                 </svg>
                                             </div>
-                                            <span className="text-gray-800 font-medium">Legal Services</span>
+                                            <span className="text-sm md:text-base text-gray-800 font-medium">Legal Services</span>
                                         </div>
-                                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Legal & Support Options */}
+                        <div className="bg-white rounded-2xl md:rounded-3xl shadow-lg overflow-hidden">
+                            <div className="p-3 md:p-6">
+                                <h3 className="text-base md:text-xl font-semibold text-gray-800 mb-3 md:mb-4">Legal & Support</h3>
+                                <div className="space-y-1">
+                                    <Link to="/contact" className="flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 rounded-lg md:rounded-xl transition-colors">
+                                        <div className="flex items-center space-x-3 md:space-x-4">
+                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0">
+                                                <svg className="w-4 h-4 md:w-6 md:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                            <span className="text-sm md:text-base text-gray-800 font-medium">Contact Us</span>
+                                        </div>
+                                        <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </Link>
+
+                                    <Link to="/faq" className="flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 rounded-lg md:rounded-xl transition-colors">
+                                        <div className="flex items-center space-x-3 md:space-x-4">
+                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0">
+                                                <svg className="w-4 h-4 md:w-6 md:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </div>
+                                            <span className="text-sm md:text-base text-gray-800 font-medium">FAQs</span>
+                                        </div>
+                                        <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </Link>
+
+                                    <Link to="/terms" className="flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 rounded-lg md:rounded-xl transition-colors">
+                                        <div className="flex items-center space-x-3 md:space-x-4">
+                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-100 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0">
+                                                <svg className="w-4 h-4 md:w-6 md:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </div>
+                                            <span className="text-sm md:text-base text-gray-800 font-medium">Terms & Conditions</span>
+                                        </div>
+                                        <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </Link>
+
+                                    <Link to="/privacy" className="flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 rounded-lg md:rounded-xl transition-colors">
+                                        <div className="flex items-center space-x-3 md:space-x-4">
+                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-100 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0">
+                                                <svg className="w-4 h-4 md:w-6 md:h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                </svg>
+                                            </div>
+                                            <span className="text-sm md:text-base text-gray-800 font-medium">Privacy Policy</span>
+                                        </div>
+                                        <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                         </svg>
                                     </Link>
@@ -642,22 +695,22 @@ const ProfilePage = () => {
 
                         {/* Account Options */}
                         <div className="bg-white rounded-2xl md:rounded-3xl shadow-lg overflow-hidden">
-                            <div className="p-4 md:p-6">
-                                <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-4">Account</h3>
+                            <div className="p-3 md:p-6">
+                                <h3 className="text-base md:text-xl font-semibold text-gray-800 mb-3 md:mb-4">Account</h3>
                                 <div className="space-y-1">
                                     <button
                                         onClick={handleLogout}
-                                        className="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl transition-colors w-full"
+                                        className="flex items-center justify-between p-3 md:p-4 hover:bg-red-50 rounded-lg md:rounded-xl transition-colors w-full"
                                     >
-                                        <div className="flex items-center space-x-4">
-                                            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-                                                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <div className="flex items-center space-x-3 md:space-x-4">
+                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-red-100 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0">
+                                                <svg className="w-4 h-4 md:w-6 md:h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                                 </svg>
                                             </div>
-                                            <span className="text-gray-800 font-medium">Log Out</span>
+                                            <span className="text-sm md:text-base text-gray-800 font-medium">Log Out</span>
                                         </div>
-                                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                         </svg>
                                     </button>

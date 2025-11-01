@@ -18,23 +18,56 @@ const UserIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w
 const InternshipsPage = () => {
   const [apiInternships, setApiInternships] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
+  // Load internships with debounced search
   useEffect(() => {
     const loadInternships = async () => {
       try {
         setIsLoading(true);
-        // Load all internships (no filters initially)
-        const response = await internshipAPI.getAll({ limit: 100 });
+        // Build query params with search
+        const params = { limit: 100 };
+        if (searchQuery && searchQuery.trim()) {
+          params.search = searchQuery.trim();
+        }
+        // Load all internships
+        const response = await internshipAPI.getAll(params);
         if (response.success && response.data.internships) {
-          const normalized = response.data.internships.map(i => ({
-            ...i,
-            id: i._id || i.id,
-            company: i.companyName || i.company?.companyName || 'Company',
-            stipendPerMonth: i.stipendPerMonth || '/month',
-            postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
-            icon: i.icon || '💼',
-            color: i.color || 'from-blue-500 to-cyan-500'
-          }));
+          // Helper function to format stipend
+          const formatStipend = (stipend, stipendPerMonth) => {
+            if (!stipend) return 'Stipend not specified';
+            // Remove any trailing /month if present
+            const cleanStipend = stipend.replace(/\/month\/month$/i, '/month').replace(/\/month$/i, '');
+            // Only add /month if it's not already there and stipendPerMonth is provided
+            if (stipendPerMonth && stipendPerMonth !== '/month' && stipendPerMonth.trim() !== '') {
+              return `${cleanStipend}${stipendPerMonth}`;
+            }
+            // If stipend already has /month, return as is, otherwise add /month
+            return stipend.endsWith('/month') || stipend.endsWith('/Month') || stipend.endsWith('/MONTH') 
+              ? stipend 
+              : `${cleanStipend}/month`;
+          };
+
+          const normalized = response.data.internships.map(i => {
+            const formattedStipend = formatStipend(i.stipend, i.stipendPerMonth);
+            return {
+              ...i,
+              id: i._id || i.id,
+              company: i.companyName || i.company?.companyName || 'Company',
+              companyName: i.companyName || i.company?.companyName || 'Company',
+              location: i.location || 'Location not specified',
+              duration: i.duration || 'Duration not specified',
+              stipend: formattedStipend,
+              stipendPerMonth: '/month', // Keep for compatibility but don't use in display
+              type: i.type || 'Type not specified',
+              category: i.category || 'Category not specified',
+              description: i.description || '',
+              title: i.title || i.name || `${i.companyName || 'Company'} Internship`,
+              postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
+              icon: i.icon || '💼',
+              color: i.color || 'from-blue-500 to-cyan-500'
+            };
+          });
           setApiInternships(normalized);
         }
       } catch (error) {
@@ -45,19 +78,50 @@ const InternshipsPage = () => {
       }
     };
 
-    loadInternships();
-  }, []);
+    // Debounce search with 500ms delay
+    const timeoutId = setTimeout(() => {
+      loadInternships();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  // Helper function to format stipend (avoid duplication)
+  const formatStipend = (stipend, stipendPerMonth) => {
+    if (!stipend) return 'Stipend not specified';
+    // Remove any trailing /month if present
+    const cleanStipend = stipend.replace(/\/month\/month$/i, '/month').replace(/\/month$/i, '');
+    // Only add /month if it's not already there and stipendPerMonth is provided
+    if (stipendPerMonth && stipendPerMonth !== '/month' && stipendPerMonth.trim() !== '') {
+      return `${cleanStipend}${stipendPerMonth}`;
+    }
+    // If stipend already has /month, return as is, otherwise add /month
+    return stipend.endsWith('/month') || stipend.endsWith('/Month') || stipend.endsWith('/MONTH') 
+      ? stipend 
+      : `${cleanStipend}/month`;
+  };
 
   // Normalize internships data
-  const allInternships = apiInternships.map(i => ({
-    ...i,
-    id: i._id || i.id,
-    company: i.companyName || i.company?.companyName || 'Company',
-    stipendPerMonth: i.stipendPerMonth || '/month',
-    postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
-    icon: i.icon || '💼',
-    color: i.color || 'from-blue-500 to-cyan-500'
-  }));
+  const allInternships = apiInternships.map(i => {
+    const formattedStipend = formatStipend(i.stipend, i.stipendPerMonth);
+    return {
+      ...i,
+      id: i._id || i.id,
+      company: i.companyName || i.company?.companyName || 'Company',
+      companyName: i.companyName || i.company?.companyName || 'Company',
+      location: i.location || 'Location not specified',
+      duration: i.duration || 'Duration not specified',
+      stipend: formattedStipend,
+      stipendPerMonth: '/month', // Keep for compatibility but don't use in display
+      type: i.type || 'Type not specified',
+      category: i.category || 'Category not specified',
+      description: i.description || '',
+      title: i.title || i.name || `${i.companyName || 'Company'} Internship`,
+      postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
+      icon: i.icon || '💼',
+      color: i.color || 'from-blue-500 to-cyan-500'
+    };
+  });
 
   const trendingInternships = allInternships.filter(internship => internship.featured || internship.popular).slice(0, 6);
   // Recommended internships - only those marked as recommended, popular, or featured
@@ -107,7 +171,11 @@ const InternshipsPage = () => {
     try {
       setIsLoading(true);
       // Build backend filter params
-      const params = { limit: 50 };
+      const params = { limit: 100 };
+
+      if (searchQuery && searchQuery.trim()) {
+        params.search = searchQuery.trim();
+      }
 
       if (filters.domain && filters.domain !== 'All') {
         params.category = filters.domain;
@@ -135,15 +203,41 @@ const InternshipsPage = () => {
       // Fetch filtered internships from backend
       const response = await internshipAPI.getAll(params);
       if (response.success && response.data.internships) {
-        const normalized = response.data.internships.map(i => ({
-          ...i,
-          id: i._id || i.id,
-          company: i.companyName || i.company?.companyName || 'Company',
-          stipendPerMonth: i.stipendPerMonth || '/month',
-          postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
-          icon: i.icon || '💼',
-          color: i.color || 'from-blue-500 to-cyan-500'
-        }));
+        // Helper function to format stipend
+        const formatStipend = (stipend, stipendPerMonth) => {
+          if (!stipend) return 'Stipend not specified';
+          // Remove any trailing /month if present
+          const cleanStipend = stipend.replace(/\/month\/month$/i, '/month').replace(/\/month$/i, '');
+          // Only add /month if it's not already there and stipendPerMonth is provided
+          if (stipendPerMonth && stipendPerMonth !== '/month' && stipendPerMonth.trim() !== '') {
+            return `${cleanStipend}${stipendPerMonth}`;
+          }
+          // If stipend already has /month, return as is, otherwise add /month
+          return stipend.endsWith('/month') || stipend.endsWith('/Month') || stipend.endsWith('/MONTH') 
+            ? stipend 
+            : `${cleanStipend}/month`;
+        };
+
+        const normalized = response.data.internships.map(i => {
+          const formattedStipend = formatStipend(i.stipend, i.stipendPerMonth);
+          return {
+            ...i,
+            id: i._id || i.id,
+            company: i.companyName || i.company?.companyName || 'Company',
+            companyName: i.companyName || i.company?.companyName || 'Company',
+            location: i.location || 'Location not specified',
+            duration: i.duration || 'Duration not specified',
+            stipend: formattedStipend,
+            stipendPerMonth: '/month', // Keep for compatibility but don't use in display
+            type: i.type || 'Type not specified',
+            category: i.category || 'Category not specified',
+            description: i.description || '',
+            title: i.title || i.name || `${i.companyName || 'Company'} Internship`,
+            postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
+            icon: i.icon || '💼',
+            color: i.color || 'from-blue-500 to-cyan-500'
+          };
+        });
 
         // Apply client-side stipend range filter if needed
         let filtered = normalized;
@@ -183,7 +277,15 @@ const InternshipsPage = () => {
           ...i,
           id: i._id || i.id,
           company: i.companyName || i.company?.companyName || 'Company',
+          companyName: i.companyName || i.company?.companyName || 'Company',
+          location: i.location || 'Location not specified',
+          duration: i.duration || 'Duration not specified',
+          stipend: i.stipend || 'Stipend not specified',
           stipendPerMonth: i.stipendPerMonth || '/month',
+          type: i.type || 'Type not specified',
+          category: i.category || 'Category not specified',
+          description: i.description || '',
+          title: i.title || i.name || `${i.companyName || 'Company'} Internship`,
           postedDate: i.postedDateFormatted || (i.createdAt ? new Date(i.createdAt).toLocaleDateString() : 'Recently'),
           icon: i.icon || '💼',
           color: i.color || 'from-blue-500 to-cyan-500'
@@ -344,12 +446,30 @@ const InternshipsPage = () => {
                 <input
                   type="text"
                   placeholder="Search internships..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      // Trigger search on Enter
+                      setSearchQuery(e.target.value);
+                    }
+                  }}
                   className="w-80 px-4 py-3 pl-10 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
                 <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
+
+              {/* Applied Status Button */}
+              <Link to="/internships/applied">
+                <button className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium relative">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
+                  Applied Status
+                </button>
+              </Link>
 
               {/* Company Login Button */}
               <Link to="/company/login">
@@ -392,7 +512,6 @@ const InternshipsPage = () => {
                 <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
                   <div className="flex items-center justify-between mb-8">
                     <h2 className="text-3xl font-bold text-gray-900">✨ Trending Internships</h2>
-                    <button className="text-orange-600 hover:text-orange-700 font-semibold">View All</button>
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -426,20 +545,27 @@ const InternshipsPage = () => {
                           </div>
                           <div className="flex items-center gap-2 text-sm text-white/90">
                             <span>💼</span>
-                            <span>{internship.duration} experience</span>
+                            <span>{internship.duration}</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm text-white/90">
                             <span>💰</span>
-                            <span>{internship.stipend}/month</span>
+                            <span>{internship.stipend}</span>
                           </div>
+                          <div className="flex items-center gap-2 text-sm text-white/90">
+                            <span>🕐</span>
+                            <span>{internship.type}</span>
+                          </div>
+                          {internship.category && (
+                            <div className="flex items-center gap-2 text-sm text-white/90">
+                              <span>🏷️</span>
+                              <span>{internship.category}</span>
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex items-center justify-between mb-4">
                           <span className="px-2 py-1 bg-white/20 text-white text-xs rounded-md">
                             {internship.postedDate}
-                          </span>
-                          <span className="px-2 py-1 bg-white/20 text-white text-xs font-medium rounded-full">
-                            Internship
                           </span>
                         </div>
 
@@ -466,7 +592,6 @@ const InternshipsPage = () => {
                 <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
                   <div className="flex items-center justify-between mb-8">
                     <h2 className="text-3xl font-bold text-gray-900">All Internships</h2>
-                    <button className="text-orange-600 hover:text-orange-700 font-semibold">View All</button>
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -499,24 +624,35 @@ const InternshipsPage = () => {
                           </div>
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <span>💼</span>
-                            <span>{internship.duration} experience</span>
+                            <span>{internship.duration}</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <span>💰</span>
-                            <span>{internship.stipend}/month</span>
+                            <span>{internship.stipend}</span>
                           </div>
-                        </div>
-
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">
-                            {internship.postedDate}
-                          </span>
-                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
-                            Internship
-                          </span>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <span>🕐</span>
+                            <span>{internship.type}</span>
+                          </div>
+                          {internship.category && (
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <span>🏷️</span>
+                              <span>{internship.category}</span>
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex flex-wrap gap-2 mb-4 min-h-[24px]">
+                          {internship.category && (
+                            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                              {internship.category}
+                            </span>
+                          )}
+                          {internship.type && (
+                            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                              {internship.type}
+                            </span>
+                          )}
                           {internship.popular && (
                             <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
                               Popular
@@ -532,6 +668,12 @@ const InternshipsPage = () => {
                               Urgent
                             </span>
                           )}
+                        </div>
+
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">
+                            {internship.postedDate}
+                          </span>
                         </div>
 
                         <div className="mt-auto">
@@ -552,7 +694,6 @@ const InternshipsPage = () => {
                 <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
                   <div className="flex items-center justify-between mb-8">
                     <h2 className="text-3xl font-bold text-gray-900">Recommended For You</h2>
-                    <button className="text-orange-600 hover:text-orange-700 font-semibold">View All</button>
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -590,8 +731,18 @@ const InternshipsPage = () => {
                           </div>
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <span>💰</span>
-                            <span>{internship.stipend}{internship.stipendPerMonth || '/month'}</span>
+                            <span>{internship.stipend}</span>
                           </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <span>🕐</span>
+                            <span>{internship.type}</span>
+                          </div>
+                          {internship.category && (
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <span>🏷️</span>
+                              <span>{internship.category}</span>
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex items-center justify-between mb-4">
@@ -599,7 +750,7 @@ const InternshipsPage = () => {
                             {internship.postedDate}
                           </span>
                           <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
-                            {internship.category || 'Internship'}
+                            {internship.category}
                           </span>
                         </div>
 
@@ -726,13 +877,25 @@ const InternshipsPage = () => {
 
                           <div className="flex items-center gap-2 text-sm text-white/90">
                             <span className="text-lg">💼</span>
-                            <span>{internship.duration} experience</span>
+                            <span>{internship.duration}</span>
                           </div>
 
                           <div className="flex items-center gap-2 text-sm text-white/90">
                             <span className="text-lg">💰</span>
-                            <span>{internship.stipend}/month</span>
+                            <span>{internship.stipend}{internship.stipendPerMonth || '/month'}</span>
                           </div>
+                          
+                          <div className="flex items-center gap-2 text-sm text-white/90">
+                            <span className="text-lg">🕐</span>
+                            <span>{internship.type}</span>
+                          </div>
+                          
+                          {internship.category && (
+                            <div className="flex items-center gap-2 text-sm text-white/90">
+                              <span className="text-lg">🏷️</span>
+                              <span>{internship.category}</span>
+                            </div>
+                          )}
                         </div>
 
                         {/* Bottom Section */}
@@ -888,13 +1051,25 @@ const InternshipsPage = () => {
 
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <span className="text-lg">💼</span>
-                            <span>{internship.duration} experience</span>
+                            <span>{internship.duration}</span>
                           </div>
 
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <span className="text-lg">💰</span>
-                            <span>{internship.stipend}/month</span>
+                            <span>{internship.stipend}{internship.stipendPerMonth || '/month'}</span>
                           </div>
+                          
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <span className="text-lg">🕐</span>
+                            <span>{internship.type}</span>
+                          </div>
+                          
+                          {internship.category && (
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <span className="text-lg">🏷️</span>
+                              <span>{internship.category}</span>
+                            </div>
+                          )}
                         </div>
 
                         {/* Bottom Section */}
@@ -904,9 +1079,6 @@ const InternshipsPage = () => {
                               {internship.postedDate}
                             </span>
                           </div>
-                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
-                            Internship
-                          </span>
                         </div>
 
                         {/* Tags */}
