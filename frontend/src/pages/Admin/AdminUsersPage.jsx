@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
-import { FaUsers, FaSearch, FaFilter, FaEye, FaTrash, FaCheckCircle, FaTimesCircle, FaSpinner, FaPhone, FaEnvelope, FaMapMarkerAlt, FaUser, FaCalendarAlt, FaIdCard, FaBan, FaUnlock, FaBuilding, FaGraduationCap } from 'react-icons/fa';
-import { adminAPI } from '../../utils/api';
+import { FaUsers, FaSearch, FaFilter, FaEye, FaTrash, FaCheckCircle, FaTimesCircle, FaSpinner, FaPhone, FaEnvelope, FaMapMarkerAlt, FaUser, FaCalendarAlt, FaIdCard, FaBan, FaUnlock, FaBuilding, FaGraduationCap, FaBalanceScale, FaEdit, FaTimes, FaPlus } from 'react-icons/fa';
+import { adminAPI, adminCAAPI } from '../../utils/api';
 
 const AdminUsersPage = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterType, setFilterType] = useState(searchParams.get('type') || 'users'); // users, companies, mentors
+    const [filterType, setFilterType] = useState(searchParams.get('type') || 'users'); // users, companies, mentors, cas
     const [filterStatus, setFilterStatus] = useState('all');
     const [profiles, setProfiles] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -17,10 +17,143 @@ const AdminUsersPage = () => {
     const [showViewModal, setShowViewModal] = useState(false);
     const [loadingProfileDetails, setLoadingProfileDetails] = useState(false);
 
+    // CA Management States (only for CA filter type)
+    const [showCAForm, setShowCAForm] = useState(false);
+    const [caFormType, setCaFormType] = useState('create'); // 'create' or 'update'
+    const [caFormData, setCaFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+        caNumber: '',
+        phone: '',
+        experience: '',
+        specialization: '',
+        firmName: ''
+    });
+    const [isSubmittingCA, setIsSubmittingCA] = useState(false);
+    const [existingCA, setExistingCA] = useState(null);
+
     // Fetch profiles from backend
     useEffect(() => {
         fetchProfiles();
+        if (filterType === 'cas') {
+            checkExistingCA();
+        }
     }, [filterType]);
+
+    const checkExistingCA = async () => {
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) return;
+            
+            const response = await adminCAAPI.getCA(token);
+            if (response.success && response.data.ca) {
+                setExistingCA(response.data.ca);
+            } else {
+                setExistingCA(null);
+            }
+        } catch (err) {
+            console.error('Error checking existing CA:', err);
+            setExistingCA(null);
+        }
+    };
+
+    const handleCAFormChange = (e) => {
+        setCaFormData({
+            ...caFormData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleCreateOrUpdateCA = async (e) => {
+        e.preventDefault();
+        setIsSubmittingCA(true);
+        setError(null);
+
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                throw new Error('Admin token not found');
+            }
+
+            let response;
+            if (caFormType === 'create') {
+                response = await adminCAAPI.register(token, caFormData);
+                if (response.success) {
+                    alert('CA created successfully!');
+                    setExistingCA(response.data.ca);
+                    fetchProfiles();
+                } else {
+                    throw new Error(response.message || 'Failed to create CA');
+                }
+            } else {
+                // Update CA
+                const updateData = { ...caFormData };
+                if (!updateData.password) {
+                    delete updateData.password; // Don't update password if empty
+                }
+                response = await adminCAAPI.updateCA(token, updateData);
+                if (response.success) {
+                    alert('CA updated successfully!');
+                    setExistingCA(response.data.ca);
+                    fetchProfiles();
+                } else {
+                    throw new Error(response.message || 'Failed to update CA');
+                }
+            }
+
+            setShowCAForm(false);
+            setCaFormData({
+                name: '',
+                email: '',
+                password: '',
+                caNumber: '',
+                phone: '',
+                experience: '',
+                specialization: '',
+                firmName: ''
+            });
+        } catch (err) {
+            console.error('Error with CA operation:', err);
+            alert(err.message || 'Operation failed');
+        } finally {
+            setIsSubmittingCA(false);
+        }
+    };
+
+    const handleCAEdit = (caProfile) => {
+        setCaFormData({
+            name: caProfile.name || '',
+            email: caProfile.email || '',
+            password: '',
+            caNumber: caProfile.caNumber || '',
+            phone: caProfile.phone || '',
+            experience: caProfile.experience || '',
+            specialization: caProfile.specialization || '',
+            firmName: caProfile.firmName || ''
+        });
+        setCaFormType('update');
+        setShowCAForm(true);
+    };
+
+    const handleCACreate = () => {
+        if (existingCA) {
+            alert('A CA already exists. Please delete the existing CA before creating a new one.');
+            return;
+        }
+        setCaFormData({
+            name: '',
+            email: '',
+            password: '',
+            caNumber: '',
+            phone: '',
+            experience: '',
+            specialization: '',
+            firmName: ''
+        });
+        setCaFormType('create');
+        setShowCAForm(true);
+    };
 
     const fetchProfiles = async () => {
         try {
@@ -92,6 +225,25 @@ const AdminUsersPage = () => {
                         }));
                     }
                     break;
+                
+                case 'cas':
+                    response = await adminAPI.getAllCAs(token);
+                    if (response.success && response.data) {
+                        transformedProfiles = response.data.map((profile, index) => ({
+                            id: profile._id,
+                            name: profile.name || 'CA',
+                            email: profile.email,
+                            role: 'ca',
+                            status: profile.isActive && !profile.isBlocked ? 'active' : 'inactive',
+                            joinDate: new Date(profile.createdAt).toLocaleDateString('en-GB'),
+                            lastActive: profile.lastLogin ? formatLastActive(profile.lastLogin) : 'Never',
+                            phone: profile.phone || 'N/A',
+                            phoneVerified: false,
+                            emailVerified: true,
+                            rawData: profile
+                        }));
+                    }
+                    break;
             }
             
             setProfiles(transformedProfiles);
@@ -152,6 +304,9 @@ const AdminUsersPage = () => {
                 case 'mentors':
                     await adminAPI.deactivateMentor(token, profileId);
                     break;
+                case 'cas':
+                    await adminAPI.deactivateCA(token, profileId);
+                    break;
             }
             
             fetchProfiles();
@@ -179,6 +334,9 @@ const AdminUsersPage = () => {
                     case 'mentors':
                         await adminAPI.deleteMentor(token, profileId);
                         break;
+                    case 'cas':
+                        await adminAPI.deleteCA(token, profileId);
+                        break;
                 }
                 
                 setProfiles(profiles.filter(p => p.id !== profileId));
@@ -196,6 +354,7 @@ const AdminUsersPage = () => {
             case 'users': return 'Users';
             case 'companies': return 'Companies';
             case 'mentors': return 'Mentors';
+            case 'cas': return 'CAs';
             default: return 'Users';
         }
     };
@@ -205,6 +364,7 @@ const AdminUsersPage = () => {
             case 'users': return FaUsers;
             case 'companies': return FaBuilding;
             case 'mentors': return FaGraduationCap;
+            case 'cas': return FaBalanceScale;
             default: return FaUsers;
         }
     };
@@ -228,6 +388,24 @@ const AdminUsersPage = () => {
                             <div className="text-sm text-gray-500">Total {getProfileTypeLabel()}</div>
                             <div className="text-2xl font-bold text-orange-600">{totalProfiles}</div>
                         </div>
+                        {filterType === 'cas' && (
+                            <button
+                                onClick={existingCA ? () => handleCAEdit(profiles.find(p => p.rawData._id === existingCA._id)?.rawData || existingCA) : handleCACreate}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                            >
+                                {existingCA ? (
+                                    <>
+                                        <FaEdit className="w-4 h-4" />
+                                        Update CA
+                                    </>
+                                ) : (
+                                    <>
+                                        <FaPlus className="w-4 h-4" />
+                                        Add CA
+                                    </>
+                                )}
+                            </button>
+                        )}
                     </div>
                 </div>
             </motion.div>
@@ -274,6 +452,17 @@ const AdminUsersPage = () => {
                         >
                             <FaGraduationCap className="inline mr-2" />
                             Mentors
+                        </button>
+                        <button
+                            onClick={() => { setFilterType('cas'); setSearchParams({ type: 'cas' }); }}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                filterType === 'cas'
+                                    ? 'bg-orange-500 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            <FaBalanceScale className="inline mr-2" />
+                            CAs
                         </button>
                     </div>
 
@@ -617,6 +806,168 @@ const AdminUsersPage = () => {
                             </div>
                         </motion.div>
                     </div>
+                )}
+            </AnimatePresence>
+
+            {/* CA Form Modal */}
+            <AnimatePresence>
+                {showCAForm && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+                            onClick={() => {
+                                setShowCAForm(false);
+                                setError(null);
+                            }}
+                        >
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.9, opacity: 0 }}
+                                className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between rounded-t-2xl">
+                                    <h2 className="text-2xl font-bold text-gray-900">
+                                        {caFormType === 'create' ? 'Create CA' : 'Update CA'}
+                                    </h2>
+                                    <button
+                                        onClick={() => {
+                                            setShowCAForm(false);
+                                            setError(null);
+                                        }}
+                                        className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                                    >
+                                        <FaTimes className="w-4 h-4 text-gray-600" />
+                                    </button>
+                                </div>
+                                <form onSubmit={handleCreateOrUpdateCA} className="p-6 space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                                            <input
+                                                type="text"
+                                                name="name"
+                                                value={caFormData.name}
+                                                onChange={handleCAFormChange}
+                                                required
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                value={caFormData.email}
+                                                onChange={handleCAFormChange}
+                                                required
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Password * {caFormType === 'update' && '(leave blank to keep current)'}
+                                            </label>
+                                            <input
+                                                type="password"
+                                                name="password"
+                                                value={caFormData.password}
+                                                onChange={handleCAFormChange}
+                                                required={caFormType === 'create'}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">CA Number *</label>
+                                            <input
+                                                type="text"
+                                                name="caNumber"
+                                                value={caFormData.caNumber}
+                                                onChange={handleCAFormChange}
+                                                required
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
+                                            <input
+                                                type="tel"
+                                                name="phone"
+                                                value={caFormData.phone}
+                                                onChange={handleCAFormChange}
+                                                required
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Experience *</label>
+                                            <input
+                                                type="text"
+                                                name="experience"
+                                                value={caFormData.experience}
+                                                onChange={handleCAFormChange}
+                                                required
+                                                placeholder="e.g., 10 years"
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Specialization *</label>
+                                            <input
+                                                type="text"
+                                                name="specialization"
+                                                value={caFormData.specialization}
+                                                onChange={handleCAFormChange}
+                                                required
+                                                placeholder="e.g., GST, Income Tax"
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Firm Name *</label>
+                                            <input
+                                                type="text"
+                                                name="firmName"
+                                                value={caFormData.firmName}
+                                                onChange={handleCAFormChange}
+                                                required
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                    </div>
+                                    {error && (
+                                        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+                                            {error}
+                                        </div>
+                                    )}
+                                    <div className="flex gap-3 pt-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowCAForm(false);
+                                                setError(null);
+                                            }}
+                                            disabled={isSubmittingCA}
+                                            className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium disabled:opacity-50"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmittingCA}
+                                            className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
+                                        >
+                                            {isSubmittingCA ? 'Processing...' : (caFormType === 'create' ? 'Create CA' : 'Update CA')}
+                                        </button>
+                                    </div>
+                                </form>
+                            </motion.div>
+                        </motion.div>
+                    </>
                 )}
             </AnimatePresence>
         </div>

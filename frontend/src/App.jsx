@@ -56,7 +56,6 @@ import AdminLegalPage from './pages/Admin/AdminLegalPage';
 import AdminLoginPage from './pages/Admin/AdminLoginPage';
 import AdminUsersPage from './pages/Admin/AdminUsersPage';
 import AdminTrainingPage from './pages/Admin/AdminTrainingPage';
-import AdminCAPage from './pages/Admin/AdminCAPage';
 import AdminPaymentsPage from './pages/Admin/AdminPaymentsPage';
 import AdminBannerPage from './pages/Admin/AdminBannerPage';
 import AdminLeadsPage from './pages/Admin/AdminLeadsPage';
@@ -137,7 +136,6 @@ function App() {
                       <Route path="loans" element={<AdminLoansPage />} />
                       <Route path="training" element={<AdminTrainingPage />} />
                       <Route path="users" element={<AdminUsersPage />} />
-                      <Route path="ca" element={<AdminCAPage />} />
                       <Route path="payments" element={<AdminPaymentsPage />} />
                       <Route path="banners" element={<AdminBannerPage />} />
                       <Route path="leads" element={<AdminLeadsPage />} />

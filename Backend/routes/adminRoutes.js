@@ -23,7 +23,11 @@ const {
   deactivateCompanyForAdmin,
   deleteCompanyForAdmin,
   deactivateMentorForAdmin,
-  deleteMentorForAdmin
+  deleteMentorForAdmin,
+  deactivateCAForAdmin,
+  deleteCAForAdmin,
+  markLegalSettlement,
+  markMentorSettlement
 } = require('../controllers/adminController');
 const { getAdminPaymentHistory } = require('../controllers/legalSubmissionController');
 const { protect, authorize, protect: adminProtect } = require('../middleware/adminAuth');
@@ -89,6 +93,12 @@ router.patch('/companies/:id/deactivate', adminProtect, deactivateCompanyForAdmi
 router.delete('/companies/:id', adminProtect, deleteCompanyForAdmin);
 
 router.get('/cas', adminProtect, getAllCAsForAdmin);
+router.patch('/cas/:id/deactivate', adminProtect, deactivateCAForAdmin);
+router.delete('/cas/:id', adminProtect, deleteCAForAdmin);
+
+// Settlement Routes
+router.patch('/legal-payments/:id/settle', adminProtect, markLegalSettlement);
+router.patch('/mentor-payments/:id/settle', adminProtect, markMentorSettlement);
 
 module.exports = router;
 

@@ -152,6 +152,22 @@ const legalSubmissionSchema = new mongoose.Schema({
   refundAmount: {
     type: Number,
     default: 0
+  },
+
+  // Settlement tracking for CA
+  settlementStatus: {
+    type: String,
+    enum: ['pending', 'settled'],
+    default: 'pending'
+  },
+  settlementPaidTo: {
+    type: String,
+    enum: ['CA', 'Mentor', 'N/A'],
+    default: 'CA'
+  },
+  settlementPaidAt: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true,

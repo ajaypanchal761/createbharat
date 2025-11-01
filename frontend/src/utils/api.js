@@ -355,6 +355,46 @@ export const adminAPI = {
       },
     });
   },
+
+  // Deactivate CA (Admin management)
+  deactivateCA: async (token, caId) => {
+    return apiCall(`/admin/cas/${caId}/deactivate`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Delete CA (Admin management)
+  deleteCA: async (token, caId) => {
+    return apiCall(`/admin/cas/${caId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Mark legal payment as settled
+  markLegalSettlement: async (token, paymentId) => {
+    return apiCall(`/admin/legal-payments/${paymentId}/settle`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Mark mentor payment as settled
+  markMentorSettlement: async (token, paymentId) => {
+    return apiCall(`/admin/mentor-payments/${paymentId}/settle`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
 };
 
 // Loans (Public) API calls

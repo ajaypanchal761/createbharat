@@ -15,50 +15,52 @@ const getAllPayments = async (req, res) => {
 
     const allPayments = [];
 
-    // 1. Get Training Certificate Payments (only completed by default)
-    const trainingProgressQuery = {
-      certificatePaymentStatus: 'completed'
-    };
-    
-    if (status) {
-      trainingProgressQuery.certificatePaymentStatus = status;
-    }
-    if (startDate || endDate) {
-      trainingProgressQuery.certificatePaidAt = {};
-      if (startDate) trainingProgressQuery.certificatePaidAt.$gte = new Date(startDate);
-      if (endDate) trainingProgressQuery.certificatePaidAt.$lte = new Date(endDate);
-    }
-
-    const trainingPayments = await UserTrainingProgress.find(trainingProgressQuery)
-      .populate('user', 'firstName lastName email phone')
-      .populate('course', 'title provider instructor')
-      .sort({ certificatePaidAt: -1, createdAt: -1 })
-      .lean();
-
-    trainingPayments.forEach(progress => {
-      if (progress.certificatePaymentStatus && progress.certificateAmount) {
-        allPayments.push({
-          _id: progress._id,
-          paymentId: progress.certificatePaymentId || null,
-          type: 'certificate',
-          typeLabel: 'Training Certificate',
-          user: progress.user,
-          amount: progress.certificateAmount,
-          status: progress.certificatePaymentStatus,
-          paidAt: progress.certificatePaidAt,
-          createdAt: progress.createdAt,
-          details: {
-            courseTitle: progress.course?.title || 'Unknown Course',
-            courseProvider: progress.course?.provider || 'N/A',
-            courseId: progress.course?._id || null,
-            progress: progress.overallProgress || 0
-          }
-        });
+    // 1. Get Training Certificate Payments (only when type is certificate or not specified)
+    if (type === 'certificate' || !type) {
+      const trainingProgressQuery = {
+        certificatePaymentStatus: 'completed'
+      };
+      
+      if (status) {
+        trainingProgressQuery.certificatePaymentStatus = status;
       }
-    });
+      if (startDate || endDate) {
+        trainingProgressQuery.certificatePaidAt = {};
+        if (startDate) trainingProgressQuery.certificatePaidAt.$gte = new Date(startDate);
+        if (endDate) trainingProgressQuery.certificatePaidAt.$lte = new Date(endDate);
+      }
 
-    // 2. Get Mentor Booking Payments (only completed bookings with completed payments by default)
-    if (type !== 'certificate' && type !== 'legal') {
+      const trainingPayments = await UserTrainingProgress.find(trainingProgressQuery)
+        .populate('user', 'firstName lastName email phone')
+        .populate('course', 'title provider instructor')
+        .sort({ certificatePaidAt: -1, createdAt: -1 })
+        .lean();
+
+      trainingPayments.forEach(progress => {
+        if (progress.certificatePaymentStatus && progress.certificateAmount) {
+          allPayments.push({
+            _id: progress._id,
+            paymentId: progress.certificatePaymentId || null,
+            type: 'certificate',
+            typeLabel: 'Training Certificate',
+            user: progress.user,
+            amount: progress.certificateAmount,
+            status: progress.certificatePaymentStatus,
+            paidAt: progress.certificatePaidAt,
+            createdAt: progress.createdAt,
+            details: {
+              courseTitle: progress.course?.title || 'Unknown Course',
+              courseProvider: progress.course?.provider || 'N/A',
+              courseId: progress.course?._id || null,
+              progress: progress.overallProgress || 0
+            }
+          });
+        }
+      });
+    }
+
+    // 2. Get Mentor Booking Payments (only when type is mentor or not specified)
+    if (type === 'mentor' || !type) {
       const mentorBookingQuery = {
         paymentStatus: 'completed',
         status: 'completed' // Only show completed bookings
@@ -91,6 +93,8 @@ const getAllPayments = async (req, res) => {
             status: booking.paymentStatus,
             paidAt: booking.paidAt,
             createdAt: booking.createdAt,
+            settlementStatus: booking.settlementStatus || 'pending',
+            settlementPaidAt: booking.settlementPaidAt || null,
             details: {
               mentorName: booking.mentor ? `${booking.mentor.firstName} ${booking.mentor.lastName}` : 'Unknown Mentor',
               mentorSpecialization: booking.mentor?.specialization || 'N/A',
@@ -103,8 +107,8 @@ const getAllPayments = async (req, res) => {
       });
     }
 
-    // 3. Get Legal Service Payments (only completed submissions with completed payments by default)
-    if (type !== 'certificate' && type !== 'mentor') {
+    // 3. Get Legal Service Payments (only when type is legal or not specified)
+    if (type === 'legal' || !type) {
       const legalSubmissionQuery = {
         paymentStatus: 'completed',
         status: 'completed' // Only show completed submissions
@@ -137,6 +141,8 @@ const getAllPayments = async (req, res) => {
             status: submission.paymentStatus,
             paidAt: submission.paidAt,
             createdAt: submission.createdAt,
+            settlementStatus: submission.settlementStatus || 'pending',
+            settlementPaidAt: submission.settlementPaidAt || null,
             details: {
               serviceName: submission.serviceName || submission.service?.name || 'Legal Service',
               serviceIcon: submission.service?.icon || '⚖️',

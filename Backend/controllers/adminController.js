@@ -460,7 +460,7 @@ const adminListMentorBookings = async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
     const total = await MentorBooking.countDocuments(query);
-    
+
     // Format bookings for frontend
     const formattedBookings = bookings.map(booking => ({
       mentor: booking.mentor ? `${booking.mentor.firstName} ${booking.mentor.lastName}` : 'Unknown Mentor',
@@ -469,7 +469,7 @@ const adminListMentorBookings = async (req, res) => {
       status: booking.status,
       amount: `₹${booking.amount || 0}`
     }));
-    
+
     res.status(200).json({
       success: true,
       count: bookings.length,
@@ -491,7 +491,7 @@ const adminUpdateMentorBookingStatus = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Admins only' });
     }
     const { status, cancellationReason } = req.body;
-    const allowed = [ 'cancelled', 'completed', 'refunded' ];
+    const allowed = ['cancelled', 'completed', 'refunded'];
     if (!allowed.includes(status)) {
       return res.status(400).json({ success: false, message: 'Invalid status' });
     }
@@ -696,26 +696,35 @@ const getDashboardStats = async (req, res) => {
     // Get counts in parallel
     const [
       totalUsers,
+      totalCompanies,
+      totalCAs,
       activeLoans,
       legalServices,
+      legalSubmissions,
       trainingModules,
       activeMentors,
       totalBookings,
       pendingBookings,
       activeBookings,
       completedBookings,
+      totalApplications,
       certificatePayments,
-      mentorPayments
+      mentorPayments,
+      legalPayments
     ] = await Promise.all([
       User.countDocuments({ isActive: true }),
+      Company.countDocuments({ isActive: true }),
+      CA.countDocuments({ isActive: true }),
       LoanScheme.countDocuments({ isActive: true }),
       LegalService.countDocuments({ isActive: true }),
+      LegalSubmission.countDocuments(),
       TrainingCourse.countDocuments({ isActive: true, isPublished: true }),
       Mentor.countDocuments({ isActive: true }),
       MentorBooking.countDocuments(),
       MentorBooking.countDocuments({ status: 'pending' }),
       MentorBooking.countDocuments({ status: 'accepted' }),
       MentorBooking.countDocuments({ status: 'completed' }),
+      Application.countDocuments(),
       UserTrainingProgress.aggregate([
         { $match: { certificatePaymentStatus: 'completed', certificateAmount: { $exists: true } } },
         { $group: { _id: null, total: { $sum: '$certificateAmount' } } }
@@ -723,13 +732,18 @@ const getDashboardStats = async (req, res) => {
       MentorBooking.aggregate([
         { $match: { paymentStatus: 'completed', amount: { $exists: true } } },
         { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]),
+      LegalSubmission.aggregate([
+        { $match: { paymentStatus: 'completed', paymentAmount: { $exists: true } } },
+        { $group: { _id: null, total: { $sum: '$paymentAmount' } } }
       ])
     ]);
 
-    // Calculate total revenue
+    // Calculate total revenue (including legal services)
     const certificateRevenue = certificatePayments[0]?.total || 0;
     const mentorRevenue = mentorPayments[0]?.total || 0;
-    const totalRevenue = certificateRevenue + mentorRevenue;
+    const legalRevenue = legalPayments[0]?.total || 0;
+    const totalRevenue = certificateRevenue + mentorRevenue + legalRevenue;
 
     // Get recent mentor bookings
     const recentBookings = await MentorBooking.find({})
@@ -932,12 +946,12 @@ const getDashboardStats = async (req, res) => {
 
     // Combine revenue trends
     const revenueMap = new Map();
-    
+
     certificateRevenueTrend.forEach(item => {
       const date = item._id;
       revenueMap.set(date, (revenueMap.get(date) || 0) + item.revenue);
     });
-    
+
     mentorRevenueTrend.forEach(item => {
       const date = item._id;
       revenueMap.set(date, (revenueMap.get(date) || 0) + item.revenue);
@@ -947,7 +961,7 @@ const getDashboardStats = async (req, res) => {
     const revenueTrend = [];
     const startDate = new Date(thirtyDaysAgo);
     const endDate = new Date();
-    
+
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       const dateStr = d.toISOString().split('T')[0];
       revenueTrend.push({
@@ -961,11 +975,15 @@ const getDashboardStats = async (req, res) => {
       data: {
         stats: {
           totalUsers,
+          totalCompanies,
+          totalCAs,
           totalRevenue,
           activeLoans,
           legalServices,
+          legalSubmissions,
           trainingModules,
-          mentors: activeMentors
+          mentors: activeMentors,
+          totalApplications
         },
         mentorBookings: {
           total: totalBookings,
@@ -1085,6 +1103,70 @@ const getAllCAsForAdmin = async (req, res) => {
 
   } catch (error) {
     console.error('Admin get all CAs error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Deactivate CA (Admin management)
+// @route   PATCH /api/admin/cas/:id/deactivate
+// @access  Private/Admin
+const deactivateCAForAdmin = async (req, res) => {
+  try {
+    const ca = await CA.findById(req.params.id);
+
+    if (!ca) {
+      return res.status(404).json({
+        success: false,
+        message: 'CA not found'
+      });
+    }
+
+    ca.isActive = !ca.isActive;
+    await ca.save();
+
+    res.status(200).json({
+      success: true,
+      message: `CA ${ca.isActive ? 'activated' : 'deactivated'} successfully`,
+      data: ca
+    });
+
+  } catch (error) {
+    console.error('Admin deactivate CA error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Delete CA (Admin management)
+// @route   DELETE /api/admin/cas/:id
+// @access  Private/Admin
+const deleteCAForAdmin = async (req, res) => {
+  try {
+    const ca = await CA.findById(req.params.id);
+
+    if (!ca) {
+      return res.status(404).json({
+        success: false,
+        message: 'CA not found'
+      });
+    }
+
+    await CA.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: 'CA deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Admin delete CA error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',
@@ -1221,6 +1303,102 @@ const deleteMentorForAdmin = async (req, res) => {
   }
 };
 
+// @desc    Mark payment as settled (Legal Service)
+// @route   PATCH /api/admin/legal-payments/:id/settle
+// @access  Private/Admin
+const markLegalSettlement = async (req, res) => {
+  try {
+    const submission = await LegalSubmission.findById(req.params.id);
+
+    if (!submission) {
+      return res.status(404).json({
+        success: false,
+        message: 'Payment not found'
+      });
+    }
+
+    if (submission.settlementStatus === 'settled') {
+      // Toggle back to pending if already settled
+      submission.settlementStatus = 'pending';
+      submission.settlementPaidAt = null;
+      await submission.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'Settlement status reset to pending',
+        data: submission
+      });
+    } else {
+      // Mark as settled
+      submission.settlementStatus = 'settled';
+      submission.settlementPaidAt = new Date();
+      await submission.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'Payment marked as settled',
+        data: submission
+      });
+    }
+
+  } catch (error) {
+    console.error('Admin mark legal settlement error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Mark payment as settled (Mentor Booking)
+// @route   PATCH /api/admin/mentor-payments/:id/settle
+// @access  Private/Admin
+const markMentorSettlement = async (req, res) => {
+  try {
+    const booking = await MentorBooking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    if (booking.settlementStatus === 'settled') {
+      // Toggle back to pending if already settled
+      booking.settlementStatus = 'pending';
+      booking.settlementPaidAt = null;
+      await booking.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'Settlement status reset to pending',
+        data: booking
+      });
+    } else {
+      // Mark as settled
+      booking.settlementStatus = 'settled';
+      booking.settlementPaidAt = new Date();
+      await booking.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'Payment marked as settled',
+        data: booking
+      });
+    }
+
+  } catch (error) {
+    console.error('Admin mark mentor settlement error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   loginAdmin,
   getMe,
@@ -1244,6 +1422,10 @@ module.exports = {
   deactivateCompanyForAdmin,
   deleteCompanyForAdmin,
   deactivateMentorForAdmin,
-  deleteMentorForAdmin
+  deleteMentorForAdmin,
+  deactivateCAForAdmin,
+  deleteCAForAdmin,
+  markLegalSettlement,
+  markMentorSettlement
 };
 

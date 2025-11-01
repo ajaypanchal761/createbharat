@@ -126,6 +126,22 @@ const mentorBookingSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'mentor', 'system'],
     default: null
+  },
+
+  // Settlement tracking for Mentor
+  settlementStatus: {
+    type: String,
+    enum: ['pending', 'settled'],
+    default: 'pending'
+  },
+  settlementPaidTo: {
+    type: String,
+    enum: ['CA', 'Mentor', 'N/A'],
+    default: 'Mentor'
+  },
+  settlementPaidAt: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true,

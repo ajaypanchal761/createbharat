@@ -49,12 +49,6 @@ const AdminSidebar = ({ isOpen, isMobile, onClose }) => {
             description: 'User Management'
         },
         {
-            name: 'CA Management',
-            path: '/admin/ca',
-            icon: FaBalanceScale,
-            description: 'CA Management'
-        },
-        {
             name: 'Add Banner',
             path: '/admin/banners',
             icon: FaImage,

@@ -13,7 +13,11 @@ import {
     FaClock,
     FaCheckCircle,
     FaExclamationTriangle,
-    FaSpinner
+    FaSpinner,
+    FaBuilding,
+    FaBalanceScale,
+    FaFileAlt,
+    FaBriefcase
 } from 'react-icons/fa';
 import { adminAPI } from '../../utils/api';
 
@@ -78,11 +82,15 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         totalUsers: 0,
+        totalCompanies: 0,
+        totalCAs: 0,
         totalRevenue: 0,
         activeLoans: 0,
         legalServices: 0,
+        legalSubmissions: 0,
         trainingModules: 0,
-        mentors: 0
+        mentors: 0,
+        totalApplications: 0
     });
     const [revenueTrend, setRevenueTrend] = useState([]);
 
@@ -100,11 +108,15 @@ const AdminDashboard = () => {
                 if (response.success) {
                     setStats({
                         totalUsers: response.data.stats.totalUsers || 0,
+                        totalCompanies: response.data.stats.totalCompanies || 0,
+                        totalCAs: response.data.stats.totalCAs || 0,
                         totalRevenue: response.data.stats.totalRevenue || 0,
                         activeLoans: response.data.stats.activeLoans || 0,
                         legalServices: response.data.stats.legalServices || 0,
+                        legalSubmissions: response.data.stats.legalSubmissions || 0,
                         trainingModules: response.data.stats.trainingModules || 0,
-                        mentors: response.data.stats.mentors || 0
+                        mentors: response.data.stats.mentors || 0,
+                        totalApplications: response.data.stats.totalApplications || 0
                     });
                     
                     setRevenueTrend(response.data.revenueTrend || []);
@@ -125,6 +137,12 @@ const AdminDashboard = () => {
             case 'users':
                 navigate('/admin/users?type=users');
                 break;
+            case 'companies':
+                navigate('/admin/users?type=companies');
+                break;
+            case 'cas':
+                navigate('/admin/users?type=cas');
+                break;
             case 'revenue':
                 navigate('/admin/payments');
                 break;
@@ -132,13 +150,19 @@ const AdminDashboard = () => {
                 navigate('/admin/loans');
                 break;
             case 'legal':
-                navigate('/admin/ca');
+                navigate('/admin/users?type=cas');
+                break;
+            case 'legalSubmissions':
+                navigate('/admin/payments?type=legal');
                 break;
             case 'training':
                 navigate('/admin/training');
                 break;
             case 'mentors':
                 navigate('/admin/users?type=mentors');
+                break;
+            case 'applications':
+                navigate('/admin/users?type=users');
                 break;
             default:
                 break;
@@ -149,7 +173,6 @@ const AdminDashboard = () => {
         {
             title: 'Total Users',
             value: stats.totalUsers.toLocaleString(),
-            change: '+12%',
             trend: 'up',
             icon: FaUsers,
             color: 'from-blue-500 to-blue-600',
@@ -158,9 +181,38 @@ const AdminDashboard = () => {
             route: 'users'
         },
         {
+            title: 'Total Companies',
+            value: stats.totalCompanies.toLocaleString(),
+            trend: 'up',
+            icon: FaBuilding,
+            color: 'from-cyan-500 to-cyan-600',
+            bgColor: 'bg-cyan-50',
+            textColor: 'text-cyan-600',
+            route: 'companies'
+        },
+        {
+            title: 'CAs',
+            value: stats.totalCAs.toLocaleString(),
+            trend: 'up',
+            icon: FaBalanceScale,
+            color: 'from-amber-500 to-amber-600',
+            bgColor: 'bg-amber-50',
+            textColor: 'text-amber-600',
+            route: 'cas'
+        },
+        {
+            title: 'Active Mentors',
+            value: stats.mentors.toLocaleString(),
+            trend: 'up',
+            icon: FaUsers,
+            color: 'from-pink-500 to-pink-600',
+            bgColor: 'bg-pink-50',
+            textColor: 'text-pink-600',
+            route: 'mentors'
+        },
+        {
             title: 'Total Revenue',
             value: `₹${stats.totalRevenue.toLocaleString()}`,
-            change: '+25%',
             trend: 'up',
             icon: FaMoneyBillWave,
             color: 'from-green-500 to-green-600',
@@ -171,7 +223,6 @@ const AdminDashboard = () => {
         {
             title: 'Loans Schemes',
             value: stats.activeLoans.toLocaleString(),
-            change: '+8%',
             trend: 'up',
             icon: FaChartLine,
             color: 'from-purple-500 to-purple-600',
@@ -182,7 +233,6 @@ const AdminDashboard = () => {
         {
             title: 'Legal Services',
             value: stats.legalServices.toLocaleString(),
-            change: '+15%',
             trend: 'up',
             icon: FaGavel,
             color: 'from-orange-500 to-orange-600',
@@ -191,9 +241,18 @@ const AdminDashboard = () => {
             route: 'legal'
         },
         {
+            title: 'Legal Submissions',
+            value: stats.legalSubmissions.toLocaleString(),
+            trend: 'up',
+            icon: FaFileAlt,
+            color: 'from-red-500 to-red-600',
+            bgColor: 'bg-red-50',
+            textColor: 'text-red-600',
+            route: 'legalSubmissions'
+        },
+        {
             title: 'Training Modules',
             value: stats.trainingModules.toLocaleString(),
-            change: '+5%',
             trend: 'up',
             icon: FaGraduationCap,
             color: 'from-indigo-500 to-indigo-600',
@@ -202,15 +261,14 @@ const AdminDashboard = () => {
             route: 'training'
         },
         {
-            title: 'Active Mentors',
-            value: stats.mentors.toLocaleString(),
-            change: '+3%',
+            title: 'Internship Applications',
+            value: stats.totalApplications.toLocaleString(),
             trend: 'up',
-            icon: FaUsers,
-            color: 'from-pink-500 to-pink-600',
-            bgColor: 'bg-pink-50',
-            textColor: 'text-pink-600',
-            route: 'mentors'
+            icon: FaBriefcase,
+            color: 'from-teal-500 to-teal-600',
+            bgColor: 'bg-teal-50',
+            textColor: 'text-teal-600',
+            route: 'applications'
         }
     ];
 
@@ -261,16 +319,6 @@ const AdminDashboard = () => {
                             <div className="flex items-center justify-between mb-3 md:mb-4">
                                 <div className={`w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r ${card.color} rounded-lg md:rounded-xl flex items-center justify-center`}>
                                     <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                                </div>
-                                <div className={`flex items-center text-xs md:text-sm font-medium ${
-                                    card.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                                }`}>
-                                    {card.trend === 'up' ? (
-                                        <FaArrowUp className="w-3 h-3 mr-1" />
-                                    ) : (
-                                        <FaArrowDown className="w-3 h-3 mr-1" />
-                                    )}
-                                    {card.change}
                                 </div>
                             </div>
                             <div>

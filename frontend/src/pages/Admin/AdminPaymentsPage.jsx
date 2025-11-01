@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaSpinner, FaCheckCircle, FaClock, FaExclamationTriangle, FaCreditCard, FaGraduationCap, FaUserTie, FaBalanceScale } from 'react-icons/fa';
-import { adminPaymentsAPI } from '../../utils/api';
+import { FaSpinner, FaCheckCircle, FaClock, FaExclamationTriangle, FaCreditCard, FaGraduationCap, FaUserTie, FaBalanceScale, FaMoneyBillWave, FaUndo } from 'react-icons/fa';
+import { adminPaymentsAPI, adminAPI } from '../../utils/api';
 
 const AdminPaymentsPage = () => {
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [settlingPayment, setSettlingPayment] = useState(null);
     const [totals, setTotals] = useState({
         total: 0,
         completed: 0,
@@ -53,6 +54,43 @@ const AdminPaymentsPage = () => {
     useEffect(() => {
         fetchPayments();
     }, [fetchPayments]);
+
+    const handleSettlementToggle = async (payment) => {
+        if (payment.type === 'certificate') {
+            alert('Training certificate payments are kept by admin. No settlement needed.');
+            return;
+        }
+
+        try {
+            setSettlingPayment(payment._id);
+            setError(null);
+            
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                throw new Error('Admin token not found');
+            }
+
+            let response;
+            if (payment.type === 'legal') {
+                response = await adminAPI.markLegalSettlement(token, payment._id);
+            } else if (payment.type === 'mentor') {
+                response = await adminAPI.markMentorSettlement(token, payment._id);
+            }
+
+            if (response.success) {
+                // Refresh payments list
+                await fetchPayments();
+                alert(response.message);
+            } else {
+                throw new Error(response.message || 'Failed to update settlement status');
+            }
+        } catch (err) {
+            console.error('Error updating settlement:', err);
+            alert(err.message || 'Failed to update settlement status');
+        } finally {
+            setSettlingPayment(null);
+        }
+    };
 
     const getPaymentIcon = (type) => {
         switch (type) {
@@ -187,12 +225,13 @@ const AdminPaymentsPage = () => {
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment ID</th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Settlement</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {payments.length === 0 ? (
                                     <tr>
-                                        <td colSpan="7" className="px-4 py-8 text-center text-gray-500">
+                                        <td colSpan="8" className="px-4 py-8 text-center text-gray-500">
                                             No payments found
                                         </td>
                                     </tr>
@@ -276,6 +315,40 @@ const AdminPaymentsPage = () => {
                                                         <div className="text-sm text-gray-500">
                                                             {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : 'N/A'}
                                                         </div>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap">
+                                                    {payment.type === 'certificate' ? (
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                                            N/A
+                                                        </span>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleSettlementToggle(payment)}
+                                                            disabled={settlingPayment === payment._id}
+                                                            className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                                                                payment.settlementStatus === 'settled'
+                                                                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                                    : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                                                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                                        >
+                                                            {settlingPayment === payment._id ? (
+                                                                <>
+                                                                    <FaSpinner className="w-3 h-3 mr-1 animate-spin" />
+                                                                    Processing...
+                                                                </>
+                                                            ) : payment.settlementStatus === 'settled' ? (
+                                                                <>
+                                                                    <FaCheckCircle className="w-3 h-3 mr-1" />
+                                                                    Settled
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <FaMoneyBillWave className="w-3 h-3 mr-1" />
+                                                                    Mark as Settled
+                                                                </>
+                                                            )}
+                                                        </button>
                                                     )}
                                                 </td>
                                             </tr>
