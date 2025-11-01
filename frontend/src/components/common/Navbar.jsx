@@ -92,7 +92,7 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation (webview) - simplified, no active tab styling */}
-          <div className="hidden lg:flex items-center space-x-1 xl:space-x-2 2xl:space-x-4 flex-wrap justify-center flex-1 mx-2 md:mx-4">
+          <div className="hidden lg:flex items-center space-x-1 xl:space-x-2 2xl:space-x-4 justify-center flex-1 mx-2 md:mx-4">
             {navLinks.map((link) => (
               <div key={link.name} className="relative">
                 {link.path === '/legal' && location.pathname === '/legal' ? (
