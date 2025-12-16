@@ -1,0 +1,165 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { UserProvider } from './contexts/UserContext';
+import Navbar from './components/common/Navbar';
+import ProtectedRoute from './components/common/ProtectedRoute';
+import TestOTP from './pages/TestOTP';
+import HomePage from './pages/Home/HomePage';
+import LoansPage from './pages/Loans/LoansPage';
+import LoanStatusPage from './pages/Loans/LoanStatusPage';
+import LoanDetailPage from './pages/Loans/LoanDetailPage';
+import InternshipsPage from './pages/Internships/InternshipsPage';
+import InternshipDetailPage from './pages/Internships/InternshipDetailPage';
+import InternshipApplicationPage from './pages/Internships/InternshipApplicationPage';
+import SavedInternshipsPage from './pages/Internships/SavedInternshipsPage';
+import AppliedInternshipsPage from './pages/Internships/AppliedInternshipsPage';
+import InternshipProfilePage from './pages/Internships/InternshipProfilePage';
+import CourseDetailPage from './pages/Internships/CourseDetailPage';
+import TrainingPage from './pages/Training/TrainingPage';
+import ModulesListPage from './pages/Training/ModulesListPage';
+import ModuleDetailPage from './pages/Training/ModuleDetailPage';
+import TopicDetailPage from './pages/Training/TopicDetailPage';
+import CertificatePage from './pages/Training/CertificatePage';
+import LegalPage from './pages/Legal/LegalPage';
+import LegalServiceDetailPage from './pages/Legal/LegalServiceDetailPage';
+import LegalDocumentUploadPage from './pages/Legal/LegalDocumentUploadPage';
+import LegalConsultPage from './pages/Legal/LegalConsultPage';
+import LegalDocumentsPage from './pages/Legal/LegalDocumentsPage';
+import LegalPaymentPage from './pages/Legal/LegalPaymentPage';
+import ProjectReportPage from './pages/Legal/ProjectReportPage';
+import GSTRegistrationTypePage from './pages/Legal/GSTRegistrationTypePage';
+import MentorCategoryPage from './pages/Mentors/MentorCategoryPage';
+import MentorListingPage from './pages/Mentors/MentorListingPage';
+import MentorDetailPage from './pages/Mentors/MentorDetailPage';
+import MentorBookingPage from './pages/Mentors/MentorBookingPage';
+import MentorDashboard from './pages/Mentors/MentorDashboard';
+import BecomeMentorPage from './pages/Mentors/BecomeMentorPage';
+import MentorProfilePage from './pages/Mentors/MentorProfilePage';
+import MentorLoginPage from './pages/Mentors/MentorLoginPage';
+import MentorSignupPage from './pages/Mentors/MentorSignupPage';
+import LoginPage from './pages/Auth/LoginPage';
+import SignupPage from './pages/Auth/SignupPage';
+import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage';
+import CALoginPage from './pages/CA/CALoginPage';
+import CASignupPage from './pages/CA/CASignupPage';
+import CADashboard from './pages/CA/CADashboard';
+import AnalyticsPage from './pages/Analytics/AnalyticsPage';
+import TermsPage from './pages/Legal/TermsPage';
+import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
+import PrivacyPage from './pages/PrivacyPage';
+import FAQPage from './pages/FAQPage';
+import AdminLayout from './components/admin/AdminLayout';
+import AdminDashboard from './pages/Admin/AdminDashboard';
+import AdminLoansPage from './pages/Admin/AdminLoansPage';
+import AdminLegalPage from './pages/Admin/AdminLegalPage';
+import AdminLoginPage from './pages/Admin/AdminLoginPage';
+import AdminUsersPage from './pages/Admin/AdminUsersPage';
+import AdminTrainingPage from './pages/Admin/AdminTrainingPage';
+import AdminPaymentsPage from './pages/Admin/AdminPaymentsPage';
+import AdminBannerPage from './pages/Admin/AdminBannerPage';
+import AdminLeadsPage from './pages/Admin/AdminLeadsPage';
+import AdminBankLeadsPage from './pages/Admin/AdminBankLeadsPage';
+import AdminPitchesPage from './pages/Admin/AdminPitchesPage';
+import AdminProfilePage from './pages/Admin/AdminProfilePage';
+import AdminSettingsPage from './pages/Admin/AdminSettingsPage';
+import ProfilePage from './pages/Profile/ProfilePage';
+import CompanyInternshipsPage from './pages/Company/CompanyInternshipsPage';
+import CompanyLoginPage from './pages/Company/CompanyLoginPage';
+import CompanySignupPage from './pages/Company/CompanySignupPage';
+import AppDevelopmentPage from './pages/AppDevelopment/AppDevelopmentPage';
+import SubmitPitchPage from './pages/Pitch/SubmitPitchPage';
+
+function App() {
+  return (
+    <UserProvider>
+      <Router>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
+          <Routes>
+            <Route path="/company/login" element={<CompanyLoginPage />} />
+            <Route path="/company/signup" element={<CompanySignupPage />} />
+            <Route path="/company/internships" element={<CompanyInternshipsPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/test-otp" element={<TestOTP />} />
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+            {/* Admin routes - outside ProtectedRoute since AdminLayout handles its own auth */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="loans" element={<AdminLoansPage />} />
+              <Route path="training" element={<AdminTrainingPage />} />
+              <Route path="users" element={<AdminUsersPage />} />
+              <Route path="payments" element={<AdminPaymentsPage />} />
+              <Route path="banners" element={<AdminBannerPage />} />
+              <Route path="leads" element={<AdminLeadsPage />} />
+              <Route path="bank-leads" element={<AdminBankLeadsPage />} />
+              <Route path="pitches" element={<AdminPitchesPage />} />
+              <Route path="profile" element={<AdminProfilePage />} />
+              <Route path="settings" element={<AdminSettingsPage />} />
+            </Route>
+            <Route path="/ca/login" element={<CALoginPage />} />
+            <Route path="/ca/signup" element={<CASignupPage />} />
+            <Route path="/mentors/login" element={<MentorLoginPage />} />
+            <Route path="/mentors/signup" element={<MentorSignupPage />} />
+            <Route path="/*" element={
+              <ProtectedRoute>
+                <>
+                  <Navbar />
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/loans" element={<LoansPage />} />
+                    <Route path="/loans/status" element={<LoanStatusPage />} />
+                    <Route path="/loans/:schemeId" element={<LoanDetailPage />} />
+                    <Route path="/internships" element={<InternshipsPage />} />
+                    <Route path="/internships/saved" element={<SavedInternshipsPage />} />
+                    <Route path="/internships/applied" element={<AppliedInternshipsPage />} />
+                    <Route path="/internships/profile" element={<InternshipProfilePage />} />
+                    <Route path="/internships/course/:courseId" element={<CourseDetailPage />} />
+                    <Route path="/internships/:internshipId" element={<InternshipDetailPage />} />
+                    <Route path="/internships/:internshipId/apply" element={<InternshipApplicationPage />} />
+                    <Route path="/training" element={<TrainingPage />} />
+                    <Route path="/training/modules/:courseId" element={<ModulesListPage />} />
+                    <Route path="/training/module/:courseId/:moduleId" element={<ModuleDetailPage />} />
+                    <Route path="/training/module/:courseId/:moduleId/topic/:topicId" element={<TopicDetailPage />} />
+                    <Route path="/training/certificate/:courseId?" element={<CertificatePage />} />
+                    <Route path="/legal" element={<LegalPage />} />
+                    <Route path="/legal/gst-registration-type" element={<GSTRegistrationTypePage />} />
+                    <Route path="/legal/project-report" element={<ProjectReportPage />} />
+                    <Route path="/legal/consult" element={<LegalConsultPage />} />
+                    <Route path="/legal/documents" element={<LegalDocumentsPage />} />
+                    <Route path="/legal/service/:serviceId" element={<LegalServiceDetailPage />} />
+                    <Route path="/legal/service/:serviceId/upload" element={<LegalDocumentUploadPage />} />
+                    <Route path="/legal/service/:serviceId/payment" element={<LegalPaymentPage />} />
+                    <Route path="/mentors" element={<MentorCategoryPage />} />
+                    <Route path="/mentors/category/:categoryId" element={<MentorListingPage />} />
+                    <Route path="/mentors/:mentorId" element={<MentorDetailPage />} />
+                    <Route path="/mentors/:mentorId/book/:slotId" element={<MentorBookingPage />} />
+                    <Route path="/mentors/booking/:bookingId" element={<MentorBookingPage />} />
+                    <Route path="/mentors/dashboard" element={<MentorDashboard />} />
+                    <Route path="/mentors/become-mentor" element={<BecomeMentorPage />} />
+                    <Route path="/mentors/profile" element={<MentorProfilePage />} />
+                    <Route path="/analytics" element={<AnalyticsPage />} />
+                    <Route path="/terms" element={<TermsPage />} />
+                    <Route path="/about" element={<AboutPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/privacy" element={<PrivacyPage />} />
+                    <Route path="/faq" element={<FAQPage />} />
+                    <Route path="/mobile-login" element={<LoginPage />} />
+                    <Route path="/ca/dashboard" element={<CADashboard />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/app-development" element={<AppDevelopmentPage />} />
+                    <Route path="/pitch/submit" element={<SubmitPitchPage />} />
+                  </Routes>
+                </>
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </div>
+      </Router>
+    </UserProvider>
+  );
+}
+
+export default App;

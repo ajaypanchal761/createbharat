@@ -1,0 +1,361 @@
+const nodemailer = require('nodemailer');
+// dotenv is already loaded in server.js, no need to load again
+
+// Create transporter
+const getTransporter = () => {
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: process.env.SMTP_PORT || 587,
+    secure: process.env.SMTP_SECURE === 'true' || false, // true for 465, false for other ports
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASSWORD
+    }
+  });
+};
+
+// Email template for booking accepted
+const getBookingAcceptedEmailTemplate = (booking, mentor, user) => {
+  const mentorName = `${mentor.firstName || ''} ${mentor.lastName || ''}`.trim() || 'Mentor';
+  const mentorTitle = mentor.title || '';
+  const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User';
+  
+  const date = booking.date ? new Date(booking.date).toLocaleDateString('en-IN', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }) : 'To be scheduled';
+  
+  const time = booking.time || 'To be scheduled';
+  const sessionLink = booking.sessionLink || 'Will be provided later';
+  const duration = booking.duration || 'N/A';
+  const amount = booking.amount || 0;
+
+  return {
+    subject: `Booking Accepted - Session Confirmed with ${mentorName}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #10b981; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+          .content { background-color: #f9fafb; padding: 30px; border-radius: 0 0 5px 5px; }
+          .info-box { background-color: white; padding: 15px; margin: 15px 0; border-radius: 5px; border-left: 4px solid #10b981; }
+          .info-label { font-weight: bold; color: #374151; }
+          .info-value { color: #1f2937; margin-left: 10px; }
+          .session-link { background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; }
+          .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>✓ Booking Accepted</h1>
+          </div>
+          <div class="content">
+            <p>Dear ${userName},</p>
+            
+            <p>Great news! Your booking has been accepted by your mentor.</p>
+            
+            <div class="info-box">
+              <div><span class="info-label">Mentor Name:</span><span class="info-value">${mentorName}${mentorTitle ? ` - ${mentorTitle}` : ''}</span></div>
+              <div style="margin-top: 10px;"><span class="info-label">Session Duration:</span><span class="info-value">${duration}</span></div>
+              <div style="margin-top: 10px;"><span class="info-label">Amount:</span><span class="info-value">₹${amount}</span></div>
+            </div>
+
+            <h3 style="color: #1f2937; margin-top: 25px;">Session Details:</h3>
+            <div class="info-box">
+              <div><span class="info-label">Date:</span><span class="info-value">${date}</span></div>
+              <div style="margin-top: 10px;"><span class="info-label">Time:</span><span class="info-value">${time}</span></div>
+              ${booking.sessionLink ? `<div style="margin-top: 15px;">
+                <div class="info-label" style="margin-bottom: 8px;">Session Link:</div>
+                <a href="${sessionLink}" class="session-link" target="_blank">Join Session</a>
+              </div>` : ''}
+            </div>
+
+            <p style="margin-top: 25px;">Please make sure to be available at the scheduled time. We look forward to your session!</p>
+            
+            <p>If you have any questions or need to reschedule, please contact your mentor.</p>
+            
+            <div class="footer">
+              <p>Best regards,<br>CreateBharat Team</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+};
+
+// Email template for booking rejected
+const getBookingRejectedEmailTemplate = (booking, mentor, user) => {
+  const mentorName = `${mentor.firstName || ''} ${mentor.lastName || ''}`.trim() || 'Mentor';
+  const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User';
+  const reason = booking.cancellationReason || 'No reason provided';
+  const duration = booking.duration || 'N/A';
+  const amount = booking.amount || 0;
+
+  return {
+    subject: `Booking Update - Session Request Status`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #ef4444; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+          .content { background-color: #f9fafb; padding: 30px; border-radius: 0 0 5px 5px; }
+          .info-box { background-color: white; padding: 15px; margin: 15px 0; border-radius: 5px; border-left: 4px solid #ef4444; }
+          .reason-box { background-color: #fef2f2; padding: 15px; margin: 15px 0; border-radius: 5px; border: 1px solid #fecaca; }
+          .info-label { font-weight: bold; color: #374151; }
+          .info-value { color: #1f2937; margin-left: 10px; }
+          .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Booking Update</h1>
+          </div>
+          <div class="content">
+            <p>Dear ${userName},</p>
+            
+            <p>We regret to inform you that your booking request has been declined by ${mentorName}.</p>
+            
+            <div class="info-box">
+              <div><span class="info-label">Mentor Name:</span><span class="info-value">${mentorName}</span></div>
+              <div style="margin-top: 10px;"><span class="info-label">Session Duration:</span><span class="info-value">${duration}</span></div>
+              <div style="margin-top: 10px;"><span class="info-label">Amount:</span><span class="info-value">₹${amount}</span></div>
+            </div>
+
+            <h3 style="color: #1f2937; margin-top: 25px;">Reason for Rejection:</h3>
+            <div class="reason-box">
+              <p style="margin: 0; color: #991b1b;">${reason}</p>
+            </div>
+
+            <p style="margin-top: 25px;">If payment has been made, you will receive a refund according to our refund policy.</p>
+            
+            <p>We apologize for any inconvenience this may cause. Feel free to book a session with another mentor or try again later.</p>
+            
+            <div class="footer">
+              <p>Best regards,<br>CreateBharat Team</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+};
+
+// Send email function
+const sendEmail = async (to, subject, html) => {
+  try {
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
+      console.warn('SMTP credentials not configured. Email not sent.');
+      return { success: false, error: 'SMTP not configured' };
+    }
+
+    const transporter = getTransporter();
+    
+    const mailOptions = {
+      from: `"CreateBharat" <${process.env.SMTP_USER}>`,
+      to: to,
+      subject: subject,
+      html: html
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Send booking accepted email
+const sendBookingAcceptedEmail = async (booking, mentor, user) => {
+  const emailTemplate = getBookingAcceptedEmailTemplate(booking, mentor, user);
+  return await sendEmail(user.email, emailTemplate.subject, emailTemplate.html);
+};
+
+// Send booking rejected email
+const sendBookingRejectedEmail = async (booking, mentor, user) => {
+  const emailTemplate = getBookingRejectedEmailTemplate(booking, mentor, user);
+  return await sendEmail(user.email, emailTemplate.subject, emailTemplate.html);
+};
+
+// Email template for application status updates
+const getApplicationStatusEmailTemplate = (application, status, companyName, internshipTitle) => {
+  const userName = application.name || `${application.user?.firstName || ''} ${application.user?.lastName || ''}`.trim() || 'Applicant';
+  const userEmail = application.email || application.user?.email || '';
+  
+  let subject = '';
+  let headerColor = '';
+  let headerText = '';
+  let message = '';
+  
+  switch (status) {
+    case 'shortlisted':
+      subject = `Application Update - Under Review for ${internshipTitle}`;
+      headerColor = '#f59e0b'; // amber-500
+      headerText = 'Application Under Review';
+      message = `Great news! Your application for the position <strong>${internshipTitle}</strong> at <strong>${companyName}</strong> is now under review. Our team will carefully evaluate your application and get back to you soon.`;
+      break;
+    case 'hired':
+      subject = `Congratulations! Application Accepted for ${internshipTitle}`;
+      headerColor = '#10b981'; // green-500
+      headerText = '🎉 Application Accepted!';
+      message = `Congratulations! We are pleased to inform you that your application for the position <strong>${internshipTitle}</strong> at <strong>${companyName}</strong> has been accepted!<br><br>We are excited to have you join our team. You will receive further details about the next steps shortly.`;
+      break;
+    case 'rejected':
+      subject = `Application Update - ${internshipTitle} at ${companyName}`;
+      headerColor = '#ef4444'; // red-500
+      headerText = 'Application Update';
+      message = `Thank you for your interest in the position <strong>${internshipTitle}</strong> at <strong>${companyName}</strong>.<br><br>After careful consideration, we regret to inform you that we have decided not to move forward with your application at this time. We appreciate the time you took to apply and wish you the best in your job search.`;
+      break;
+    default:
+      subject = `Application Update - ${internshipTitle}`;
+      headerColor = '#6b7280'; // gray-500
+      headerText = 'Application Update';
+      message = `Your application for <strong>${internshipTitle}</strong> at <strong>${companyName}</strong> has been updated.`;
+  }
+
+  return {
+    subject: subject,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: ${headerColor}; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+          .content { background-color: #f9fafb; padding: 30px; border-radius: 0 0 5px 5px; }
+          .info-box { background-color: white; padding: 15px; margin: 15px 0; border-radius: 5px; border-left: 4px solid ${headerColor}; }
+          .info-label { font-weight: bold; color: #374151; }
+          .info-value { color: #1f2937; margin-left: 10px; }
+          .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>${headerText}</h1>
+          </div>
+          <div class="content">
+            <p>Dear ${userName},</p>
+            
+            <p>${message}</p>
+            
+            <div class="info-box">
+              <div><span class="info-label">Position:</span><span class="info-value">${internshipTitle}</span></div>
+              <div style="margin-top: 10px;"><span class="info-label">Company:</span><span class="info-value">${companyName}</span></div>
+              <div style="margin-top: 10px;"><span class="info-label">Status:</span><span class="info-value">${status === 'shortlisted' ? 'Under Review' : status === 'hired' ? 'Accepted' : 'Rejected'}</span></div>
+            </div>
+
+            <p style="margin-top: 25px;">If you have any questions, please feel free to contact us.</p>
+            
+            <div class="footer">
+              <p>Best regards,<br>CreateBharat Team</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+};
+
+// Send application status email
+const sendApplicationStatusEmail = async (application, status, companyName, internshipTitle) => {
+  const emailTemplate = getApplicationStatusEmailTemplate(application, status, companyName, internshipTitle);
+  const userEmail = application.email || application.user?.email;
+  
+  if (!userEmail) {
+    console.warn('User email not found, skipping email notification');
+    return { success: false, error: 'User email not found' };
+  }
+  
+  return await sendEmail(userEmail, emailTemplate.subject, emailTemplate.html);
+};
+
+// Email template for contact form
+const getContactFormEmailTemplate = (contactData) => {
+  const { name, email, phone, subject, message } = contactData;
+  
+  return {
+    subject: `New Contact Form Submission: ${subject}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #3b82f6; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+          .content { background-color: #f9fafb; padding: 30px; border-radius: 0 0 5px 5px; }
+          .info-box { background-color: white; padding: 15px; margin: 15px 0; border-radius: 5px; border-left: 4px solid #3b82f6; }
+          .info-label { font-weight: bold; color: #374151; }
+          .info-value { color: #1f2937; margin-left: 10px; }
+          .message-box { background-color: white; padding: 20px; margin: 15px 0; border-radius: 5px; border: 1px solid #e5e7eb; }
+          .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>New Contact Form Submission</h1>
+          </div>
+          <div class="content">
+            <p>You have received a new contact form submission from your website.</p>
+            
+            <div class="info-box">
+              <div style="margin-bottom: 10px;"><span class="info-label">Name:</span><span class="info-value">${name}</span></div>
+              <div style="margin-bottom: 10px;"><span class="info-label">Email:</span><span class="info-value"><a href="mailto:${email}" style="color: #3b82f6; text-decoration: none;">${email}</a></span></div>
+              <div style="margin-bottom: 10px;"><span class="info-label">Phone:</span><span class="info-value">${phone}</span></div>
+              <div><span class="info-label">Subject:</span><span class="info-value">${subject}</span></div>
+            </div>
+
+            <h3 style="color: #1f2937; margin-top: 25px;">Message:</h3>
+            <div class="message-box">
+              <p style="margin: 0; white-space: pre-wrap;">${message}</p>
+            </div>
+
+            <div class="footer">
+              <p>This email was sent from the CreateBharat contact form.<br>Please reply directly to ${email} to respond to this inquiry.</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+};
+
+// Send contact form email to admin
+const sendContactFormEmail = async (contactData) => {
+  const adminEmail = 'createbharatofficial@gmail.com';
+  const emailTemplate = getContactFormEmailTemplate(contactData);
+  
+  return await sendEmail(adminEmail, emailTemplate.subject, emailTemplate.html);
+};
+
+module.exports = {
+  sendEmail,
+  sendBookingAcceptedEmail,
+  sendBookingRejectedEmail,
+  sendApplicationStatusEmail,
+  sendContactFormEmail
+};
+
