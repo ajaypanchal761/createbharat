@@ -15,6 +15,7 @@ const CertificatePage = () => {
   const [hasPaid, setHasPaid] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     if (courseId) {
@@ -98,8 +99,9 @@ const CertificatePage = () => {
         const courseProgress = response.data.find(p => p.course._id === courseId || p.course === courseId);
         if (courseProgress) {
           setProgress(courseProgress);
+          const adminAssigned = courseProgress.certificateManagedByAdmin && courseProgress.certificateAdminFileId;
           // Check payment status from progress
-          setHasPaid(courseProgress.certificatePaymentStatus === 'completed');
+          setHasPaid(adminAssigned || courseProgress.certificatePaymentStatus === 'completed');
         }
       }
     } catch (err) {
@@ -198,6 +200,42 @@ const CertificatePage = () => {
       console.error('Error fetching user data:', err);
     }
   };
+
+  const handleDownloadCertificate = async () => {
+    try {
+      setIsDownloading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await trainingAPI.downloadCertificate(token, courseId);
+      const blob = await response.blob();
+      const disposition = response.headers.get('Content-Disposition') || '';
+      let filename = 'certificate.pdf';
+      const match = disposition.match(/filename="(.+)"/);
+      if (match && match[1]) {
+        filename = match[1];
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download certificate error:', err);
+      alert(err.message || 'Failed to download certificate.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const adminAssigned = progress?.certificateManagedByAdmin && progress?.certificateAdminFileId;
 
   const getUserName = () => {
     // Always check localStorage first (most reliable)
@@ -516,7 +554,7 @@ const CertificatePage = () => {
             Your Certificate
           </h1>
           <p className="text-gray-600">
-            {hasPaid ? 'Download and share your verified certificate' : 'Complete payment to unlock your certificate'}
+            {hasPaid ? 'Download and share your verified certificate' : adminAssigned ? 'Certificate assigned by admin' : 'Complete payment to unlock your certificate'}
           </p>
         </motion.div>
 
@@ -611,15 +649,25 @@ const CertificatePage = () => {
           )}
         </div>
 
-        {/* Download Button (only if paid) */}
+        {/* Download Button (only if paid or admin-assigned) */}
         {hasPaid && (
           <div className="mt-6 flex justify-center">
-            <button
-              onClick={() => window.print()}
-              className="bg-green-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-green-700 transition-colors shadow-lg"
-            >
-              Download Certificate
-            </button>
+            {adminAssigned ? (
+              <button
+                onClick={handleDownloadCertificate}
+                disabled={isDownloading}
+                className="bg-blue-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-blue-700 transition-colors shadow-lg disabled:opacity-60"
+              >
+                {isDownloading ? 'Downloading...' : 'Download Assigned Certificate'}
+              </button>
+            ) : (
+              <button
+                onClick={() => window.print()}
+                className="bg-green-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-green-700 transition-colors shadow-lg"
+              >
+                Download Certificate
+              </button>
+            )}
           </div>
         )}
       </div>

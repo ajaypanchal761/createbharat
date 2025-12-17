@@ -15,7 +15,9 @@ const {
   deleteTopic,
   createQuiz,
   updateQuiz,
-  deleteQuiz
+  deleteQuiz,
+  adminAssignCertificate,
+  listAdminCertificates
 } = require('../controllers/trainingController');
 const { protect: adminProtect } = require('../middleware/adminAuth');
 const upload = require('../utils/multer');
@@ -71,6 +73,16 @@ router.delete('/training/topics/:id', deleteTopic);
 router.post('/training/topics/:topicId/quizzes', createQuiz);
 router.put('/training/quizzes/:id', updateQuiz);
 router.delete('/training/quizzes/:id', deleteQuiz);
+
+// Certificate assignment (admin-managed certificates)
+router.post(
+  '/training/certificates/assign',
+  upload.uploadLegalDocuments.single('certificate'),
+  adminAssignCertificate
+);
+
+// List admin-assigned certificates
+router.get('/training/certificates', listAdminCertificates);
 
 module.exports = router;
 

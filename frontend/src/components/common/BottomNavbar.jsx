@@ -69,7 +69,7 @@ const BottomNavbar = ({ tabs = [] }) => {
     const defaultTabs = [
         { name: 'Home', path: '/', icon: <HomeIcon /> },
         { name: 'Pitch', path: '/pitch/submit', icon: <DocumentIcon /> },
-        { name: 'Legal', path: '/legal', icon: <ChatIcon /> },
+        { name: 'Other', path: '/other', icon: <PlusIcon /> },
         { name: 'Mentors', path: '/mentors', icon: <UserIcon /> },
         { name: 'Profile', path: '/profile', icon: <UserIcon /> }
     ];

@@ -18,7 +18,7 @@ const mentorBookingSchema = new mongoose.Schema({
   // Session Details
   sessionType: {
     type: String,
-    enum: ['20min', '50min', '90min'],
+    enum: ['intro', '20min', '50min', '90min'],
     required: [true, 'Session type is required']
   },
   duration: {

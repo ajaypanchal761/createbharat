@@ -41,6 +41,11 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const pitchRoutes = require('./routes/pitchRoutes');
 const adminPitchRoutes = require('./routes/adminPitchRoutes');
+const otherServiceRoutes = require('./routes/otherServiceRoutes');
+const adminOtherServiceRoutes = require('./routes/adminOtherServiceRoutes');
+const mentorPayoutRoutes = require('./routes/mentorPayoutRoutes');
+const caPayoutRoutes = require('./routes/caPayoutRoutes');
+const adminPayoutRoutes = require('./routes/adminPayoutRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -461,6 +466,11 @@ app.use('/api/admin', adminBankAccountRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/pitch', pitchRoutes);
 app.use('/api/admin/pitches', adminPitchRoutes);
+app.use('/api/other-services', otherServiceRoutes);
+app.use('/api/admin', adminOtherServiceRoutes);
+app.use('/api/mentors', mentorPayoutRoutes);
+app.use('/api/ca', caPayoutRoutes);
+app.use('/api/admin', adminPayoutRoutes);
 app.use('/api/test', testRoutes);
 
 // Root endpoint

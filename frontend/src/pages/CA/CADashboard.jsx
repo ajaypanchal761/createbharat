@@ -12,7 +12,7 @@ import {
   FaSearch, 
   FaUserCircle
 } from 'react-icons/fa';
-import { caAPI, caLegalServiceAPI, caLegalSubmissionAPI } from '../../utils/api';
+import { caAPI, caLegalServiceAPI, caLegalSubmissionAPI, caPayoutAPI } from '../../utils/api';
 
 const CADashboard = () => {
   const navigate = useNavigate();
@@ -31,6 +31,17 @@ const CADashboard = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [payoutData, setPayoutData] = useState({
+    accountHolderName: '',
+    bankName: '',
+    accountNumber: '',
+    ifsc: '',
+    upiId: '',
+    notes: ''
+  });
+  const [payoutLoading, setPayoutLoading] = useState(false);
+  const [payoutSaving, setPayoutSaving] = useState(false);
+  const [payoutStatus, setPayoutStatus] = useState(null);
 
   // Check CA authentication on mount
   useEffect(() => {
@@ -61,6 +72,34 @@ const CADashboard = () => {
 
     checkAuth();
   }, [navigate]);
+
+  useEffect(() => {
+    const fetchPayout = async () => {
+      try {
+        if (isCheckingAuth) return;
+        setPayoutLoading(true);
+        setPayoutStatus(null);
+        const token = localStorage.getItem('caToken');
+        if (!token) return;
+        const response = await caPayoutAPI.get(token);
+        if (response?.success && response.data) {
+          setPayoutData({
+            accountHolderName: response.data.accountHolderName || '',
+            bankName: response.data.bankName || '',
+            accountNumber: response.data.accountNumber || '',
+            ifsc: response.data.ifsc || '',
+            upiId: response.data.upiId || '',
+            notes: response.data.notes || '',
+          });
+        }
+      } catch (err) {
+        setPayoutStatus({ type: 'error', message: err?.message || 'Failed to load bank details' });
+      } finally {
+        setPayoutLoading(false);
+      }
+    };
+    fetchPayout();
+  }, [isCheckingAuth]);
 
   // Legal Services State
   const [legalServices, setLegalServices] = useState([
@@ -659,6 +698,37 @@ const CADashboard = () => {
     navigate('/ca/login');
   };
 
+  const handlePayoutChange = (e) => {
+    const { name, value } = e.target;
+    setPayoutData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePayoutSubmit = async (e) => {
+    e.preventDefault();
+    setPayoutStatus(null);
+    const required = ['accountHolderName', 'bankName', 'accountNumber', 'ifsc'];
+    for (const field of required) {
+      if (!payoutData[field]) {
+        setPayoutStatus({ type: 'error', message: `${field} is required` });
+        return;
+      }
+    }
+    try {
+      setPayoutSaving(true);
+      const token = localStorage.getItem('caToken');
+      const response = await caPayoutAPI.upsert(token, payoutData);
+      if (response?.success) {
+        setPayoutStatus({ type: 'success', message: 'Bank details saved successfully' });
+      } else {
+        setPayoutStatus({ type: 'error', message: response?.message || 'Failed to save bank details' });
+      }
+    } catch (err) {
+      setPayoutStatus({ type: 'error', message: err?.message || 'Failed to save bank details' });
+    } finally {
+      setPayoutSaving(false);
+    }
+  };
+
   // Reset form
   const resetForm = useCallback(() => {
     setFormData({
@@ -917,6 +987,101 @@ const CADashboard = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+        {/* Payout Notice */}
+        <div className="bg-white border border-blue-100 rounded-xl p-3 sm:p-4 md:p-5 shadow-sm mb-4 sm:mb-6">
+          <p className="text-sm sm:text-base font-semibold text-gray-900">Payments & Commission</p>
+          <p className="text-xs sm:text-sm text-gray-700 mt-1">
+            CA payouts are processed within 7 days with a 25% platform commission deduction.
+          </p>
+        </div>
+
+        {/* Payout Details Form */}
+        <div className="bg-white border border-blue-100 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm mb-4 sm:mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900">Bank Details for Payouts</h3>
+            {payoutStatus && (
+              <span className={`text-xs sm:text-sm font-semibold ${payoutStatus.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                {payoutStatus.message}
+              </span>
+            )}
+          </div>
+          {payoutLoading ? (
+            <p className="text-sm text-gray-500">Loading bank details...</p>
+          ) : (
+            <form className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" onSubmit={handlePayoutSubmit}>
+              <div className="space-y-1">
+                <label className="text-xs sm:text-sm font-medium text-gray-700">Account Holder Name *</label>
+                <input
+                  name="accountHolderName"
+                  value={payoutData.accountHolderName}
+                  onChange={handlePayoutChange}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Name as per bank"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs sm:text-sm font-medium text-gray-700">Bank Name *</label>
+                <input
+                  name="bankName"
+                  value={payoutData.bankName}
+                  onChange={handlePayoutChange}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g., HDFC Bank"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs sm:text-sm font-medium text-gray-700">Account Number *</label>
+                <input
+                  name="accountNumber"
+                  value={payoutData.accountNumber}
+                  onChange={handlePayoutChange}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Account number"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs sm:text-sm font-medium text-gray-700">IFSC *</label>
+                <input
+                  name="ifsc"
+                  value={payoutData.ifsc}
+                  onChange={handlePayoutChange}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 uppercase"
+                  placeholder="IFSC code"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs sm:text-sm font-medium text-gray-700">UPI ID (optional)</label>
+                <input
+                  name="upiId"
+                  value={payoutData.upiId}
+                  onChange={handlePayoutChange}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="example@upi"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs sm:text-sm font-medium text-gray-700">Notes (optional)</label>
+                <input
+                  name="notes"
+                  value={payoutData.notes}
+                  onChange={handlePayoutChange}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Any payout notes"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <button
+                  type="submit"
+                  disabled={payoutSaving}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {payoutSaving ? 'Saving...' : 'Save Bank Details'}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+
         {/* Stats Cards */}
         <Motion.div
           initial={{ opacity: 0, y: 20 }}

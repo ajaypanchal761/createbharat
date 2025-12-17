@@ -9,7 +9,8 @@ const {
   createCertificateOrder,
   createCertificatePaymentLink,
   handleCertificatePaymentCallback,
-  updateCertificatePayment
+  updateCertificatePayment,
+  downloadAssignedCertificate
 } = require('../controllers/trainingController');
 const { protect } = require('../middleware/auth');
 
@@ -30,6 +31,7 @@ router.post('/certificate/:courseId/create-order', protect, createCertificateOrd
 router.post('/certificate/:courseId/create-payment-link', protect, createCertificatePaymentLink);
 router.get('/certificate/:courseId/payment-callback', handleCertificatePaymentCallback); // Public callback route (called by Razorpay)
 router.put('/certificate/:courseId/payment', protect, updateCertificatePayment);
+router.get('/certificate/:courseId/download', protect, downloadAssignedCertificate);
 
 module.exports = router;
 

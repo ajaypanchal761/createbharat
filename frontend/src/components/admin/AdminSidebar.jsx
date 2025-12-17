@@ -12,7 +12,10 @@ import {
     FaChevronRight,
     FaBalanceScale,
     FaEnvelope,
-    FaUniversity
+    FaUniversity,
+    FaClipboardList,
+    FaCertificate,
+    FaWallet
 } from 'react-icons/fa';
 
 const AdminSidebar = ({ isOpen, isMobile, onClose }) => {
@@ -43,6 +46,12 @@ const AdminSidebar = ({ isOpen, isMobile, onClose }) => {
             description: 'Content Management'
         },
         {
+            name: 'Certificates',
+            path: '/admin/certificates',
+            icon: FaCertificate,
+            description: 'Assign course certificates'
+        },
+        {
             name: 'Users',
             path: '/admin/users',
             icon: FaUsers,
@@ -71,6 +80,18 @@ const AdminSidebar = ({ isOpen, isMobile, onClose }) => {
             path: '/admin/pitches',
             icon: FaEnvelope,
             description: 'Startup Pitch Management'
+        },
+        {
+            name: 'Other Service',
+            path: '/admin/other-services',
+            icon: FaClipboardList,
+            description: 'Other service requests'
+        },
+        {
+            name: 'Payouts',
+            path: '/admin/payouts',
+            icon: FaWallet,
+            description: 'Mentor & CA bank details'
         },
         // Bank Leads - Only visible to Master Admin
         ...(isMasterAdmin ? [{
