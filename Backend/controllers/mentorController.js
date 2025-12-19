@@ -73,7 +73,7 @@ const sanitizeMentor = (mentorDoc) => {
 
   mentorObj.rating = typeof mentorObj.rating === 'number' && mentorObj.rating > 0
     ? Number(mentorObj.rating.toFixed(2))
-    : 3;
+    : 0;
 
   const reviewCountFromField = typeof mentorObj.reviewCount === 'number'
     ? mentorObj.reviewCount
@@ -1350,8 +1350,8 @@ const addBookingReview = async (req, res) => {
       const completedCount = statsData ? statsData.completedCount : 0;
       const totalRating = statsData ? statsData.totalRating : 0;
 
-      const averageRating = reviewCount > 0 ? totalRating / reviewCount : 3;
-      mentor.rating = reviewCount > 0 ? Number(averageRating.toFixed(2)) : 3;
+      const averageRating = reviewCount > 0 ? totalRating / reviewCount : 0;
+      mentor.rating = reviewCount > 0 ? Number(averageRating.toFixed(2)) : 0;
       mentor.totalSessions = completedCount;
       mentor.reviewCount = reviewCount;
 

@@ -215,26 +215,6 @@ const MentorDashboard = () => {
           <p className="text-xs md:text-base text-gray-600">Manage your bookings and mentor sessions</p>
         </div>
 
-        {/* Payout Policy Notice */}
-        <div className="bg-white border border-orange-100 rounded-xl p-3 md:p-4 shadow-sm mb-4 md:mb-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-            <div>
-              <p className="text-sm md:text-base font-semibold text-gray-900">
-                Payments & Commission
-              </p>
-              <p className="text-xs md:text-sm text-gray-700">
-                Platform deducts 30% commission. Your payout is processed within 7 days. Please ensure your bank details are updated to receive payments smoothly.
-              </p>
-            </div>
-            <Link
-              to="/mentors/profile"
-              className="inline-flex items-center justify-center px-3 py-2 text-xs md:text-sm font-semibold text-orange-700 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100"
-            >
-              Update bank details
-            </Link>
-          </div>
-        </div>
-
         {/* Stats Cards */}
         <div
           className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-8"
@@ -411,6 +391,7 @@ const MentorDashboard = () => {
               />
             </div>
           )}
+
         </div>
       </div>
 

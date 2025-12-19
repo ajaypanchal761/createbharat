@@ -2155,35 +2155,6 @@ export const adminWebDevelopmentAPI = {
   },
 };
 
-// Mentor payout
-export const mentorPayoutAPI = {
-  get: async (token) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/mentors/payout', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  },
-  upsert: async (token, payload) => {
-    if (!token || token === 'null' || token === 'undefined') {
-      throw new Error('Authentication token is missing. Please login again.');
-    }
-    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
-    return apiCall('/mentors/payout', {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-      body: JSON.stringify(payload),
-    });
-  },
-};
-
 // CA payout
 export const caPayoutAPI = {
   get: async (token) => {
