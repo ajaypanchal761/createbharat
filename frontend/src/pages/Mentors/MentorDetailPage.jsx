@@ -42,6 +42,7 @@ const MentorDetailPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [mentorData, setMentorData] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [freeAvailable, setFreeAvailable] = useState(null);
 
   // Fetch mentor data
   const fetchMentor = useCallback(async () => {
@@ -92,6 +93,31 @@ const MentorDetailPage = () => {
   }, [fetchMentor]);
 
   useEffect(() => {
+    const checkFree = async () => {
+      try {
+        const token = (localStorage.getItem('token') || localStorage.getItem('authToken') || '').trim();
+        if (!token) return;
+        const cleanToken = token.replace(/^["']/, '').replace(/["']$/, '');
+        const res = await mentorAPI.getFreeStatus(cleanToken, mentorId);
+        if (res?.success) {
+          setFreeAvailable(res.data?.available ?? null);
+        }
+      } catch (err) {
+        // ignore errors; default null
+      }
+    };
+    checkFree();
+  }, [mentorId]);
+
+  useEffect(() => {
+    if (freeAvailable === false) {
+      setSelectedSlot('paid');
+    } else if (freeAvailable === true) {
+      setSelectedSlot('intro');
+    }
+  }, [freeAvailable]);
+
+  useEffect(() => {
     const handler = () => {
       fetchMentor();
     };
@@ -104,9 +130,21 @@ const MentorDetailPage = () => {
 
   // Time slots based on pricing
   const timeSlots = [
-    { id: 'quick', duration: mentor?.pricing?.quick?.duration || '20-25 minutes', price: mentor?.pricing?.quick?.price || 150, description: mentor?.pricing?.quick?.label || 'Quick consultation' },
-    { id: 'inDepth', duration: mentor?.pricing?.inDepth?.duration || '50-60 minutes', price: mentor?.pricing?.inDepth?.price || 300, description: mentor?.pricing?.inDepth?.label || 'In-depth session' },
-    { id: 'comprehensive', duration: mentor?.pricing?.comprehensive?.duration || '90-120 minutes', price: mentor?.pricing?.comprehensive?.price || 450, description: mentor?.pricing?.comprehensive?.label || 'Comprehensive consultation' }
+    {
+      id: 'intro',
+      duration: '15-20 minutes',
+      price: 0,
+      description: 'First session is free for new students with this mentor',
+      disabled: freeAvailable === false,
+      label: 'Intro (Free)'
+    },
+    {
+      id: 'paid',
+      duration: mentor?.pricing?.quick?.duration || '20-25 minutes',
+      price: mentor?.pricing?.quick?.price || 150,
+      description: mentor?.pricing?.quick?.label || 'Standard consultation',
+      label: 'Standard (Paid)'
+    },
   ];
 
   // (date/time selection handled later by mentor after acceptance)
@@ -120,7 +158,7 @@ const MentorDetailPage = () => {
     try {
       const rawToken = (localStorage.getItem('token') || localStorage.getItem('authToken') || '').trim();
       const token = rawToken.replace(/^["']/, '').replace(/["']$/, '');
-      const sessionTypeMap = { quick: '20min', inDepth: '50min', comprehensive: '90min' };
+      const sessionTypeMap = { intro: 'intro', paid: '20min' };
       const sessionType = sessionTypeMap[slotId];
       if (!sessionType) throw new Error('Invalid session type');
       const bookingData = { sessionType };
@@ -130,8 +168,8 @@ const MentorDetailPage = () => {
       } else {
         alert('Booking failed');
       }
-    } catch {
-      alert('Booking failed');
+    } catch (err) {
+      alert(err?.message || 'Booking failed');
     }
     setIsBooking(false);
   };
@@ -377,22 +415,31 @@ const MentorDetailPage = () => {
                 
                 {/* Time Slots */}
                 <div className="space-y-3 mb-6">
-                  {timeSlots.map((slot) => (
-                    <div
-                      key={slot.id}
-                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedSlot === slot.id ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'}`}
-                      onClick={() => setSelectedSlot(slot.id)}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <ClockIcon />
-                          <span className="font-medium text-gray-900">{slot.duration}</span>
+                  {timeSlots.map((slot) => {
+                    const isSelected = selectedSlot === slot.id;
+                    const isDisabled = slot.disabled;
+                    return (
+                      <div
+                        key={slot.id}
+                        className={`p-4 rounded-lg border-2 transition-all ${isSelected ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'} ${isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                        onClick={() => !isDisabled && setSelectedSlot(slot.id)}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <ClockIcon />
+                            <span className="font-medium text-gray-900">{slot.duration}</span>
+                          </div>
+                          <span className="font-bold text-gray-900">
+                            {slot.price === 0 ? 'Free' : `₹${slot.price}`}
+                          </span>
                         </div>
-                        <span className="font-bold text-gray-900">₹{slot.price}</span>
+                        <p className="text-sm text-gray-600">{slot.description}</p>
+                        {slot.id === 'intro' && freeAvailable === false && (
+                          <p className="text-xs text-red-500 mt-1">Free session already used.</p>
+                        )}
                       </div>
-                      <p className="text-sm text-gray-600">{slot.description}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Booking Button */}

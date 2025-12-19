@@ -56,6 +56,7 @@ import AdminLegalPage from './pages/Admin/AdminLegalPage';
 import AdminLoginPage from './pages/Admin/AdminLoginPage';
 import AdminUsersPage from './pages/Admin/AdminUsersPage';
 import AdminTrainingPage from './pages/Admin/AdminTrainingPage';
+import AdminCertificatesPage from './pages/Admin/AdminCertificatesPage';
 import AdminPaymentsPage from './pages/Admin/AdminPaymentsPage';
 import AdminBannerPage from './pages/Admin/AdminBannerPage';
 import AdminLeadsPage from './pages/Admin/AdminLeadsPage';
@@ -63,7 +64,11 @@ import AdminBankLeadsPage from './pages/Admin/AdminBankLeadsPage';
 import AdminPitchesPage from './pages/Admin/AdminPitchesPage';
 import AdminProfilePage from './pages/Admin/AdminProfilePage';
 import AdminSettingsPage from './pages/Admin/AdminSettingsPage';
+import AdminPayoutsPage from './pages/Admin/AdminPayoutsPage';
+import AdminOtherServicesPage from './pages/Admin/AdminOtherServicesPage';
 import ProfilePage from './pages/Profile/ProfilePage';
+import OtherServicesPage from './pages/Other/OtherServicesPage';
+import OtherCategoryFormPage from './pages/Other/OtherCategoryFormPage';
 import CompanyInternshipsPage from './pages/Company/CompanyInternshipsPage';
 import CompanyLoginPage from './pages/Company/CompanyLoginPage';
 import CompanySignupPage from './pages/Company/CompanySignupPage';
@@ -90,12 +95,15 @@ function App() {
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="loans" element={<AdminLoansPage />} />
               <Route path="training" element={<AdminTrainingPage />} />
+              <Route path="certificates" element={<AdminCertificatesPage />} />
               <Route path="users" element={<AdminUsersPage />} />
               <Route path="payments" element={<AdminPaymentsPage />} />
               <Route path="banners" element={<AdminBannerPage />} />
               <Route path="leads" element={<AdminLeadsPage />} />
               <Route path="bank-leads" element={<AdminBankLeadsPage />} />
               <Route path="pitches" element={<AdminPitchesPage />} />
+              <Route path="payouts" element={<AdminPayoutsPage />} />
+              <Route path="other-services" element={<AdminOtherServicesPage />} />
               <Route path="profile" element={<AdminProfilePage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
             </Route>
@@ -149,6 +157,8 @@ function App() {
                     <Route path="/mobile-login" element={<LoginPage />} />
                     <Route path="/ca/dashboard" element={<CADashboard />} />
                     <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/other" element={<OtherServicesPage />} />
+                    <Route path="/other/:categoryId" element={<OtherCategoryFormPage />} />
                     <Route path="/app-development" element={<AppDevelopmentPage />} />
                     <Route path="/pitch/submit" element={<SubmitPitchPage />} />
                   </Routes>

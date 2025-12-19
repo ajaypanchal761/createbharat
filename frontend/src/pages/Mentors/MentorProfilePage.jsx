@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { mentorAPI } from '../../utils/api';
+import { mentorAPI, mentorPayoutAPI } from '../../utils/api';
 import { mentorCategories, getMentorCategoryById } from '../../data/mentorCategories';
 
 const MentorProfilePage = () => {
@@ -11,6 +11,17 @@ const MentorProfilePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+  const [payoutData, setPayoutData] = useState({
+    accountHolderName: '',
+    bankName: '',
+    accountNumber: '',
+    ifsc: '',
+    upiId: '',
+    notes: ''
+  });
+  const [payoutLoading, setPayoutLoading] = useState(false);
+  const [payoutSaving, setPayoutSaving] = useState(false);
+  const [payoutStatus, setPayoutStatus] = useState(null);
   
   // Default mentor profile data to avoid slow loading
   const defaultPricing = {
@@ -176,6 +187,33 @@ const MentorProfilePage = () => {
     fetchProfile();
   }, []);
 
+  useEffect(() => {
+    const fetchPayout = async () => {
+      try {
+        setPayoutLoading(true);
+        setPayoutStatus(null);
+        const token = localStorage.getItem('mentorToken');
+        if (!token) return;
+        const response = await mentorPayoutAPI.get(token);
+        if (response?.success && response.data) {
+          setPayoutData({
+            accountHolderName: response.data.accountHolderName || '',
+            bankName: response.data.bankName || '',
+            accountNumber: response.data.accountNumber || '',
+            ifsc: response.data.ifsc || '',
+            upiId: response.data.upiId || '',
+            notes: response.data.notes || '',
+          });
+        }
+      } catch (err) {
+        setPayoutStatus({ type: 'error', message: err?.message || 'Failed to load bank details' });
+      } finally {
+        setPayoutLoading(false);
+      }
+    };
+    fetchPayout();
+  }, []);
+
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -317,6 +355,37 @@ const MentorProfilePage = () => {
     localStorage.removeItem('userType');
     localStorage.removeItem('mentorData');
     navigate('/mentors/login');
+  };
+
+  const handlePayoutChange = (e) => {
+    const { name, value } = e.target;
+    setPayoutData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePayoutSubmit = async (e) => {
+    e.preventDefault();
+    setPayoutStatus(null);
+    const required = ['accountHolderName', 'bankName', 'accountNumber', 'ifsc'];
+    for (const field of required) {
+      if (!payoutData[field]) {
+        setPayoutStatus({ type: 'error', message: `${field} is required` });
+        return;
+      }
+    }
+    try {
+      setPayoutSaving(true);
+      const token = localStorage.getItem('mentorToken');
+      const response = await mentorPayoutAPI.upsert(token, payoutData);
+      if (response?.success) {
+        setPayoutStatus({ type: 'success', message: 'Bank details saved successfully' });
+      } else {
+        setPayoutStatus({ type: 'error', message: response?.message || 'Failed to save bank details' });
+      }
+    } catch (err) {
+      setPayoutStatus({ type: 'error', message: err?.message || 'Failed to save bank details' });
+    } finally {
+      setPayoutSaving(false);
+    }
   };
 
   // Add skill
@@ -549,6 +618,94 @@ const MentorProfilePage = () => {
           />
         ) : (
           <p className="text-gray-600 leading-relaxed">{profileData.bio}</p>
+        )}
+      </div>
+
+      {/* Payout Details */}
+      <div className="bg-white rounded-xl p-6 shadow-lg">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold text-gray-800">Bank Details for Payouts</h3>
+          {payoutStatus && (
+            <span className={`text-xs font-semibold ${payoutStatus.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+              {payoutStatus.message}
+            </span>
+          )}
+        </div>
+
+        {payoutLoading ? (
+          <p className="text-sm text-gray-500">Loading bank details...</p>
+        ) : (
+          <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handlePayoutSubmit}>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Account Holder Name *</label>
+              <input
+                name="accountHolderName"
+                value={payoutData.accountHolderName}
+                onChange={handlePayoutChange}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                placeholder="Name as per bank"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Bank Name *</label>
+              <input
+                name="bankName"
+                value={payoutData.bankName}
+                onChange={handlePayoutChange}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                placeholder="e.g., HDFC Bank"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Account Number *</label>
+              <input
+                name="accountNumber"
+                value={payoutData.accountNumber}
+                onChange={handlePayoutChange}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                placeholder="Account number"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">IFSC *</label>
+              <input
+                name="ifsc"
+                value={payoutData.ifsc}
+                onChange={handlePayoutChange}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 uppercase"
+                placeholder="IFSC code"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">UPI ID (optional)</label>
+              <input
+                name="upiId"
+                value={payoutData.upiId}
+                onChange={handlePayoutChange}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                placeholder="example@upi"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Notes (optional)</label>
+              <input
+                name="notes"
+                value={payoutData.notes}
+                onChange={handlePayoutChange}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                placeholder="Any payout notes"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <button
+                type="submit"
+                disabled={payoutSaving}
+                className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold shadow hover:bg-orange-700 disabled:opacity-60"
+              >
+                {payoutSaving ? 'Saving...' : 'Save Bank Details'}
+              </button>
+            </div>
+          </form>
         )}
       </div>
 

@@ -5,6 +5,13 @@ const resolveApiBaseUrl = () => {
   }
 
   if (typeof window !== 'undefined') {
+    const host = window.location.hostname.toLowerCase();
+
+    // Production: force API subdomain to avoid token/secret mismatch
+    if (host.endsWith('createbharat.com') && !host.startsWith('api.')) {
+      return 'https://api.createbharat.com/api';
+    }
+
     return `${window.location.origin.replace(/\/$/, '')}/api`;
   }
 
@@ -988,6 +995,18 @@ export const mentorAPI = {
     });
   },
 
+  // Check if free session available for this mentor (user-auth)
+  getFreeStatus: async (token, mentorId) => {
+    const cleanToken = token?.trim().replace(/^["']|["']$/g, '');
+    if (!cleanToken) throw new Error('Authentication token is missing. Please login again.');
+    return apiCall(`/mentors/${mentorId}/free-status`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
   // Mentor: Get dashboard bookings
   getMentorBookings: async (token, params = {}) => {
     const queryString = new URLSearchParams(params).toString();
@@ -1248,6 +1267,29 @@ export const trainingAPI = {
       },
       body: JSON.stringify(paymentData),
     });
+  },
+
+  // Download admin-assigned certificate
+  downloadCertificate: async (token, courseId) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+
+    const url = `${API_BASE_URL}/training/certificate/${courseId}/download`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || 'Failed to download certificate');
+    }
+
+    return response;
   },
 };
 
@@ -1911,6 +1953,44 @@ export const adminTrainingAPI = {
       },
     });
   },
+
+  // Assign/upload certificate to a user/course (admin-managed certificates)
+  assignCertificate: async (token, { userId, courseId, certificateFile, notes }) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+
+    const formData = new FormData();
+    formData.append('userId', userId);
+    formData.append('courseId', courseId);
+    if (notes) formData.append('notes', notes);
+    if (certificateFile) formData.append('certificate', certificateFile);
+
+    return apiCall('/admin/training/certificates/assign', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: formData,
+      skipJsonHeaders: true,
+    });
+  },
+
+  // List admin-assigned certificates
+  listCertificates: async (token, params = {}) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    const query = new URLSearchParams(params).toString();
+    return apiCall(`/admin/training/certificates${query ? `?${query}` : ''}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
 };
 
 // Admin Payments API calls
@@ -2079,6 +2159,160 @@ export const adminWebDevelopmentAPI = {
     }
     const cleanToken = token.trim().replace(/^["']|["']$/g, '');
     return apiCall(`/admin/web-development/leads/${leadId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+};
+
+// Mentor payout
+export const mentorPayoutAPI = {
+  get: async (token) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/mentors/payout', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+  upsert: async (token, payload) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/mentors/payout', {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+};
+
+// CA payout
+export const caPayoutAPI = {
+  get: async (token) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/ca/payout', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+  upsert: async (token, payload) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall('/ca/payout', {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+};
+
+// Admin payout
+export const adminPayoutAPI = {
+  list: async (token, params = {}) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/admin/payouts${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+  getById: async (token, id) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/payouts/${id}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+};
+
+// Other Service (public)
+export const otherServiceAPI = {
+  submit: async (payload) => {
+    return apiCall('/other-services/submit', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+};
+
+// Admin Other Service
+export const adminOtherServiceAPI = {
+  getAll: async (token, params = {}) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    const queryString = new URLSearchParams(params).toString();
+    return apiCall(`/admin/other-services${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  getById: async (token, id) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/other-services/${id}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+    });
+  },
+
+  updateStatus: async (token, id, payload) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/other-services/${id}/status`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  delete: async (token, id) => {
+    if (!token || token === 'null' || token === 'undefined') {
+      throw new Error('Authentication token is missing. Please login again.');
+    }
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '');
+    return apiCall(`/admin/other-services/${id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${cleanToken}`,

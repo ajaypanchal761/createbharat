@@ -841,7 +841,7 @@ const HomePage = () => {
                     <div className="grid grid-cols-3 gap-2.5 justify-items-center" data-aos="fade-up" data-aos-delay="100">
                         {[
                             { 
-                                name: 'Certified Training', 
+                                name: 'Training', 
                                 image: trainingImg,
                                 path: '/training'
                             },

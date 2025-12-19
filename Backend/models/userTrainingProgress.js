@@ -79,6 +79,41 @@ const userTrainingProgressSchema = new mongoose.Schema({
     default: false
   },
 
+  // If an admin manually assigns/uploads a certificate
+  certificateManagedByAdmin: {
+    type: Boolean,
+    default: false
+  },
+
+  certificateAdminFileId: {
+    type: String,
+    default: ''
+  },
+
+  certificateAdminFileName: {
+    type: String,
+    default: ''
+  },
+
+  certificateAdminMimeType: {
+    type: String,
+    default: ''
+  },
+
+  certificateAdminUploadedAt: {
+    type: Date
+  },
+
+  certificateAdminUploadedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Admin'
+  },
+
+  certificateAdminNotes: {
+    type: String,
+    default: ''
+  },
+
   certificateUrl: {
     type: String,
     default: ''

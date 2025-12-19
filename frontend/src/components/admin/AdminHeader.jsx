@@ -31,6 +31,7 @@ const AdminHeader = ({ onToggleSidebar, sidebarOpen }) => {
             if (!token || token === 'null' || token === 'undefined') {
                 return;
             }
+            
 
             setLoadingNotifications(true);
             const cleanToken = token.trim().replace(/^["']|["']$/g, '');

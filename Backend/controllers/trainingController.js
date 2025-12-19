@@ -6,6 +6,7 @@ const TrainingQuiz = require('../models/trainingQuiz');
 const UserTrainingProgress = require('../models/userTrainingProgress');
 const User = require('../models/user');
 const { uploadToCloudinary } = require('../utils/cloudinary');
+const { uploadToGridFS, getFromGridFS, getFileMetadata } = require('../utils/gridfs');
 
 // ========================================
 // ADMIN CONTROLLERS
@@ -2023,6 +2024,176 @@ const handleCertificatePaymentCallback = async (req, res) => {
   }
 };
 
+// ========================================
+// ADMIN MANAGED CERTIFICATES
+// ========================================
+
+// @desc    Admin assigns/uploads a certificate for a user & course
+// @route   POST /api/admin/training/certificates/assign
+// @access  Private/Admin
+const adminAssignCertificate = async (req, res) => {
+  try {
+    const { userId, courseId, notes } = req.body;
+
+    if (!userId || !courseId) {
+      return res.status(400).json({
+        success: false,
+        message: 'userId and courseId are required'
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const course = await TrainingCourse.findById(courseId);
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    // Ensure progress exists
+    let progress = await UserTrainingProgress.findOne({ user: userId, course: courseId });
+    if (!progress) {
+      progress = await UserTrainingProgress.create({
+        user: userId,
+        course: courseId,
+        enrollmentStatus: 'completed',
+        overallProgress: 100
+      });
+    }
+
+    let fileMeta = {};
+    if (req.file) {
+      const filename = `training-certificate-${userId}-${courseId}-${Date.now()}-${req.file.originalname}`;
+      const uploadResult = await uploadToGridFS(
+        req.file.path,
+        filename,
+        'training-certificates',
+        req.file.mimetype || 'application/pdf'
+      );
+
+      fileMeta = {
+        fileId: uploadResult.fileId,
+        fileName: req.file.originalname,
+        mimeType: req.file.mimetype || 'application/pdf'
+      };
+    }
+
+    progress.certificateManagedByAdmin = true;
+    progress.certificateGenerated = true;
+    progress.certificateGeneratedAt = new Date();
+    progress.certificatePaymentStatus = 'completed';
+    progress.certificatePaidAt = progress.certificatePaidAt || new Date();
+
+    if (fileMeta.fileId) {
+      progress.certificateAdminFileId = fileMeta.fileId;
+      progress.certificateAdminFileName = fileMeta.fileName;
+      progress.certificateAdminMimeType = fileMeta.mimeType;
+      progress.certificateUrl = '';
+    }
+
+    progress.certificateAdminUploadedAt = new Date();
+    progress.certificateAdminUploadedBy = req.admin?._id || req.admin?.id || null;
+
+    if (notes) {
+      progress.certificateAdminNotes = notes; // field optional/backward compatible
+    }
+
+    await progress.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Certificate assigned successfully',
+      data: { progress }
+    });
+  } catch (error) {
+    console.error('Admin assign certificate error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    List admin-assigned certificates (optional filters)
+// @route   GET /api/admin/training/certificates
+// @access  Private/Admin
+const listAdminCertificates = async (req, res) => {
+  try {
+    const { courseId, userId, completedOnly } = req.query;
+
+    const query = { certificateManagedByAdmin: true };
+    if (courseId) query.course = courseId;
+    if (userId) query.user = userId;
+    if (completedOnly === 'true') query.enrollmentStatus = 'completed';
+
+    const items = await UserTrainingProgress.find(query)
+      .populate('user', 'firstName lastName email phone')
+      .populate('course', 'title provider instructor')
+      .sort({ certificateAdminUploadedAt: -1, updatedAt: -1 })
+      .lean();
+
+    res.status(200).json({
+      success: true,
+      count: items.length,
+      data: items
+    });
+  } catch (error) {
+    console.error('List admin certificates error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// @desc    User downloads admin-assigned certificate
+// @route   GET /api/training/certificate/:courseId/download
+// @access  Private/User
+const downloadAssignedCertificate = async (req, res) => {
+  try {
+    const userId = req.user?.id || req.user?._id;
+    const { courseId } = req.params;
+
+    const progress = await UserTrainingProgress.findOne({ user: userId, course: courseId });
+
+    if (!progress || !progress.certificateManagedByAdmin || !progress.certificateAdminFileId) {
+      return res.status(404).json({
+        success: false,
+        message: 'Certificate not found'
+      });
+    }
+
+    const fileBuffer = await getFromGridFS(progress.certificateAdminFileId, 'training-certificates');
+    const fileMetadata = await getFileMetadata(progress.certificateAdminFileId, 'training-certificates');
+
+    res.setHeader('Content-Type', fileMetadata.contentType || progress.certificateAdminMimeType || 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${progress.certificateAdminFileName || fileMetadata.filename || 'certificate.pdf'}"`
+    );
+    res.setHeader('Content-Length', fileMetadata.length || fileBuffer.length);
+
+    return res.send(fileBuffer);
+  } catch (error) {
+    console.error('Download admin certificate error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to download certificate',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   // Admin
   createCourse,
@@ -2038,6 +2209,8 @@ module.exports = {
   createTopic,
   updateTopic,
   deleteTopic,
+  adminAssignCertificate,
+  listAdminCertificates,
   createQuiz,
   updateQuiz,
   deleteQuiz,
@@ -2051,6 +2224,7 @@ module.exports = {
   createCertificateOrder,
   createCertificatePaymentLink,
   handleCertificatePaymentCallback,
-  updateCertificatePayment
+  updateCertificatePayment,
+  downloadAssignedCertificate
 };
 
