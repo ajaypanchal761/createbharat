@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import ServiceNotification from '../../components/common/ServiceNotification';
 import { mentorAPI } from "../../utils/api";
 
@@ -28,7 +28,14 @@ const ClockIcon = () => (
   </svg>
 );
 
+const ArrowLeftIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+  </svg>
+);
+
 const MentorDashboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -179,6 +186,24 @@ const MentorDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
+      {/* Header with Back Button */}
+      <div className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => navigate('/mentors')}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <ArrowLeftIcon />
+              </button>
+              <div>
+                <h1 className="text-lg font-semibold text-gray-900">Mentor Dashboard</h1>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Main Content */}
       <div className="px-3 md:px-4 pt-4 md:pt-6 pb-4">

@@ -657,12 +657,14 @@ const createBooking = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Mentor is not available' });
     }
     const { sessionType } = req.body;
+    
+    // Only '20min' session type is allowed (paid sessions only)
+    if (sessionType !== '20min') {
+      return res.status(400).json({ success: false, message: 'Invalid session type. Only paid sessions are available.' });
+    }
+    
     const pricing = mentor.pricing || {};
     const sessionDetails = {
-      intro: {
-        duration: '15-20 minutes',
-        price: 0,
-      },
       '20min': {
         duration: pricing.quick?.duration || '20-25 minutes',
         price: pricing.quick?.price ?? 150,
@@ -673,18 +675,8 @@ const createBooking = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid session type' });
     }
 
-    // check if user already consumed free session with this mentor
-    const hasUsedFree = await MentorBooking.exists({
-      mentor: mentor._id,
-      user: req.user.id
-    });
-
-    if (sessionType === 'intro' && hasUsedFree) {
-      return res.status(400).json({ success: false, message: 'Free session already used with this mentor.' });
-    }
-
-    const amountToCharge = sessionType === 'intro' ? 0 : details.price;
-    const paymentStatus = sessionType === 'intro' ? 'completed' : 'pending';
+    const amountToCharge = details.price;
+    const paymentStatus = 'pending';
 
     // date, time = null by default (mentor will set later)
     const booking = await MentorBooking.create({
@@ -739,28 +731,6 @@ const createBooking = async (req, res) => {
   } catch (error) {
     console.error('Create booking error:', error);
     res.status(500).json({ success: false, message: 'Server error', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
-  }
-};
-
-// @desc    Check if user can take free intro session with mentor
-// @route   GET /api/mentors/:id/free-status
-// @access  Private (User)
-const getFreeSessionStatus = async (req, res) => {
-  try {
-    const mentorId = req.params.id;
-    const exists = await MentorBooking.exists({ mentor: mentorId, user: req.user.id });
-    res.status(200).json({
-      success: true,
-      data: {
-        available: !exists
-      }
-    });
-  } catch (error) {
-    console.error('Get free session status error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
   }
 };
 
@@ -2386,7 +2356,6 @@ module.exports = {
   getSpecializations,
   verifyAndUpdatePayment,
   createRazorpayPaymentLink,
-  handlePaymentCallback,
-  getFreeSessionStatus
+  handlePaymentCallback
 };
 

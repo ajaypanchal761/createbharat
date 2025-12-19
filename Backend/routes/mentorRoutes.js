@@ -22,8 +22,7 @@ const {
   getSpecializations,
   verifyAndUpdatePayment,
   createRazorpayPaymentLink,
-  handlePaymentCallback,
-  getFreeSessionStatus
+  handlePaymentCallback
 } = require('../controllers/mentorController');
 const { protect: mentorProtect } = require('../middleware/mentorAuth');
 const { protect: userProtect } = require('../middleware/auth');
@@ -57,7 +56,7 @@ const loginValidation = [
 ];
 
 const bookingValidation = [
-  body('sessionType').isIn(['intro', '20min']).withMessage('Invalid session type')
+  body('sessionType').isIn(['20min']).withMessage('Invalid session type. Only paid sessions are available.')
   // date and time are not required from user side, so remove those validations
 ];
 
@@ -129,7 +128,6 @@ router.get('/bookings/:id', userProtect, getBookingById);
 router.put('/bookings/:id/review', userProtect, addBookingReview);
 router.post('/bookings/:id/create-order', userProtect, createRazorpayOrder);
 router.post('/bookings/:id/create-payment-link', userProtect, createRazorpayPaymentLink);
-router.get('/:id/free-status', userProtect, getFreeSessionStatus);
 // Public callback route (called by Razorpay)
 router.get('/bookings/:id/payment-callback', handlePaymentCallback);
 

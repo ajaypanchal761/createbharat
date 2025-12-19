@@ -304,7 +304,7 @@ const LegalPage = () => {
           <motion.button 
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/')}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">

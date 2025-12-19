@@ -42,7 +42,6 @@ const MentorDetailPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [mentorData, setMentorData] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [freeAvailable, setFreeAvailable] = useState(null);
 
   // Fetch mentor data
   const fetchMentor = useCallback(async () => {
@@ -53,7 +52,7 @@ const MentorDetailPage = () => {
         const apiMentor = response.data.mentor;
         const normalizedRating = typeof apiMentor.rating === 'number' && apiMentor.rating > 0
           ? apiMentor.rating
-          : 3;
+          : 0;
         const reviewCount = typeof apiMentor.reviewCount === 'number'
           ? apiMentor.reviewCount
           : Array.isArray(apiMentor.reviews)
@@ -93,29 +92,9 @@ const MentorDetailPage = () => {
   }, [fetchMentor]);
 
   useEffect(() => {
-    const checkFree = async () => {
-      try {
-        const token = (localStorage.getItem('token') || localStorage.getItem('authToken') || '').trim();
-        if (!token) return;
-        const cleanToken = token.replace(/^["']/, '').replace(/["']$/, '');
-        const res = await mentorAPI.getFreeStatus(cleanToken, mentorId);
-        if (res?.success) {
-          setFreeAvailable(res.data?.available ?? null);
-        }
-      } catch (err) {
-        // ignore errors; default null
-      }
-    };
-    checkFree();
-  }, [mentorId]);
-
-  useEffect(() => {
-    if (freeAvailable === false) {
-      setSelectedSlot('paid');
-    } else if (freeAvailable === true) {
-      setSelectedSlot('intro');
-    }
-  }, [freeAvailable]);
+    // Set default selected slot to paid session
+    setSelectedSlot('paid');
+  }, []);
 
   useEffect(() => {
     const handler = () => {
@@ -131,19 +110,11 @@ const MentorDetailPage = () => {
   // Time slots based on pricing
   const timeSlots = [
     {
-      id: 'intro',
-      duration: '15-20 minutes',
-      price: 0,
-      description: 'First session is free for new students with this mentor',
-      disabled: freeAvailable === false,
-      label: 'Intro (Free)'
-    },
-    {
       id: 'paid',
       duration: mentor?.pricing?.quick?.duration || '20-25 minutes',
       price: mentor?.pricing?.quick?.price || 150,
       description: mentor?.pricing?.quick?.label || 'Standard consultation',
-      label: 'Standard (Paid)'
+      label: 'Standard Session'
     },
   ];
 
@@ -158,9 +129,7 @@ const MentorDetailPage = () => {
     try {
       const rawToken = (localStorage.getItem('token') || localStorage.getItem('authToken') || '').trim();
       const token = rawToken.replace(/^["']/, '').replace(/["']$/, '');
-      const sessionTypeMap = { intro: 'intro', paid: '20min' };
-      const sessionType = sessionTypeMap[slotId];
-      if (!sessionType) throw new Error('Invalid session type');
+      const sessionType = '20min'; // Only paid sessions are allowed now
       const bookingData = { sessionType };
       const res = await mentorBookingAPI.create(token, mentorId, bookingData);
       if (res.success && res.data && res.data.booking && res.data.booking._id) {
@@ -337,7 +306,7 @@ const MentorDetailPage = () => {
                 <div className="flex items-center space-x-4 mb-4">
                   <div className="flex items-center space-x-1">
                     <StarIcon />
-                  <span className="font-medium text-gray-900">{Number(mentor.rating || 3).toFixed(1)}</span>
+                  <span className="font-medium text-gray-900">{Number(mentor.rating || 0).toFixed(1)}</span>
                   <span className="text-gray-500">
                     ({mentor.reviews} review{mentor.reviews === 1 ? '' : 's'})
                   </span>
@@ -417,12 +386,11 @@ const MentorDetailPage = () => {
                 <div className="space-y-3 mb-6">
                   {timeSlots.map((slot) => {
                     const isSelected = selectedSlot === slot.id;
-                    const isDisabled = slot.disabled;
                     return (
                       <div
                         key={slot.id}
-                        className={`p-4 rounded-lg border-2 transition-all ${isSelected ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'} ${isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
-                        onClick={() => !isDisabled && setSelectedSlot(slot.id)}
+                        className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${isSelected ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'}`}
+                        onClick={() => setSelectedSlot(slot.id)}
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center space-x-2">
@@ -430,13 +398,10 @@ const MentorDetailPage = () => {
                             <span className="font-medium text-gray-900">{slot.duration}</span>
                           </div>
                           <span className="font-bold text-gray-900">
-                            {slot.price === 0 ? 'Free' : `₹${slot.price}`}
+                            ₹{slot.price}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600">{slot.description}</p>
-                        {slot.id === 'intro' && freeAvailable === false && (
-                          <p className="text-xs text-red-500 mt-1">Free session already used.</p>
-                        )}
                       </div>
                     );
                   })}

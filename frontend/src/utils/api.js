@@ -995,18 +995,6 @@ export const mentorAPI = {
     });
   },
 
-  // Check if free session available for this mentor (user-auth)
-  getFreeStatus: async (token, mentorId) => {
-    const cleanToken = token?.trim().replace(/^["']|["']$/g, '');
-    if (!cleanToken) throw new Error('Authentication token is missing. Please login again.');
-    return apiCall(`/mentors/${mentorId}/free-status`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-      },
-    });
-  },
-
   // Mentor: Get dashboard bookings
   getMentorBookings: async (token, params = {}) => {
     const queryString = new URLSearchParams(params).toString();

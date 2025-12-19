@@ -149,13 +149,17 @@ const MentorListingPage = () => {
   const mentorsToDisplay = mentors;
 
   const filteredMentors = mentorsToDisplay.map(mentor => {
+    const reviewCount = mentor.reviewCount || (Array.isArray(mentor.reviews) ? mentor.reviews.length : 0) || (mentor.totalSessions || 0);
+    const normalizedRating = (typeof mentor.rating === 'number' && mentor.rating > 0 && reviewCount > 0)
+      ? mentor.rating
+      : 0;
     return {
       id: mentor._id || mentor.id,
       name: `${mentor.firstName || ''} ${mentor.lastName || ''}`.trim() || 'Mentor',
       title: mentor.title || '',
       company: mentor.company || '',
       experience: mentor.experience || '',
-      rating: mentor.rating || 0,
+      rating: normalizedRating,
       reviews: mentor.totalSessions || 0,
       price: mentor.pricing?.quick?.price || mentor.pricing?.inDepth?.price || mentor.pricing?.comprehensive?.price || 150,
       image: mentor.profileImage || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',

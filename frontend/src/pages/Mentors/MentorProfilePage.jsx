@@ -57,7 +57,7 @@ const MentorProfilePage = () => {
     specializationName: defaultSpecialization.name,
     bio: 'Experienced mentor helping businesses grow.',
     profileImage: null,
-    rating: 3,
+    rating: 0,
     totalSessions: 0,
     reviewCount: 0,
     completedSessions: 0,
@@ -121,7 +121,7 @@ const MentorProfilePage = () => {
 
     const normalizedRating = typeof mentor.rating === 'number' && mentor.rating > 0
       ? mentor.rating
-      : 3;
+      : 0;
 
     const reviewCount = typeof mentor.reviewCount === 'number'
       ? mentor.reviewCount
@@ -576,7 +576,7 @@ const MentorProfilePage = () => {
         <div className="grid grid-cols-3 gap-4 mt-6">
           <div className="text-center">
             <div className="text-2xl font-bold flex items-center justify-center gap-1">
-              <span>{Number(profileData.rating || 3).toFixed(1)}</span>
+              <span>{Number(profileData.rating || 0).toFixed(1)}</span>
               <span>⭐</span>
             </div>
             <div className="text-orange-100 text-sm">
