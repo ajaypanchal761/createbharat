@@ -57,3 +57,5 @@ payoutDetailSchema.index({ ownerType: 1, ownerId: 1 }, { unique: true });
 
 module.exports = mongoose.model('PayoutDetail', payoutDetailSchema);
 
+
+
