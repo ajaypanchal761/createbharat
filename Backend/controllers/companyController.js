@@ -293,57 +293,65 @@ const updateProfile = async (req, res) => {
     }
 
     // Handle file uploads
-  const uploadPromises = [];
+    const uploadPromises = [];
 
-  // Handle registration certificate upload (image only)
-  if (req.files && req.files.registrationCertificate) {
-    const regFile = req.files.registrationCertificate[0];
-    const mimeType = regFile.mimetype || '';
-    if (!mimeType.startsWith('image/')) {
-      return res.status(400).json({
-        success: false,
-        message: 'Registration certificate must be an image file (JPG, PNG, GIF, etc.)'
+    // Handle registration certificate upload (image or PDF)
+    if (req.files && req.files.registrationCertificate) {
+      const regFile = req.files.registrationCertificate[0];
+      const mimeType = regFile.mimetype || '';
+
+      // Allow images and PDFs
+      if (!mimeType.startsWith('image/') && !mimeType.includes('pdf') && !mimeType.includes('application/')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Registration certificate must be an image or PDF file'
+        });
+      }
+
+      const resourceType = mimeType.startsWith('image/') ? 'image' : 'auto';
+
+      const uploadPromise = uploadToCloudinary(regFile.path, {
+        folder: 'company-documents',
+        resource_type: resourceType,
+        public_id: `company-${company._id}-registration`
+      }).then(result => {
+        company.documents.registrationCertificate.url = result.url;
+      }).catch(error => {
+        console.error('Registration certificate upload error:', error);
+        throw new Error('Failed to upload registration certificate');
       });
+
+      uploadPromises.push(uploadPromise);
     }
 
-    const uploadPromise = uploadToCloudinary(regFile.path, {
-      folder: 'company-documents',
-      resource_type: 'image',
-      public_id: `company-${company._id}-registration`
-    }).then(result => {
-      company.documents.registrationCertificate.url = result.url;
-    }).catch(error => {
-      console.error('Registration certificate upload error:', error);
-      throw new Error('Failed to upload registration certificate');
-    });
+    // Handle GST certificate upload (image or PDF)
+    if (req.files && req.files.gstCertificate) {
+      const gstFile = req.files.gstCertificate[0];
+      const mimeType = gstFile.mimetype || '';
 
-    uploadPromises.push(uploadPromise);
-  }
+      // Allow images and PDFs
+      if (!mimeType.startsWith('image/') && !mimeType.includes('pdf') && !mimeType.includes('application/')) {
+        return res.status(400).json({
+          success: false,
+          message: 'GST certificate must be an image or PDF file'
+        });
+      }
 
-  // Handle GST certificate upload (image only)
-  if (req.files && req.files.gstCertificate) {
-    const gstFile = req.files.gstCertificate[0];
-    const mimeType = gstFile.mimetype || '';
-    if (!mimeType.startsWith('image/')) {
-      return res.status(400).json({
-        success: false,
-        message: 'GST certificate must be an image file (JPG, PNG, GIF, etc.)'
+      const resourceType = mimeType.startsWith('image/') ? 'image' : 'auto';
+
+      const uploadPromise = uploadToCloudinary(gstFile.path, {
+        folder: 'company-documents',
+        resource_type: resourceType,
+        public_id: `company-${company._id}-gst`
+      }).then(result => {
+        company.documents.gstCertificate.url = result.url;
+      }).catch(error => {
+        console.error('GST certificate upload error:', error);
+        throw new Error('Failed to upload GST certificate');
       });
+
+      uploadPromises.push(uploadPromise);
     }
-
-    const uploadPromise = uploadToCloudinary(gstFile.path, {
-      folder: 'company-documents',
-      resource_type: 'image',
-      public_id: `company-${company._id}-gst`
-    }).then(result => {
-      company.documents.gstCertificate.url = result.url;
-    }).catch(error => {
-      console.error('GST certificate upload error:', error);
-      throw new Error('Failed to upload GST certificate');
-    });
-
-    uploadPromises.push(uploadPromise);
-  }
 
     // Wait for all uploads to complete
     await Promise.all(uploadPromises);
@@ -418,20 +426,24 @@ const uploadDocuments = async (req, res) => {
     const uploadPromises = [];
 
     // Handle registration certificate upload
-    // Handle registration certificate upload (image only)
+    // Handle registration certificate upload (image or PDF)
     if (req.files && req.files.registrationCertificate) {
       const regFile = req.files.registrationCertificate[0];
       const regFilePath = regFile.path;
       const mimeType = regFile.mimetype || '';
-      if (!mimeType.startsWith('image/')) {
+
+      if (!mimeType.startsWith('image/') && !mimeType.includes('pdf') && !mimeType.includes('application/')) {
         return res.status(400).json({
           success: false,
-          message: 'Registration certificate must be an image file (JPG, PNG, GIF, etc.)'
+          message: 'Registration certificate must be an image or PDF file'
         });
       }
+
+      const resourceType = mimeType.startsWith('image/') ? 'image' : 'auto';
+
       const uploadPromise = uploadToCloudinary(regFilePath, {
         folder: 'company-documents',
-        resource_type: 'image',
+        resource_type: resourceType,
         public_id: `company-${company._id}-registration`
       }).then(result => {
         company.documents.registrationCertificate.url = result.url;
@@ -440,20 +452,24 @@ const uploadDocuments = async (req, res) => {
       uploadPromises.push(uploadPromise);
     }
 
-    // Handle GST certificate upload (image only)
+    // Handle GST certificate upload (image or PDF)
     if (req.files && req.files.gstCertificate) {
       const gstFile = req.files.gstCertificate[0];
       const gstFilePath = gstFile.path;
       const mimeType = gstFile.mimetype || '';
-      if (!mimeType.startsWith('image/')) {
+
+      if (!mimeType.startsWith('image/') && !mimeType.includes('pdf') && !mimeType.includes('application/')) {
         return res.status(400).json({
           success: false,
-          message: 'GST certificate must be an image file (JPG, PNG, GIF, etc.)'
+          message: 'GST certificate must be an image or PDF file'
         });
       }
+
+      const resourceType = mimeType.startsWith('image/') ? 'image' : 'auto';
+
       const uploadPromise = uploadToCloudinary(gstFilePath, {
         folder: 'company-documents',
-        resource_type: 'image',
+        resource_type: resourceType,
         public_id: `company-${company._id}-gst`
       }).then(result => {
         company.documents.gstCertificate.url = result.url;
