@@ -111,13 +111,22 @@ const parseFormDataFields = (req, res, next) => {
   next();
 };
 
-// Configure multer for company documents (images only)
+// File filter for company documents (PDF and images)
+const companyDocumentFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
+    cb(null, true);
+  } else {
+    cb(new Error('Only PDF and image files are allowed'), false);
+  }
+};
+
+// Configure multer for company documents (PDF and images)
 const uploadCompanyDocuments = multer({
   storage: storage,
   limits: {
     fileSize: 10 * 1024 * 1024 // 10MB limit for documents
   },
-  fileFilter: imageFilter
+  fileFilter: companyDocumentFilter
 });
 
 // Configure multer for legal documents (PDF and images)

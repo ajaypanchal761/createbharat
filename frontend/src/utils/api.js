@@ -689,15 +689,17 @@ export const companyAPI = {
       }
     });
     if (registrationFile instanceof File) {
-      if (!registrationFile.type.startsWith('image/')) {
-        throw new Error('Registration certificate must be an image file.');
+      // Allow images and PDFs
+      if (!registrationFile.type.startsWith('image/') && !registrationFile.type.includes('pdf') && !registrationFile.type.includes('application/')) {
+        throw new Error('Registration certificate must be an image or PDF file.');
       }
       formData.append('registrationCertificate', registrationFile);
     }
 
     if (gstFile instanceof File) {
-      if (!gstFile.type.startsWith('image/')) {
-        throw new Error('GST certificate must be an image file.');
+      // Allow images and PDFs
+      if (!gstFile.type.startsWith('image/') && !gstFile.type.includes('pdf') && !gstFile.type.includes('application/')) {
+        throw new Error('GST certificate must be an image or PDF file.');
       }
       formData.append('gstCertificate', gstFile);
     }
