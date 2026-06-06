@@ -111,7 +111,7 @@ const mentorSchema = new mongoose.Schema({
   // Stats
   rating: {
     type: Number,
-    default: 3,
+    default: 0,
     min: 0,
     max: 5
   },

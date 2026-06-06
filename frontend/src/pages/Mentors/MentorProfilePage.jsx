@@ -11,7 +11,7 @@ const MentorProfilePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
-  
+
   // Default mentor profile data to avoid slow loading
   const defaultPricing = {
     quick: {
@@ -59,7 +59,7 @@ const MentorProfilePage = () => {
     categories: [],
     profileVisibility: true
   };
-  
+
   // Mentor profile data
   const [profileData, setProfileData] = useState(defaultProfile);
   const [formData, setFormData] = useState({
@@ -108,17 +108,17 @@ const MentorProfilePage = () => {
       specializationName
     } = deriveSpecializationFromMentor(mentor);
 
-    // Use API rating, default to 0 if not available or invalid
-    const normalizedRating = typeof mentor.rating === 'number' && mentor.rating > 0
-      ? mentor.rating
-      : 0;
-    
     // Use API reviewCount, default to 0 if not available
     const reviewCount = typeof mentor.reviewCount === 'number'
       ? mentor.reviewCount
       : Array.isArray(mentor.reviews)
         ? mentor.reviews.length
         : 0;
+
+    // Use API rating, default to 0 if no reviews
+    const normalizedRating = reviewCount > 0 && typeof mentor.rating === 'number' && mentor.rating > 0
+      ? mentor.rating
+      : 0;
 
     const profile = {
       firstName: mentor.firstName || defaultProfile.firstName,
@@ -281,9 +281,9 @@ const MentorProfilePage = () => {
         profileVisibility: formData.profileVisibility
       };
 
-    if (!updateData.specialization) {
-      updateData.specialization = profileData.specializationId;
-    }
+      if (!updateData.specialization) {
+        updateData.specialization = profileData.specializationId;
+      }
 
       const response = await mentorAPI.updateProfile(token, updateData);
 
@@ -456,8 +456,8 @@ const MentorProfilePage = () => {
                   className="bg-white/20 text-white placeholder-white/80 rounded-lg px-3 py-2 w-full"
                   placeholder="First Name"
                 />
-              <input
-                type="text"
+                <input
+                  type="text"
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
                   className="bg-white/20 text-white placeholder-white/80 rounded-lg px-3 py-2 w-full"
@@ -506,7 +506,7 @@ const MentorProfilePage = () => {
             </div>
           )}
         </div>
-        
+
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mt-6">
           <div className="text-center">
@@ -573,7 +573,7 @@ const MentorProfilePage = () => {
           {formData.skills.length > 0 ? (
             formData.skills.map((skill, index) => (
               <span key={index} className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
-              {skill}
+                {skill}
                 {isEditing && (
                   <button
                     onClick={() => handleRemoveSkill(index)}
@@ -582,7 +582,7 @@ const MentorProfilePage = () => {
                     ×
                   </button>
                 )}
-            </span>
+              </span>
             ))
           ) : (
             <p className="text-gray-500 text-sm">No skills added yet</p>
@@ -653,12 +653,12 @@ const MentorProfilePage = () => {
                   </div>
                 ) : (
                   <>
-              <h4 className="font-semibold text-gray-800">{edu.degree}</h4>
-              <p className="text-gray-600">{edu.university}</p>
-              <p className="text-gray-500 text-sm">{edu.year}</p>
+                    <h4 className="font-semibold text-gray-800">{edu.degree}</h4>
+                    <p className="text-gray-600">{edu.university}</p>
+                    <p className="text-gray-500 text-sm">{edu.year}</p>
                   </>
                 )}
-            </div>
+              </div>
             ))
           ) : (
             <p className="text-gray-500 text-sm">No education added yet</p>
@@ -684,9 +684,9 @@ const MentorProfilePage = () => {
             formData.certifications.map((cert, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-              <span className="text-orange-500">🏆</span>
-              <span className="text-gray-700">{cert}</span>
-            </div>
+                  <span className="text-orange-500">🏆</span>
+                  <span className="text-gray-700">{cert}</span>
+                </div>
                 {isEditing && (
                   <button
                     onClick={() => handleRemoveCertification(index)}
@@ -734,12 +734,12 @@ const MentorProfilePage = () => {
           ) : (
             <p className="text-gray-500 text-sm">No languages added yet</p>
           )}
+        </div>
       </div>
-    </div>
 
       {/* Profile Visibility */}
       {isEditing && (
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+        <div className="bg-white rounded-xl p-6 shadow-lg">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Profile Visibility</h3>
           <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
             <div>
@@ -749,16 +749,16 @@ const MentorProfilePage = () => {
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
+              <input
+                type="checkbox"
                 checked={formData.profileVisibility !== false}
                 onChange={(e) => handleInputChange('profileVisibility', e.target.checked)}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
             </label>
+          </div>
         </div>
-      </div>
       )}
 
       {/* Experience & Specialization */}
@@ -824,21 +824,21 @@ const MentorProfilePage = () => {
               {
                 key: 'quick',
                 duration: formData.pricing.quick?.duration || '20-25 minutes',
-                price: formData.pricing.quick?.price || 150,
+                price: formData.pricing.quick?.price ?? 150,
                 label: formData.pricing.quick?.label || 'Quick consultation',
                 icon: '⚡'
               },
               {
                 key: 'inDepth',
                 duration: formData.pricing.inDepth?.duration || '50-60 minutes',
-                price: formData.pricing.inDepth?.price || 300,
+                price: formData.pricing.inDepth?.price ?? 300,
                 label: formData.pricing.inDepth?.label || 'In-depth session',
                 icon: '💡'
               },
               {
                 key: 'comprehensive',
                 duration: formData.pricing.comprehensive?.duration || '90-120 minutes',
-                price: formData.pricing.comprehensive?.price || 450,
+                price: formData.pricing.comprehensive?.price ?? 450,
                 label: formData.pricing.comprehensive?.label || 'Comprehensive consultation',
                 icon: '🎯'
               }
@@ -873,7 +873,7 @@ const MentorProfilePage = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
                         placeholder="e.g., 20-25 minutes"
                       />
-              </div>
+                    </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
                       <input
@@ -892,7 +892,7 @@ const MentorProfilePage = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
                       <div className="flex items-center space-x-2">
                         <span className="text-gray-500">₹</span>
-                      <input
+                        <input
                           type="number"
                           value={session.price}
                           onChange={(e) => {
@@ -902,26 +902,26 @@ const MentorProfilePage = () => {
                           }}
                           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
                           min="0"
-                      />
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
         <div className="hidden md:block bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">💡 Pricing Tips</h3>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• Consider your experience level when setting prices</li>
-          <li>• Research market rates for your specialization</li>
-          <li>• Start competitive and adjust based on demand</li>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">💡 Pricing Tips</h3>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>• Consider your experience level when setting prices</li>
+            <li>• Research market rates for your specialization</li>
+            <li>• Start competitive and adjust based on demand</li>
             <li>• Session links will be shared via email after payment</li>
-        </ul>
+          </ul>
+        </div>
       </div>
-    </div>
 
       {/* Change Password */}
       <div className="bg-white rounded-xl p-6 shadow-lg">
@@ -987,31 +987,31 @@ const MentorProfilePage = () => {
       {/* Edit Profile Button */}
       <div className="flex justify-center mt-6 md:mt-8">
         {!isEditing ? (
-              <button
-                onClick={() => setIsEditing(true)}
+          <button
+            onClick={() => setIsEditing(true)}
             className="px-6 md:px-8 py-2 md:py-3 text-sm md:text-base bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors shadow-lg"
-              >
+          >
             Edit Profile
-              </button>
+          </button>
         ) : (
           <div className="flex space-x-3 md:space-x-4">
-                <button
-                  onClick={handleCancel}
+            <button
+              onClick={handleCancel}
               className="px-6 md:px-8 py-2 md:py-3 text-sm md:text-base bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
               disabled={isSaving}
               className="px-6 md:px-8 py-2 md:py-3 text-sm md:text-base bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                >
+            >
               {isSaving ? 'Saving...' : 'Save Changes'}
-                </button>
+            </button>
           </div>
-            )}
-          </div>
-        </div>
+        )}
+      </div>
+    </div>
   );
 
 

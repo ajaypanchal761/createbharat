@@ -50,17 +50,17 @@ const MentorDetailPage = () => {
       const response = await mentorAPI.getById(mentorId);
       if (response.success && response.data.mentor) {
         const apiMentor = response.data.mentor;
-        // Use API rating, default to 0 if not available or invalid
-        const normalizedRating = typeof apiMentor.rating === 'number' && apiMentor.rating > 0
-          ? apiMentor.rating
-          : 0;
-        
         // Use API reviewCount, default to 0 if not available
         const reviewCount = typeof apiMentor.reviewCount === 'number'
           ? apiMentor.reviewCount
           : Array.isArray(apiMentor.reviews)
             ? apiMentor.reviews.length
             : 0;
+
+        // Use API rating, default to 0 if no reviews
+        const normalizedRating = reviewCount > 0 && typeof apiMentor.rating === 'number' && apiMentor.rating > 0
+          ? apiMentor.rating
+          : 0;
         setMentorData({
           id: apiMentor._id || apiMentor.id,
           name: `${apiMentor.firstName || ''} ${apiMentor.lastName || ''}`.trim() || 'Mentor',

@@ -149,17 +149,17 @@ const MentorListingPage = () => {
   const mentorsToDisplay = mentors;
 
   const filteredMentors = mentorsToDisplay.map(mentor => {
-    // Use API rating, default to 0 if not available or invalid
-    const normalizedRating = typeof mentor.rating === 'number' && mentor.rating > 0
-      ? mentor.rating
-      : 0;
-    
     // Use API reviewCount, default to 0 if not available
     const reviewCount = typeof mentor.reviewCount === 'number'
       ? mentor.reviewCount
       : Array.isArray(mentor.reviews)
         ? mentor.reviews.length
         : 0;
+
+    // Use API rating, default to 0 if no reviews
+    const normalizedRating = reviewCount > 0 && typeof mentor.rating === 'number' && mentor.rating > 0
+      ? mentor.rating
+      : 0;
     return {
       id: mentor._id || mentor.id,
       name: `${mentor.firstName || ''} ${mentor.lastName || ''}`.trim() || 'Mentor',
