@@ -56,6 +56,7 @@ const MentorDetailPage = () => {
           : Array.isArray(apiMentor.reviews)
             ? apiMentor.reviews.length
             : 0;
+          
 
         // Use API rating, default to 0 if no reviews
         const normalizedRating = reviewCount > 0 && typeof apiMentor.rating === 'number' && apiMentor.rating > 0
