@@ -12,7 +12,7 @@ const AboutPage = () => {
                     transition={{ duration: 0.6 }}
                     className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8"
                 >
-                    
+            
                     <div className="text-center mb-8">
                         <h1 className="text-4xl font-bold text-gray-900 mb-4">🏛 About Us – CreateBharat Foundation</h1>
                         <p className="text-gray-600 text-lg">Empowering India's Next Generation of Entrepreneurs 🇮🇳</p>
