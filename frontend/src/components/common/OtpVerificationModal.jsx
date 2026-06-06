@@ -167,14 +167,19 @@ const OtpVerificationModal = ({ isOpen, onClose, phone, purpose, onSuccess }) =>
                                     <input
                                         key={index}
                                         id={`otp-${index}`}
-                                        type="tel"
+                                        type="number"
                                         inputMode="numeric"
                                         pattern="[0-9]*"
-                                        maxLength={1}
                                         value={digit}
                                         onChange={(e) => handleOtpChange(index, e.target.value)}
-                                        onKeyDown={(e) => handleKeyDown(index, e)}
-                                        className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300"
+                                        onKeyDown={(e) => {
+                                            if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+                                                e.preventDefault();
+                                            }
+                                            handleKeyDown(index, e);
+                                        }}
+                                        className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                        style={{ MozAppearance: 'textfield' }}
                                     />
                                 ))}
                             </div>
