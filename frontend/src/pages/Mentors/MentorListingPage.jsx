@@ -320,7 +320,7 @@ const MentorListingPage = () => {
       </AnimatePresence>
 
       {/* Main Content */}
-      <div className="px-4 pt-6 pb-4">
+      <div className="px-4 pt-6 pb-32">
         {/* Mentors Tab Content */}
         {activeTab === 'mentors' && (
           <>
