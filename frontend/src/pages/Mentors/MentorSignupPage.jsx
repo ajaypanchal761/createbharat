@@ -38,7 +38,7 @@ const MentorSignupPage = () => {
         localStorage.setItem('isMentorLoggedIn', 'true');
         localStorage.setItem('userType', 'mentor');
         localStorage.setItem('mentorData', JSON.stringify(response.data.mentor));
-        navigate('/mentors/profile');
+        navigate('/mentors/dashboard');
       }
       setIsLoading(false);
     } catch (error) {

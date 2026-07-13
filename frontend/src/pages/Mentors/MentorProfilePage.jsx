@@ -4,6 +4,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { mentorAPI } from '../../utils/api';
 import { mentorCategories, getMentorCategoryById } from '../../data/mentorCategories';
 
+const ArrowLeftIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+  </svg>
+);
+
 const MentorProfilePage = () => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
@@ -426,7 +432,7 @@ const MentorProfilePage = () => {
 
 
   const renderProfileTab = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Error Message */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
@@ -435,92 +441,112 @@ const MentorProfilePage = () => {
       )}
 
       {/* Profile Header */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-6 text-white">
-        <div className="flex items-center space-x-4">
-          <div className="w-20 h-20 bg-white/20 rounded-full overflow-hidden">
-            {formData.profileImage ? (
-              <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-4xl">
-                <span>{formData.firstName?.[0] || 'M'}</span>
+      <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-4 sm:p-6 text-white">
+        {isEditing ? (
+          <div className="flex flex-col items-center">
+            {/* Avatar upload */}
+            <div className="relative mb-4 group">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white/20 rounded-full overflow-hidden border-2 border-white/40 flex-shrink-0 flex items-center justify-center">
+                {formData.profileImage ? (
+                  <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-3xl sm:text-4xl font-bold">{formData.firstName?.[0] || 'M'}</span>
+                )}
               </div>
-            )}
-          </div>
-          <div className="flex-1">
-            {isEditing ? (
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={formData.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  className="bg-white/20 text-white placeholder-white/80 rounded-lg px-3 py-2 w-full"
-                  placeholder="First Name"
-                />
-                <input
-                  type="text"
-                  value={formData.lastName}
-                  onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  className="bg-white/20 text-white placeholder-white/80 rounded-lg px-3 py-2 w-full"
-                  placeholder="Last Name"
-                />
-              </div>
-            ) : (
-              <h2 className="text-2xl font-bold">{`${profileData.firstName} ${profileData.lastName}`}</h2>
-            )}
-            {isEditing ? (
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                className="bg-white/20 text-white placeholder-white/80 rounded-lg px-3 py-2 w-full mt-2 mb-2"
-                placeholder="Your Title"
-              />
-            ) : (
-              <p className="text-orange-100">{profileData.title || 'No title set'}</p>
-            )}
-            {isEditing ? (
-              <input
-                type="text"
-                value={formData.company}
-                onChange={(e) => handleInputChange('company', e.target.value)}
-                className="bg-white/20 text-white placeholder-white/80 rounded-lg px-3 py-2 w-full"
-                placeholder="Your Company"
-              />
-            ) : (
-              <p className="text-orange-100">{profileData.company || 'No company set'}</p>
-            )}
-            {!isEditing && (
-              <div className="mt-2">
-                <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/15 text-white text-xs font-medium">
-                  {profileData.specializationName}
-                </span>
-              </div>
-            )}
-          </div>
-          {isEditing && (
-            <div>
-              <label className="inline-block px-4 py-2 bg-white text-orange-600 font-semibold rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                Upload Image
+              <label className="absolute bottom-0 right-0 bg-white hover:bg-orange-50 text-orange-600 p-1.5 rounded-full cursor-pointer shadow-lg transition-colors border border-orange-100 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
                 <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
               </label>
             </div>
-          )}
-        </div>
+            <p className="text-[11px] text-orange-100 mb-5">Click the camera icon to upload a profile photo</p>
+
+            {/* Inputs grid */}
+            <div className="w-full space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-semibold text-orange-100 uppercase tracking-wider mb-1.5">First Name</label>
+                  <input
+                    type="text"
+                    value={formData.firstName}
+                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                    className="bg-white/10 border border-white/20 text-white placeholder-white/60 rounded-xl px-3.5 py-2.5 w-full text-sm focus:bg-white/20 focus:ring-1 focus:ring-white focus:outline-none transition-all duration-200"
+                    placeholder="First Name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] sm:text-xs font-semibold text-orange-100 uppercase tracking-wider mb-1.5">Last Name</label>
+                  <input
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => handleInputChange('lastName', e.target.value)}
+                    className="bg-white/10 border border-white/20 text-white placeholder-white/60 rounded-xl px-3.5 py-2.5 w-full text-sm focus:bg-white/20 focus:ring-1 focus:ring-white focus:outline-none transition-all duration-200"
+                    placeholder="Last Name"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] sm:text-xs font-semibold text-orange-100 uppercase tracking-wider mb-1.5">Title / Designation</label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  className="bg-white/10 border border-white/20 text-white placeholder-white/60 rounded-xl px-3.5 py-2.5 w-full text-sm focus:bg-white/20 focus:ring-1 focus:ring-white focus:outline-none transition-all duration-200"
+                  placeholder="e.g. Senior Product Manager"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] sm:text-xs font-semibold text-orange-100 uppercase tracking-wider mb-1.5">Company / Organization</label>
+                <input
+                  type="text"
+                  value={formData.company}
+                  onChange={(e) => handleInputChange('company', e.target.value)}
+                  className="bg-white/10 border border-white/20 text-white placeholder-white/60 rounded-xl px-3.5 py-2.5 w-full text-sm focus:bg-white/20 focus:ring-1 focus:ring-white focus:outline-none transition-all duration-200"
+                  placeholder="e.g. Google"
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 rounded-full overflow-hidden flex-shrink-0">
+              {formData.profileImage ? (
+                <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-2xl sm:text-4xl">
+                  <span>{formData.firstName?.[0] || 'M'}</span>
+                </div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl sm:text-2xl font-bold truncate">{`${profileData.firstName} ${profileData.lastName}`}</h2>
+              <p className="text-orange-100 text-sm sm:text-base truncate">{profileData.title || 'No title set'}</p>
+              <p className="text-orange-100 text-sm sm:text-base truncate">{profileData.company || 'No company set'}</p>
+              <div className="mt-1.5">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-white/15 text-white text-[10px] sm:text-xs font-medium">
+                  {profileData.specializationName}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mt-6">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-5 pt-4 border-t border-white/10">
           <div className="text-center">
-            <div className="text-2xl font-bold flex items-center justify-center gap-1">
+            <div className="text-lg sm:text-2xl font-bold flex items-center justify-center gap-0.5">
               <span>{Number(profileData.rating || 0).toFixed(1)}</span>
-              <span>⭐</span>
+              <span className="text-sm sm:text-xl">⭐</span>
             </div>
-            <div className="text-orange-100 text-sm">
+            <div className="text-orange-100 text-[10px] sm:text-xs uppercase tracking-wider mt-0.5">
               {profileData.reviewCount || 0} review{(profileData.reviewCount || 0) === 1 ? '' : 's'}
             </div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold">{profileData.completedSessions || 0}</div>
-            <div className="text-orange-100 text-sm">Completed Sessions</div>
+          <div className="text-center border-x border-white/10 px-1">
+            <div className="text-lg sm:text-2xl font-bold">{profileData.completedSessions || 0}</div>
+            <div className="text-orange-100 text-[10px] sm:text-xs uppercase tracking-wider mt-0.5 line-clamp-1">Sessions</div>
           </div>
           <div className="text-center">
             {isEditing ? (
@@ -528,20 +554,20 @@ const MentorProfilePage = () => {
                 type="text"
                 value={formData.responseTime}
                 onChange={(e) => handleInputChange('responseTime', e.target.value)}
-                className="bg-white/20 text-white placeholder-white/80 rounded-lg px-2 py-1 text-sm md:text-lg font-bold w-full text-center focus:outline-none focus:ring-2 focus:ring-white/50"
+                className="bg-white/20 text-white placeholder-white/80 rounded-lg px-2 py-0.5 text-xs sm:text-sm font-bold w-full text-center focus:outline-none focus:ring-2 focus:ring-white/50"
                 placeholder="24 hours"
-                style={{ maxWidth: '100px', margin: '0 auto' }}
+                style={{ maxWidth: '80px', margin: '0 auto' }}
               />
             ) : (
-              <div className="text-2xl font-bold">{profileData.responseTime}</div>
+              <div className="text-lg sm:text-2xl font-bold truncate">{profileData.responseTime}</div>
             )}
-            <div className="text-orange-100 text-sm">Response</div>
+            <div className="text-orange-100 text-[10px] sm:text-xs uppercase tracking-wider mt-0.5 line-clamp-1">Response</div>
           </div>
         </div>
       </div>
 
       {/* Bio */}
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md sm:shadow-lg">
         <h3 className="text-lg font-semibold text-gray-800 mb-3">About Me</h3>
         {isEditing ? (
           <textarea
@@ -557,7 +583,7 @@ const MentorProfilePage = () => {
       </div>
 
       {/* Skills */}
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md sm:shadow-lg">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-gray-800">Skills & Expertise</h3>
           {isEditing && (
@@ -591,7 +617,7 @@ const MentorProfilePage = () => {
       </div>
 
       {/* Education */}
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md sm:shadow-lg">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-gray-800">Education</h3>
           {isEditing && (
@@ -667,7 +693,7 @@ const MentorProfilePage = () => {
       </div>
 
       {/* Certifications */}
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md sm:shadow-lg">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-gray-800">Certifications</h3>
           {isEditing && (
@@ -704,7 +730,7 @@ const MentorProfilePage = () => {
       </div>
 
       {/* Languages */}
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md sm:shadow-lg">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-gray-800">Languages</h3>
           {isEditing && (
@@ -739,7 +765,7 @@ const MentorProfilePage = () => {
 
       {/* Profile Visibility */}
       {isEditing && (
-        <div className="bg-white rounded-xl p-6 shadow-lg">
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md sm:shadow-lg">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Profile Visibility</h3>
           <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
             <div>
@@ -764,19 +790,19 @@ const MentorProfilePage = () => {
       {/* Experience & Specialization */}
       {isEditing && (
         <>
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Experience</h3>
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md sm:shadow-lg">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-2 sm:mb-3">Experience</h3>
             <input
               type="text"
               value={formData.experience}
               onChange={(e) => handleInputChange('experience', e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
               placeholder="e.g., 5+ years, 8 years"
             />
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Specialization</h3>
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md sm:shadow-lg">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-2 sm:mb-3">Specialization</h3>
             <select
               value={formData.specialization || ''}
               onChange={(e) => {
@@ -788,7 +814,7 @@ const MentorProfilePage = () => {
                   specializationName: specializationCategory?.name || prev.specializationName
                 }));
               }}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 bg-white"
+              className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 bg-white text-sm"
             >
               <option value="">Select specialization</option>
               {mentorCategories.map((category) => (
@@ -799,13 +825,13 @@ const MentorProfilePage = () => {
             </select>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Response Time</h3>
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md sm:shadow-lg">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-2 sm:mb-3">Response Time</h3>
             <input
               type="text"
               value={formData.responseTime}
               onChange={(e) => handleInputChange('responseTime', e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
               placeholder="e.g., 2 hours, 24 hours"
             />
           </div>
@@ -813,8 +839,8 @@ const MentorProfilePage = () => {
       )}
 
       {/* Pricing Section */}
-      <div className="space-y-6">
-        <div className="bg-white rounded-xl p-3 md:p-6 shadow-lg">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md sm:shadow-lg">
           <h3 className="text-sm md:text-lg font-semibold text-gray-800 mb-2 md:mb-4">Session Pricing</h3>
           {!isEditing && (
             <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4">Click "Edit Profile" to update pricing</p>
@@ -924,7 +950,7 @@ const MentorProfilePage = () => {
       </div>
 
       {/* Change Password */}
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md sm:shadow-lg">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Change Password</h3>
         {passwordSuccess && (
           <div className="mb-4 px-4 py-3 rounded-lg bg-green-50 text-green-700 border border-green-100 text-sm">
@@ -1019,11 +1045,31 @@ const MentorProfilePage = () => {
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100">
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto p-4 md:p-6 pb-4 md:pb-6">
+      <div className="max-w-3xl mx-auto p-3 sm:p-6 pb-6">
+        {/* Back Link & Logout */}
+        <div className="mb-4 flex items-center justify-between">
+          <Link
+            to="/mentors/dashboard"
+            className="inline-flex items-center space-x-2 text-gray-700 hover:text-orange-600 font-medium transition-colors"
+          >
+            <ArrowLeftIcon />
+            <span className="text-sm sm:text-base">Back to Dashboard</span>
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="inline-flex items-center space-x-1.5 text-red-600 hover:text-red-700 font-semibold text-sm sm:text-base transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span>Logout</span>
+          </button>
+        </div>
+
         {/* Content - Only Profile Tab */}
         <motion.div
           key="profile"
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >

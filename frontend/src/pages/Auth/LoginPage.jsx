@@ -152,12 +152,8 @@ const LoginPage = () => {
                 setError(response.message || 'OTP verification failed');
             }
         } catch (error) {
-            if (error.message === 'Invalid or expired OTP') {
-                setError('Invalid or expired OTP. Please try again.');
-            } else {
-                console.warn('OTP verification error:', error);
-                setError(error.message || 'Failed to verify OTP. Please try again.');
-            }
+            console.warn('OTP verification error:', error);
+            setError(error.message || 'Failed to verify OTP. Please try again.');
         } finally {
             setIsLoading(false);
         }

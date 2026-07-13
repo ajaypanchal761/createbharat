@@ -201,6 +201,19 @@ const MentorDashboard = () => {
                 <h1 className="text-lg font-semibold text-gray-900">Mentor Dashboard</h1>
               </div>
             </div>
+            {/* My Profile Button */}
+            <div>
+              <button
+                onClick={() => navigate('/mentors/profile')}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium text-sm transition-all"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className="hidden sm:inline">My Profile</span>
+                <span className="sm:hidden">Profile</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -250,7 +263,13 @@ const MentorDashboard = () => {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  if (tab.id === 'profile') {
+                    navigate('/mentors/profile');
+                  } else {
+                    setActiveTab(tab.id);
+                  }
+                }}
                 className={`px-2 md:px-4 py-1 md:py-2 rounded-md md:rounded-lg font-medium transition-all whitespace-nowrap flex-shrink-0 text-xs md:text-base ${activeTab === tab.id
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'

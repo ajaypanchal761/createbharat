@@ -8,7 +8,7 @@ const Admin = require('../models/admin');
 
 // Helper: bypass OTP sending for specific test numbers
 const isBypassOtpNumber = (phone) => {
-  const bypassList = new Set(['9685974247', '9876543210', '9999999999', '7610416911']);
+  const bypassList = new Set(['6260491554']);
   return bypassList.has(phone);
 };
 
@@ -120,11 +120,7 @@ const registerUser = async (req, res) => {
     let otp;
     if (isBypassOtpNumber(phone)) {
       // Use custom OTP for specific phone numbers
-      if (phone === '7610416911') {
-        otp = '110211';
-      } else {
-        otp = '123456';
-      }
+      otp = '123456';
       user.phoneVerificationOTP = otp;
       user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
     } else {
@@ -360,7 +356,7 @@ const verifyOTP = async (req, res) => {
 
     // Bypass acceptance: if number is in bypass list, accept the configured code
     if (isBypassOtpNumber(phone)) {
-      const expectedBypassOtp = phone === '7610416911' ? '110211' : '123456';
+      const expectedBypassOtp = '123456';
       isOTPValid = otp === expectedBypassOtp;
       if (isOTPValid) {
         // Mark OTP as valid regardless of stored values
@@ -484,11 +480,7 @@ const resendOTP = async (req, res) => {
     let otp;
     if (isBypassOtpNumber(phone)) {
       // Use custom OTP for specific phone numbers
-      if (phone === '7610416911') {
-        otp = '110211';
-      } else {
-        otp = '123456';
-      }
+      otp = '123456';
       user.phoneVerificationOTP = otp;
       user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
     } else {
@@ -583,11 +575,7 @@ const sendLoginOTP = async (req, res) => {
     let otp;
     if (isBypassOtpNumber(phone)) {
       // Use custom OTP for specific phone numbers
-      if (phone === '7610416911') {
-        otp = '110211';
-      } else {
-        otp = '123456';
-      }
+      otp = '123456';
       user.phoneVerificationOTP = otp;
       user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
       console.log(`🔧 Bypass OTP generated for ${phone}: ${otp}, expires at: ${user.otpExpiresAt}`);

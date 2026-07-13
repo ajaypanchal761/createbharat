@@ -63,12 +63,8 @@ const OtpVerificationModal = ({ isOpen, onClose, phone, purpose, onSuccess }) =>
                 setError('Invalid OTP. Please try again.');
             }
         } catch (error) {
-            if (error.message === 'Invalid or expired OTP') {
-                setError('Invalid or expired OTP. Please try again.');
-            } else {
-                console.warn('OTP verification error:', error);
-                setError(error.message || 'Verification failed. Please try again.');
-            }
+            console.warn('OTP verification error:', error);
+            setError(error.message || 'Verification failed. Please try again.');
         } finally {
             setIsLoading(false);
         }

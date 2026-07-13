@@ -23,6 +23,22 @@ export default function ProtectedRoute({ children }) {
   const location = useLocation();
 
   const path = location.pathname || '/';
+
+  const isMentorAuth = localStorage.getItem('isMentorLoggedIn') === 'true';
+  const isCaAuth = localStorage.getItem('isCALoggedIn') === 'true';
+  const isCompanyAuth = localStorage.getItem('userType') === 'company' && localStorage.getItem('isLoggedIn') === 'true';
+
+  // Role-based route restrictions: Lock logged-in roles to their scope
+  if (isMentorAuth && !path.startsWith('/mentors')) {
+    return <Navigate to="/mentors/dashboard" replace />;
+  }
+  if (isCaAuth && !path.startsWith('/ca')) {
+    return <Navigate to="/ca/dashboard" replace />;
+  }
+  if (isCompanyAuth && !path.startsWith('/company')) {
+    return <Navigate to="/company/internships" replace />;
+  }
+
   const isPublic = publicPaths.some(p => path === p || path.startsWith(p + '/')) || path === '/';
 
   // Show loading state while checking authentication
@@ -39,7 +55,7 @@ export default function ProtectedRoute({ children }) {
 
   if (isPublic) return children;
 
-  const isAuth = isAuthenticated ? isAuthenticated() : false;
+  const isAuth = (isAuthenticated ? isAuthenticated() : false) || isMentorAuth || isCaAuth || isCompanyAuth;
 
   if (!isAuth) {
     return <Navigate to="/login" state={{ from: path }} replace />;

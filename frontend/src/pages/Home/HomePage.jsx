@@ -233,6 +233,18 @@ const HomePage = () => {
         return () => clearInterval(interval);
     }, [banners.length]);
 
+    // Redirect to dashboard if logged in as mentor, ca, or company
+    useEffect(() => {
+        const userType = localStorage.getItem('userType');
+        if (userType === 'mentor' && localStorage.getItem('isMentorLoggedIn') === 'true') {
+            navigate('/mentors/dashboard', { replace: true });
+        } else if (userType === 'ca' && localStorage.getItem('isCALoggedIn') === 'true') {
+            navigate('/ca/dashboard', { replace: true });
+        } else if (userType === 'company' && localStorage.getItem('isLoggedIn') === 'true') {
+            navigate('/company/internships', { replace: true });
+        }
+    }, [navigate]);
+
     // Mobile detection and first visit check
     useEffect(() => {
         const checkMobileAndFirstVisit = () => {
