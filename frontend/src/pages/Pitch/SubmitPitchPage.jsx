@@ -567,34 +567,35 @@ const SubmitPitchPage = () => {
 
       {/* Progress Bar */}
       <div className="max-w-4xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-8">
-          {[1, 2, 3].map((s) => (
-            <div key={s} className="flex items-center flex-1">
-              <div className="flex items-center">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                    step >= s
-                      ? 'bg-orange-500 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {s}
-                </div>
-                {s < 3 && (
-                  <div
-                    className={`h-1 w-full mx-2 ${
-                      step > s ? 'bg-orange-500' : 'bg-gray-200'
-                    }`}
-                  />
-                )}
+        <div className="relative flex justify-between mb-8">
+          {/* Connecting Line Background */}
+          <div className="absolute left-0 top-5 w-full h-1 bg-gray-200 -translate-y-1/2 z-0"></div>
+          {/* Connecting Line Active */}
+          <div 
+            className="absolute left-0 top-5 h-1 bg-orange-500 -translate-y-1/2 z-0 transition-all duration-300" 
+            style={{ width: `${((step - 1) / 2) * 100}%` }}
+          ></div>
+
+          {[
+            { id: 1, label: 'Basic Info' },
+            { id: 2, label: 'Documents' },
+            { id: 3, label: 'Submit' }
+          ].map((s) => (
+            <div key={s.id} className="relative z-10 flex flex-col items-center">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all duration-300 ${
+                  step >= s.id
+                    ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
+                    : 'bg-white border-2 border-gray-200 text-gray-500'
+                }`}
+              >
+                {s.id}
               </div>
+              <span className={`text-xs mt-2 text-center absolute top-12 whitespace-nowrap ${step >= s.id ? 'text-orange-500 font-semibold' : 'text-gray-500'}`}>
+                {s.label}
+              </span>
             </div>
           ))}
-        </div>
-        <div className="flex justify-between text-xs text-gray-600 mb-8">
-          <span className={step >= 1 ? 'text-orange-500 font-semibold' : ''}>Basic Info</span>
-          <span className={step >= 2 ? 'text-orange-500 font-semibold' : ''}>Documents</span>
-          <span className={step >= 3 ? 'text-orange-500 font-semibold' : ''}>Submit</span>
         </div>
 
         {/* Form Content */}

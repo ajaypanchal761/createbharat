@@ -29,14 +29,25 @@ export default function ProtectedRoute({ children }) {
   const isCompanyAuth = localStorage.getItem('userType') === 'company' && localStorage.getItem('isLoggedIn') === 'true';
 
   // Role-based route restrictions: Lock logged-in roles to their scope
-  if (isMentorAuth && !path.startsWith('/mentors')) {
-    return <Navigate to="/mentors/dashboard" replace />;
+  if (isMentorAuth) {
+    const isAllowed = path.startsWith('/mentors/dashboard') || path.startsWith('/mentors/profile');
+    if (!isAllowed) {
+      return <Navigate to="/mentors/dashboard" replace />;
+    }
   }
-  if (isCaAuth && !path.startsWith('/ca')) {
-    return <Navigate to="/ca/dashboard" replace />;
+  
+  if (isCaAuth) {
+    const isAllowed = path.startsWith('/ca/dashboard') || path.startsWith('/ca/profile');
+    if (!isAllowed) {
+      return <Navigate to="/ca/dashboard" replace />;
+    }
   }
-  if (isCompanyAuth && !path.startsWith('/company')) {
-    return <Navigate to="/company/internships" replace />;
+  
+  if (isCompanyAuth) {
+    const isAllowed = path.startsWith('/company/internships') || path.startsWith('/company/profile');
+    if (!isAllowed) {
+      return <Navigate to="/company/internships" replace />;
+    }
   }
 
   const isPublic = publicPaths.some(p => path === p || path.startsWith(p + '/')) || path === '/';
