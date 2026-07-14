@@ -152,7 +152,8 @@ trainingCourseSchema.index({
   title: 'text', 
   description: 'text' 
 }, {
-  default_language: 'none' // Disable language-specific text search
+  default_language: 'none', // Disable language-specific text search
+  language_override: 'dummy_language_override_field' // Prevent MongoDB from using the 'language' field
 });
 
 // Virtual for modules count
