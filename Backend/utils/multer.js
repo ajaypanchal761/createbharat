@@ -71,13 +71,17 @@ const pitchDocumentFilter = (req, file, cb) => {
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'application/vnd.ms-excel'
+    'application/vnd.ms-excel',
+    'image/png',
+    'image/jpeg',
+    'image/jpg',
+    'image/webp'
   ];
 
   if (allowedMimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only PDF, Word, and Excel files are allowed'), false);
+    cb(new Error('Only PDF, Word, Excel, and Image files are allowed'), false);
   }
 };
 
