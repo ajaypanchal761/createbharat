@@ -42,6 +42,7 @@ const CADashboard = () => {
   const [payoutLoading, setPayoutLoading] = useState(false);
   const [payoutSaving, setPayoutSaving] = useState(false);
   const [payoutStatus, setPayoutStatus] = useState(null);
+  const [showPayoutForm, setShowPayoutForm] = useState(false);
 
   // Check CA authentication on mount
   useEffect(() => {
@@ -719,6 +720,7 @@ const CADashboard = () => {
       const response = await caPayoutAPI.upsert(token, payoutData);
       if (response?.success) {
         setPayoutStatus({ type: 'success', message: 'Bank details saved successfully' });
+        setShowPayoutForm(false);
       } else {
         setPayoutStatus({ type: 'error', message: response?.message || 'Failed to save bank details' });
       }
@@ -999,16 +1001,25 @@ const CADashboard = () => {
         <div className="bg-white border border-blue-100 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm mb-4 sm:mb-6">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-base sm:text-lg font-semibold text-gray-900">Bank Details for Payouts</h3>
-            {payoutStatus && (
-              <span className={`text-xs sm:text-sm font-semibold ${payoutStatus.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                {payoutStatus.message}
-              </span>
-            )}
+            <div className="flex items-center gap-3">
+              {payoutStatus && !showPayoutForm && (
+                <span className={`text-xs sm:text-sm font-semibold ${payoutStatus.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                  {payoutStatus.message}
+                </span>
+              )}
+              <button
+                onClick={() => setShowPayoutForm(!showPayoutForm)}
+                className="text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1 rounded-md"
+              >
+                {showPayoutForm ? 'Close' : (payoutData.accountNumber ? 'Edit Details' : 'Add Details')}
+              </button>
+            </div>
           </div>
           {payoutLoading ? (
             <p className="text-sm text-gray-500">Loading bank details...</p>
           ) : (
-            <form className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" onSubmit={handlePayoutSubmit}>
+            showPayoutForm && (
+            <form className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4" onSubmit={handlePayoutSubmit}>
               <div className="space-y-1">
                 <label className="text-xs sm:text-sm font-medium text-gray-700">Account Holder Name *</label>
                 <input
@@ -1079,6 +1090,7 @@ const CADashboard = () => {
                 </button>
               </div>
             </form>
+            )
           )}
         </div>
 
@@ -1086,40 +1098,40 @@ const CADashboard = () => {
         <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8"
+          className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8"
         >
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border border-gray-100">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <div className="min-w-0 flex-1">
                 <p className="text-gray-600 text-xs sm:text-sm font-medium">Total Services</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{totalServices}</p>
+                <p className="text-xl sm:text-3xl font-bold text-gray-900 mt-1">{totalServices}</p>
               </div>
-              <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-blue-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 ml-2">
-                <FaGavel className="text-blue-600 text-base sm:text-lg md:text-xl" />
+              <div className="w-8 h-8 sm:w-11 sm:h-11 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <FaGavel className="text-blue-600 text-sm sm:text-lg" />
               </div>
             </div>
           </div>
 
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border border-gray-100">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <div className="min-w-0 flex-1">
-                <p className="text-gray-600 text-xs sm:text-sm font-medium">Total Submissions</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{totalSubmissions}</p>
+                <p className="text-gray-600 text-xs sm:text-sm font-medium">Submissions</p>
+                <p className="text-xl sm:text-3xl font-bold text-gray-900 mt-1">{totalSubmissions}</p>
               </div>
-              <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-green-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 ml-2">
-                <FaFileUpload className="text-green-600 text-base sm:text-lg md:text-xl" />
+              <div className="w-8 h-8 sm:w-11 sm:h-11 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <FaFileUpload className="text-green-600 text-sm sm:text-lg" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border border-gray-100 sm:col-span-2 md:col-span-1">
-            <div className="flex items-center justify-between">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-5 md:p-6 border border-gray-100 col-span-2 sm:col-span-2 md:col-span-1">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <div className="min-w-0 flex-1">
                 <p className="text-gray-600 text-xs sm:text-sm font-medium">Pending</p>
-                <p className="text-2xl sm:text-3xl font-bold text-orange-600 mt-1 sm:mt-2">{pendingSubmissions}</p>
+                <p className="text-xl sm:text-3xl font-bold text-orange-600 mt-1">{pendingSubmissions}</p>
               </div>
-              <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-orange-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 ml-2">
-                <FaUsers className="text-orange-600 text-base sm:text-lg md:text-xl" />
+              <div className="w-8 h-8 sm:w-11 sm:h-11 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <FaUsers className="text-orange-600 text-sm sm:text-lg" />
               </div>
             </div>
           </div>
@@ -1204,7 +1216,7 @@ const CADashboard = () => {
                           <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{service.name}</h3>
                           <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-4 gap-y-1 text-xs sm:text-sm text-gray-600 mt-1">
                             <span className="whitespace-nowrap">📂 {service.category}</span>
-                            <span className="whitespace-nowrap">💰 {service.price}</span>
+                            <span>💰 {service.price}</span>
                             <span className="whitespace-nowrap">⏱️ {service.duration}</span>
                             <span className="whitespace-nowrap">📊 {service.submissions} submissions</span>
                           </div>
@@ -1558,7 +1570,7 @@ const CADashboard = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-4xl bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 p-4 sm:p-5 md:p-6 max-h-[90vh] overflow-y-auto mx-2 sm:mx-0"
+              className="w-full max-w-4xl bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 p-4 sm:p-5 md:p-6 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => {
                 // Prevent modal from closing on Escape key while typing
@@ -1715,7 +1727,7 @@ const CADashboard = () => {
                 </div>
 
                 {/* Benefits Section */}
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 sm:p-6 border border-green-100">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <span className="text-xl">✅</span> Benefits
                   </h3>
@@ -1729,7 +1741,7 @@ const CADashboard = () => {
                           type="text"
                           value={benefit}
                           onChange={(e) => updateArrayItem('benefits', index, e.target.value)}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                          className="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
                           placeholder="Enter benefit"
                         />
                         <button
@@ -1752,7 +1764,7 @@ const CADashboard = () => {
                 </div>
 
                 {/* Process Steps Section */}
-                <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-100">
+                <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-4 sm:p-6 border border-orange-100">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <span className="text-xl">📋</span> Process Steps
                   </h3>
@@ -1766,7 +1778,7 @@ const CADashboard = () => {
                           type="text"
                           value={step}
                           onChange={(e) => updateArrayItem('process', index, e.target.value)}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                          className="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                           placeholder="Enter process step"
                         />
                         <button
@@ -1789,7 +1801,7 @@ const CADashboard = () => {
                 </div>
 
                 {/* Required Documents Section */}
-                <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-100">
+                <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-4 sm:p-6 border border-indigo-100">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <span className="text-xl">📄</span> Required Documents
                   </h3>
@@ -1803,7 +1815,7 @@ const CADashboard = () => {
                           type="text"
                           value={document}
                           onChange={(e) => updateArrayItem('requiredDocuments', index, e.target.value)}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                          className="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                           placeholder="Enter required document"
                         />
                         <button
@@ -1826,7 +1838,7 @@ const CADashboard = () => {
                 </div>
 
                 {/* Document Upload Fields Section */}
-                <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-xl p-6 border border-cyan-100">
+                <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-xl p-4 sm:p-6 border border-cyan-100">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <span className="text-xl">📤</span> Document Upload Fields
                   </h3>
@@ -1843,7 +1855,7 @@ const CADashboard = () => {
                           type="text"
                           value={upload}
                           onChange={(e) => updateArrayItem('documentUploads', index, e.target.value)}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
+                          className="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
                           placeholder="Enter upload field name (e.g., PAN Card Copy)"
                         />
                         <button
@@ -1908,7 +1920,7 @@ const CADashboard = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-4xl bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 p-4 sm:p-5 md:p-6 max-h-[90vh] overflow-y-auto mx-2 sm:mx-0"
+              className="w-full max-w-4xl bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 p-4 sm:p-5 md:p-6 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4 sm:mb-6">
@@ -2013,21 +2025,21 @@ const CADashboard = () => {
                                 </svg>
                               )}
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-gray-900 truncate">{doc.name}</h4>
-                              <div className="flex items-center space-x-3 text-xs text-gray-500 mt-1">
-                                <span className="flex items-center gap-1">
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                  </svg>
-                                  {doc.fileType.toUpperCase()}
-                                </span>
-                                <span>{doc.size}</span>
-                                {doc.uploadedAt && (
-                                  <span>📅 {doc.uploadedAt}</span>
-                                )}
-                              </div>
-                            </div>
+                              <div className="flex-1 min-w-0">
+                               <h4 className="font-semibold text-gray-900 truncate">{doc.name}</h4>
+                               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mt-1">
+                                 <span className="flex items-center gap-1">
+                                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                   </svg>
+                                   {doc.fileType.toUpperCase()}
+                                 </span>
+                                 <span>{doc.size}</span>
+                                 {doc.uploadedAt && (
+                                   <span>📅 {new Date(doc.uploadedAt).toLocaleDateString()}</span>
+                                 )}
+                               </div>
+                             </div>
                           </div>
                           <div className="flex items-center space-x-2">
                             <Motion.button
@@ -2272,7 +2284,7 @@ const CADashboard = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 max-h-[90vh] overflow-y-auto"
+              className="w-full max-w-4xl bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 p-4 sm:p-5 md:p-6 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => {
                 // Prevent modal from closing on Escape key while typing
@@ -2429,7 +2441,7 @@ const CADashboard = () => {
                 </div>
 
                 {/* Benefits Section */}
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 sm:p-6 border border-green-100">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <span className="text-xl">✅</span> Benefits
                   </h3>
@@ -2443,7 +2455,7 @@ const CADashboard = () => {
                           type="text"
                           value={benefit}
                           onChange={(e) => updateArrayItem('benefits', index, e.target.value)}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                          className="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
                           placeholder="Enter benefit"
                         />
                         <button
@@ -2466,7 +2478,7 @@ const CADashboard = () => {
                 </div>
 
                 {/* Process Steps Section */}
-                <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-100">
+                <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-4 sm:p-6 border border-orange-100">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <span className="text-xl">📋</span> Process Steps
                   </h3>
@@ -2480,7 +2492,7 @@ const CADashboard = () => {
                           type="text"
                           value={step}
                           onChange={(e) => updateArrayItem('process', index, e.target.value)}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                          className="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                           placeholder="Enter process step"
                         />
                         <button
@@ -2503,7 +2515,7 @@ const CADashboard = () => {
                 </div>
 
                 {/* Required Documents Section */}
-                <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-100">
+                <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-4 sm:p-6 border border-indigo-100">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <span className="text-xl">📄</span> Required Documents
                   </h3>
@@ -2517,7 +2529,7 @@ const CADashboard = () => {
                           type="text"
                           value={document}
                           onChange={(e) => updateArrayItem('requiredDocuments', index, e.target.value)}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                          className="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                           placeholder="Enter required document"
                         />
                         <button
@@ -2540,7 +2552,7 @@ const CADashboard = () => {
                 </div>
 
                 {/* Document Upload Fields Section */}
-                <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-xl p-6 border border-cyan-100">
+                <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-xl p-4 sm:p-6 border border-cyan-100">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <span className="text-xl">📤</span> Document Upload Fields
                   </h3>
@@ -2557,7 +2569,7 @@ const CADashboard = () => {
                           type="text"
                           value={upload}
                           onChange={(e) => updateArrayItem('documentUploads', index, e.target.value)}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
+                          className="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
                           placeholder="Enter upload field name (e.g., PAN Card Copy)"
                         />
                         <button

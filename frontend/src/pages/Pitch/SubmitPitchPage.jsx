@@ -123,18 +123,22 @@ const SubmitPitchPage = () => {
 
     // Validate file type
     let allowedTypes = [];
+    const imageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    
     if (docType === 'pitchDeck') {
-      allowedTypes = ['application/pdf'];
+      allowedTypes = ['application/pdf', ...imageTypes];
     } else if (docType === 'executiveSummary') {
-      allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'];
+      allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword', ...imageTypes];
     } else if (docType === 'financials') {
-      allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
+      allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel', ...imageTypes];
     }
 
     if (!allowedTypes.includes(file.type)) {
       setDocumentErrors(prev => ({
         ...prev,
-        [docType]: docType === 'pitchDeck' ? 'Only PDF files are allowed' : 'Only PDF, Word, or Excel files are allowed'
+        [docType]: docType === 'pitchDeck' 
+          ? 'Only PDF or Image files are allowed' 
+          : 'Only PDF, Word, Excel, or Image files are allowed'
       }));
       return;
     }
@@ -394,11 +398,11 @@ const SubmitPitchPage = () => {
     <div className="space-y-6">
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Pitch Deck (PDF) * <span className="text-red-500">Required</span>
+          Pitch Deck (PDF/Image) * <span className="text-red-500">Required</span>
         </label>
         <input
           type="file"
-          accept=".pdf"
+          accept=".pdf,.png,.jpg,.jpeg,.webp"
           onChange={(e) => handleDocumentChange(e, 'pitchDeck')}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
         />
@@ -415,11 +419,11 @@ const SubmitPitchPage = () => {
 
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Executive Summary (PDF/DOCX) <span className="text-gray-500">Optional</span>
+          Executive Summary (PDF/DOCX/Image) <span className="text-gray-500">Optional</span>
         </label>
         <input
           type="file"
-          accept=".pdf,.doc,.docx"
+          accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp"
           onChange={(e) => handleDocumentChange(e, 'executiveSummary')}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
         />
@@ -436,11 +440,11 @@ const SubmitPitchPage = () => {
 
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Financials (Excel/PDF) <span className="text-gray-500">Optional</span>
+          Financials (Excel/PDF/Image) <span className="text-gray-500">Optional</span>
         </label>
         <input
           type="file"
-          accept=".pdf,.xls,.xlsx"
+          accept=".pdf,.xls,.xlsx,.png,.jpg,.jpeg,.webp"
           onChange={(e) => handleDocumentChange(e, 'financials')}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
         />

@@ -9,6 +9,7 @@ const MentorSignupPage = () => {
     firstName: '',
     lastName: '',
     email: '',
+    phone: '',
     password: '',
     specialization: '',
     experience: '',
@@ -156,6 +157,28 @@ const MentorSignupPage = () => {
                 />
                 <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
                   📧
+                </span>
+              </div>
+            </div>
+
+            {/* Phone Number */}
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number *
+              </label>
+              <div className="relative">
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-300"
+                  placeholder="Enter your phone number"
+                />
+                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  📱
                 </span>
               </div>
             </div>
