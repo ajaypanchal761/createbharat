@@ -280,7 +280,16 @@ const AdminPaymentsPage = () => {
                                                         <div className="text-sm text-gray-900">
                                                             <div className="font-medium">{payment.details.mentorName}</div>
                                                             <div className="text-xs text-gray-500">Specialization: {payment.details.mentorSpecialization}</div>
-                                                            <div className="text-xs text-gray-500">Session: {payment.details.sessionType} - {payment.details.duration}</div>
+                                                            <div className="text-xs text-gray-500 flex items-center gap-2">
+                                                                Session: {payment.details.sessionType} - {payment.details.duration}
+                                                                {payment.details.bookingStatus && (
+                                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                                                                        payment.details.bookingStatus === 'completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                                                    }`}>
+                                                                        {payment.details.bookingStatus.toUpperCase()}
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </td>

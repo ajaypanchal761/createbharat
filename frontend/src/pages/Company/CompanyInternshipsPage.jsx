@@ -44,6 +44,10 @@ const CompanyInternshipsPage = () => {
     const [isUploadingDocs, setIsUploadingDocs] = useState(false);
     const [showUploadModal, setShowUploadModal] = useState(false);
 
+    // Application details modal
+    const [selectedApplication, setSelectedApplication] = useState(null);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+
     // Check authentication on mount and load data
     useEffect(() => {
         const companyToken = localStorage.getItem('companyToken');
@@ -299,9 +303,9 @@ const CompanyInternshipsPage = () => {
     };
 
     const handleDownloadResume = async (application) => {
-        // Check if resume exists (GridFS fileId or legacy URL)
-        if (!application.resume || (!application.resume.fileId && !application.resume.url)) {
-            alert('Resume not available');
+        // Check if resume exists
+        if (!application.resume) {
+            alert('Resume not available for this application');
             return;
         }
 
@@ -1158,9 +1162,20 @@ const CompanyInternshipsPage = () => {
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
+                                    onClick={() => {
+                                        setSelectedApplication(app);
+                                        setShowDetailsModal(true);
+                                    }}
+                                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-indigo-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-indigo-700 transition-colors flex-1 sm:flex-none"
+                                >
+                                    View Details
+                                </motion.button>
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
                                     onClick={() => handleDownloadResume(app)}
-                                    disabled={!app.resume || (!app.resume.fileId && !app.resume.url)}
-                                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex-1 sm:flex-none ${(app.resume?.fileId || app.resume?.url)
+                                    disabled={!app.resume}
+                                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex-1 sm:flex-none ${app.resume
                                         ? 'bg-blue-600 text-white hover:bg-blue-700'
                                         : 'bg-gray-400 text-gray-200 cursor-not-allowed'
                                         }`}
@@ -1640,6 +1655,93 @@ const CompanyInternshipsPage = () => {
                         </div>
                     </motion.div>
                 </motion.div>
+            )}
+
+            {/* Application Details Modal */}
+            {showDetailsModal && selectedApplication && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 sm:p-6" onClick={(e) => { if (e.target === e.currentTarget) setShowDetailsModal(false); }}>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col"
+                    >
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-start sticky top-0 bg-white z-10 rounded-t-xl shrink-0">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900">{selectedApplication.candidate}</h3>
+                                <p className="text-sm text-gray-500">{selectedApplication.position}</p>
+                            </div>
+                            <button
+                                onClick={() => setShowDetailsModal(false)}
+                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-6 overflow-y-auto">
+                            <div className="space-y-4">
+                                <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Contact Information</h4>
+                                <div className="grid grid-cols-1 gap-4">
+                                    <div className="flex items-center gap-3 text-gray-600">
+                                        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                        </svg>
+                                        <span className="text-sm break-all">{selectedApplication.email || 'No email provided'}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-gray-600">
+                                        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                        </svg>
+                                        <span className="text-sm">{selectedApplication.phone || 'No phone provided'}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Application Details</h4>
+                                <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                                    <div>
+                                        <span className="text-xs text-gray-500 block mb-1">Status</span>
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium inline-block ${selectedApplication.statusColor || 'bg-blue-100 text-blue-800'}`}>
+                                            {selectedApplication.displayStatus || selectedApplication.status}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span className="text-xs text-gray-500 block mb-1">Experience</span>
+                                        <p className="text-sm text-gray-900 break-words whitespace-pre-wrap">{selectedApplication.experience || 'Not specified'}</p>
+                                    </div>
+                                    {selectedApplication.originalApp?.address && (
+                                        <div>
+                                            <span className="text-xs text-gray-500 block mb-1">Address</span>
+                                            <p className="text-sm text-gray-900 break-words whitespace-pre-wrap">{selectedApplication.originalApp.address}</p>
+                                        </div>
+                                    )}
+                                    <div>
+                                        <span className="text-xs text-gray-500 block mb-1">Applied On</span>
+                                        <p className="text-sm text-gray-900">{selectedApplication.appliedDate}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-xl flex gap-3 justify-end shrink-0">
+                            <button
+                                onClick={() => handleDownloadResume(selectedApplication)}
+                                disabled={!selectedApplication.resume}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedApplication.resume ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                            >
+                                Download Resume
+                            </button>
+                            <button
+                                onClick={() => setShowDetailsModal(false)}
+                                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
             )}
 
         </div>

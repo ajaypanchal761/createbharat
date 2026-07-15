@@ -310,11 +310,11 @@ const MentorDashboard = () => {
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
                   {/* Booking Info */}
                   <div className="flex-1">
-                        <div className="flex items-center space-x-2 md:space-x-3 mb-2">
-                          <h3 className="text-base md:text-lg font-semibold text-gray-900">
+                        <div className="flex items-center justify-between space-x-2 md:space-x-3 mb-2">
+                          <h3 className="text-base md:text-lg font-semibold text-gray-900 truncate flex-1 min-w-0" title={(booking.user && `${booking.user.firstName || ''} ${booking.user.lastName || ''}`.trim()) || 'Student'}>
                             {(booking.user && `${booking.user.firstName || ''} ${booking.user.lastName || ''}`.trim()) || 'Student'}
                           </h3>
-                          <span className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs md:text-sm font-medium border ${getStatusColor(booking.status)}`}>
+                          <span className={`flex-shrink-0 px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs md:text-sm font-medium border ${getStatusColor(booking.status)}`}>
                         <span className="flex items-center space-x-1">
                           {getStatusIcon(booking.status)}
                           <span className="capitalize">{booking.status}</span>
@@ -324,7 +324,7 @@ const MentorDashboard = () => {
                     
                         {/* Minimal fields per status */}
                         {(booking.status === 'pending') && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm text-gray-600">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm text-gray-600 break-words">
                             <div><span className="font-medium">Email:</span> {booking.user?.email || '-'}</div>
                             <div><span className="font-medium">Phone:</span> {booking.user?.phone || '-'}</div>
                             <div><span className="font-medium">Duration:</span> {booking.duration}</div>
@@ -333,7 +333,7 @@ const MentorDashboard = () => {
                         )}
 
                         {(booking.status === 'rejected') && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm text-gray-600">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm text-gray-600 break-words">
                             <div><span className="font-medium">Email:</span> {booking.user?.email || '-'}</div>
                             <div><span className="font-medium">Phone:</span> {booking.user?.phone || '-'}</div>
                             <div><span className="font-medium">Duration:</span> {booking.duration}</div>
@@ -344,7 +344,7 @@ const MentorDashboard = () => {
 
                         {(booking.status === 'accepted') && (
                           <>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm text-gray-600">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm text-gray-600 break-words">
                               <div><span className="font-medium">Email:</span> {booking.user?.email || '-'}</div>
                               <div><span className="font-medium">Phone:</span> {booking.user?.phone || '-'}</div>
                               <div><span className="font-medium">Duration:</span> {booking.duration}</div>

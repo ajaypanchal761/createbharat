@@ -63,7 +63,7 @@ const getAllPayments = async (req, res) => {
     if (type === 'mentor' || !type) {
       const mentorBookingQuery = {
         paymentStatus: 'completed',
-        status: 'completed' // Only show completed bookings
+        status: { $in: ['confirmed', 'completed'] } // Show both confirmed and completed bookings
       };
       
       if (status) {
@@ -98,9 +98,9 @@ const getAllPayments = async (req, res) => {
             details: {
               mentorName: booking.mentor ? `${booking.mentor.firstName} ${booking.mentor.lastName}` : 'Unknown Mentor',
               mentorSpecialization: booking.mentor?.specialization || 'N/A',
-              sessionType: booking.sessionType || 'N/A',
+              sessionType: booking.sessionType || 'Session',
               duration: booking.duration || 'N/A',
-              bookingStatus: booking.status || 'completed'
+              bookingStatus: booking.status
             }
           });
         }

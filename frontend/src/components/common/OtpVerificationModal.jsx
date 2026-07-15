@@ -163,9 +163,11 @@ const OtpVerificationModal = ({ isOpen, onClose, phone, purpose, onSuccess }) =>
                                     <input
                                         key={index}
                                         id={`otp-${index}`}
-                                        type="number"
+                                        type="tel"
                                         inputMode="numeric"
                                         pattern="[0-9]*"
+                                        autoComplete="one-time-code"
+                                        maxLength={1}
                                         value={digit}
                                         onChange={(e) => handleOtpChange(index, e.target.value)}
                                         onKeyDown={(e) => {

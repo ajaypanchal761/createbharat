@@ -380,13 +380,13 @@ const MyBookingsPage = () => {
                           <img
                             src={mentorImg}
                             alt={mentorName}
-                            className="w-12 h-12 rounded-full object-cover border-2 border-gray-100"
+                            className="w-12 h-12 rounded-full object-cover border-2 border-gray-100 flex-shrink-0"
                           />
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900">{mentorName}</h3>
-                            <p className="text-gray-600">{mentorTitle}</p>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-lg font-semibold text-gray-900 truncate" title={mentorName}>{mentorName}</h3>
+                            <p className="text-gray-600 truncate" title={mentorTitle}>{mentorTitle}</p>
                           </div>
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(booking.status)}`}>
+                          <span className={`flex-shrink-0 px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(booking.status)}`}>
                             <span className="flex items-center space-x-1">
                               <span className="capitalize">{formatStatus(booking.status)}</span>
                             </span>
@@ -394,16 +394,16 @@ const MyBookingsPage = () => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                          <div>
+                          <div className="break-words">
                             <span className="font-medium">Session:</span> {booking.sessionType}
                           </div>
-                          <div>
+                          <div className="break-words">
                             <span className="font-medium">Date/Time:</span> {dateStr}{timeStr ? ` at ${timeStr}` : ''}
                           </div>
-                          <div>
+                          <div className="break-words">
                             <span className="font-medium">Amount:</span> ₹{booking.amount}
                           </div>
-                          <div>
+                          <div className="break-words">
                             <span className="font-medium">Message:</span> {booking.message || '-'}
                           </div>
                         </div>
